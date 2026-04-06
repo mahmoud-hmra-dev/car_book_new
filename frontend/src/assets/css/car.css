@@ -20,13 +20,13 @@ div.car-container article .btn-book {
   padding: 0 28px;
   font-weight: 600;
   font-size: 15px;
-  background: var(--bc-gradient-primary, linear-gradient(135deg, #1B6B4A 0%, #2D9D6F 100%)) !important;
+  background: var(--bc-gradient-primary, linear-gradient(135deg, #6B3CE6 0%, #8B6AEF 100%)) !important;
   transition: all 0.25s ease;
-  box-shadow: 0 4px 14px rgba(27, 107, 74, 0.25);
+  box-shadow: 0 4px 14px rgb(107 60 230 / 25%);
 }
 
 div.car-container article .btn-book:hover {
-  box-shadow: 0 8px 24px rgba(27, 107, 74, 0.35);
+  box-shadow: 0 8px 24px rgb(107 60 230 / 35%);
   transform: translateY(-2px);
 }
 
@@ -92,8 +92,8 @@ div.car-container div.car-header div.distance img {
 
 /* ---- Car Card ---- */
 div.car-container article {
-  background: #FFFFFF;
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: #FFF;
+  border: 1px solid rgb(0 0 0 / 6%);
   border-radius: var(--bc-radius-lg, 16px);
   color: #333;
   font-size: 13px;
@@ -104,13 +104,13 @@ div.car-container article {
   flex-direction: row;
   padding: 20px;
   transition: all 0.3s ease;
-  box-shadow: var(--bc-shadow-sm, 0 1px 3px rgba(0,0,0,0.06));
+  box-shadow: var(--bc-shadow-sm, 0 1px 3px rgb(0 0 0 / 6%));
 }
 
 div.car-container article:hover {
-  box-shadow: var(--bc-shadow-lg, 0 12px 40px rgba(0,0,0,0.12));
+  box-shadow: var(--bc-shadow-lg, 0 12px 40px rgb(0 0 0 / 12%));
   transform: translateY(-3px);
-  border-color: rgba(27, 107, 74, 0.15);
+  border-color: rgb(107 60 230 / 15%);
 }
 
 /* ---- Car Image Section ---- */
@@ -258,7 +258,7 @@ div.car-container article div.price {
 }
 
 div.car-container article span.price-main {
-  color: var(--bc-primary, #1B6B4A);
+  color: var(--bc-primary, #6B3CE6);
   font-size: 2.2em;
   font-weight: 800;
   line-height: 1em;
@@ -272,8 +272,7 @@ div.car-container article span.price-day {
   font-size: 13px;
   color: var(--bc-gray-500, #64748B);
   display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
+  flex-flow: row wrap;
   justify-content: flex-end;
   width: max-content;
 }
@@ -313,7 +312,7 @@ div.car-container article div.car-info ul.car-info-list li.aircon {
 }
 
 div.car-container article div.car-info ul.car-info-list li:hover {
-  background: rgba(27, 107, 74, 0.08);
+  background: rgb(107 60 230 / 8%);
 }
 
 /* ---- Extras Accordion ---- */
@@ -386,7 +385,7 @@ div.car-container article div.action {
 }
 
 /* ---- Mobile ---- */
-@media (max-width: 960px) {
+@media (width <= 960px) {
   div.car-container {
     width: 100%;
     max-width: 600px;
@@ -430,8 +429,8 @@ div.car-container .car-supplier-banner {
   justify-content: space-between;
   padding: 12px 16px;
   margin-bottom: 6px;
-  background: linear-gradient(135deg, #F0F9F4 0%, #E8F5F0 100%);
-  border: 1px solid rgba(27, 107, 74, 0.12);
+  background: linear-gradient(135deg, #F3F0FD 0%, #EDE8FA 100%);
+  border: 1px solid rgb(107 60 230 / 12%);
   border-radius: var(--bc-radius-md, 12px);
   width: 100%;
   box-sizing: border-box;
@@ -450,7 +449,7 @@ div.car-container .car-supplier-banner-logo {
   border-radius: 10px;
   overflow: hidden;
   background: #fff;
-  border: 1px solid rgba(27, 107, 74, 0.15);
+  border: 1px solid rgb(107 60 230 / 15%);
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -481,10 +480,162 @@ div.car-container .car-supplier-banner-location {
   align-items: center;
   gap: 3px;
   font-size: 12px;
-  color: #1B6B4A;
+  color: #6B3CE6;
   font-weight: 500;
   margin-top: 2px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* ============================================
+   CAR GRID CARD - Figma Design
+   ============================================ */
+
+.car-grid-card {
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 6%);
+  border: 1px solid rgb(0 0 0 / 6%);
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+}
+
+.car-grid-card:hover {
+  box-shadow: 0 8px 24px rgb(0 0 0 / 10%);
+  transform: translateY(-3px);
+  border-color: rgb(107 60 230 / 15%);
+}
+
+.car-grid-card-image {
+  background: #F5F5F5;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 16px;
+}
+
+.car-grid-card-image img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.car-grid-card:hover .car-grid-card-image img {
+  transform: scale(1.05);
+}
+
+.car-grid-card-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.car-grid-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.car-grid-card-name-block {
+  flex: 1;
+  min-width: 0;
+}
+
+.car-grid-card-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0F1419;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.car-grid-card-type {
+  font-size: 13px;
+  color: #64748B;
+  margin-top: 2px;
+}
+
+.car-grid-card-price {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.car-grid-card-price-value {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--bc-primary, #6B3CE6);
+}
+
+.car-grid-card-price-unit {
+  font-size: 12px;
+  color: #64748B;
+  font-weight: 400;
+}
+
+.car-grid-card-specs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.car-grid-card-spec {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  color: #64748B;
+}
+
+.car-grid-card-spec svg {
+  font-size: 18px;
+  color: #94A3B8;
+}
+
+.car-grid-card-btn {
+  margin-top: 4px;
+  background: var(--bc-primary, #6B3CE6) !important;
+  color: #fff !important;
+  border-radius: 8px !important;
+  height: 40px;
+  text-transform: none !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  box-shadow: none !important;
+  transition: background 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.car-grid-card-btn:hover {
+  background: #5a2ec4 !important;
+  box-shadow: 0 4px 14px rgb(107 60 230 / 30%) !important;
+}
+
+.car-grid-card-status {
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-top: 4px;
+}
+
+.car-grid-card-status.coming-soon {
+  background: #FFF0F0;
+  color: #E53935;
+}
+
+.car-grid-card-status.fully-booked {
+  background: #FFF0F0;
+  color: #E53935;
 }

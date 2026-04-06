@@ -99,6 +99,9 @@ const strings = new LocalizedStrings({
     CAR_RANGE_BUS: 'Bus',
     CAR_RANGE_TRUCK: 'Camion',
     CAR_RANGE_CARAVAN: 'Caravane',
+    VIEW_DETAILS: 'Voir les details',
+    PER_DAY: '/par jour',
+    AIRCON_LABEL: 'Climatisation',
   },
   en: {
     NEW_CAR: 'New car',
@@ -189,6 +192,9 @@ const strings = new LocalizedStrings({
     CAR_RANGE_BUS: 'Bus',
     CAR_RANGE_TRUCK: 'Truck',
     CAR_RANGE_CARAVAN: 'Caravan',
+    VIEW_DETAILS: 'View Details',
+    PER_DAY: '/per day',
+    AIRCON_LABEL: 'Air Conditioner',
   },
   ar: {
     NEW_CAR: 'سيارة جديدة',
@@ -279,6 +285,9 @@ const strings = new LocalizedStrings({
     CAR_RANGE_BUS: 'حافلة',
     CAR_RANGE_TRUCK: 'شاحنة',
     CAR_RANGE_CARAVAN: 'كارافان',
+    VIEW_DETAILS: 'عرض التفاصيل',
+    PER_DAY: '/في اليوم',
+    AIRCON_LABEL: 'مكيف الهواء',
   },
   es: {
     NEW_CAR: 'Coche nuevo',
@@ -369,6 +378,9 @@ const strings = new LocalizedStrings({
     CAR_RANGE_BUS: 'Autobús',
     CAR_RANGE_TRUCK: 'Camión',
     CAR_RANGE_CARAVAN: 'Caravana',
+    VIEW_DETAILS: 'Ver detalles',
+    PER_DAY: '/por dia',
+    AIRCON_LABEL: 'Aire acondicionado',
   }
 })
 

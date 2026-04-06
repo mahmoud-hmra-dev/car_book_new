@@ -1,11 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import {
-  OutlinedInput,
-  InputLabel,
-  FormControl,
-  FormHelperText,
-  Button,
   Paper,
   CircularProgress,
 } from '@mui/material'
@@ -13,7 +7,6 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as bookcarsTypes from ':bookcars-types'
 import env from '@/config/env.config'
-import { strings as commonStrings } from '@/lang/common'
 import { strings } from '@/lang/contact-form'
 import * as UserService from '@/services/UserService'
 import { useRecaptchaContext, RecaptchaContextType } from '@/context/RecaptchaContext'
@@ -28,27 +21,31 @@ interface ContactFormProps {
 }
 
 const ContactForm = ({ user, className }: ContactFormProps) => {
-  const navigate = useNavigate()
   const { reCaptchaLoaded, generateReCaptchaToken } = useRecaptchaContext() as RecaptchaContextType
 
   const [isAuthenticated, setIsAuthenticated] = useState(false)
 
   const { register, setValue, handleSubmit, reset, formState: { errors, isSubmitting }, clearErrors } = useForm<FormFields>({
     resolver: zodResolver(schema),
-    mode: 'onSubmit'
+    mode: 'onSubmit',
   })
 
   const initForm = useCallback((user?: bookcarsTypes.User) => {
     if (user) {
       setIsAuthenticated(true)
       setValue('email', user.email!)
+      if (user.fullName) {
+        setValue('fullName', user.fullName)
+      }
+      if (user.phone) {
+        setValue('phone', user.phone)
+      }
     }
   }, [setValue])
 
   useEffect(() => {
     initForm(user)
   }, [initForm, user])
-
 
   const onSubmit = async (data: FormFields) => {
     try {
@@ -87,67 +84,81 @@ const ContactForm = ({ user, className }: ContactFormProps) => {
   }
 
   return (
-    <Paper className={`${className ? `${className} ` : ''}contact-form`} elevation={10}>
-      <h1 className="contact-form-title">{strings.CONTACT_HEADING}</h1>
+    <Paper className={`${className ? `${className} ` : ''}contact-form`} elevation={0}>
+      <h2 className="contact-form-title">{strings.BOOK_YOUR_CAR}</h2>
       <form onSubmit={handleSubmit(onSubmit)}>
-        {!isAuthenticated && (
-          <FormControl fullWidth margin="dense" error={!!errors.email}>
-            <InputLabel className="required">{commonStrings.EMAIL}</InputLabel>
-            <OutlinedInput
+        <div className="contact-field-group">
+          <div>
+            <input
               type="text"
-              {...register('email')}
-              label={commonStrings.EMAIL}
-              required
-              autoComplete="off"
+              className={`contact-input${errors.fullName ? ' contact-input-error' : ''}`}
+              placeholder={strings.FULL_NAME}
+              {...register('fullName')}
+              autoComplete="name"
               onChange={() => {
-                if (errors.email) {
-                  clearErrors('email')
+                if (errors.fullName) {
+                  clearErrors('fullName')
                 }
               }}
             />
-            <FormHelperText error={!!errors.email}>{errors.email?.message || ''}</FormHelperText>
-          </FormControl>
-        )}
+            {errors.fullName && (
+              <div className="contact-field-error">{errors.fullName.message}</div>
+            )}
+          </div>
 
-        <FormControl fullWidth margin="dense">
-          <InputLabel className="required">{strings.SUBJECT}</InputLabel>
-          <OutlinedInput type="text" {...register('subject')} label={strings.SUBJECT} required autoComplete="off" />
-        </FormControl>
+          {!isAuthenticated && (
+            <div>
+              <input
+                type="email"
+                className={`contact-input${errors.email ? ' contact-input-error' : ''}`}
+                placeholder={strings.EMAIL}
+                {...register('email')}
+                autoComplete="email"
+                onChange={() => {
+                  if (errors.email) {
+                    clearErrors('email')
+                  }
+                }}
+              />
+              {errors.email && (
+                <div className="contact-field-error">{errors.email.message}</div>
+              )}
+            </div>
+          )}
 
-        <FormControl fullWidth margin="dense">
-          <InputLabel className="required">{strings.MESSAGE}</InputLabel>
-          <OutlinedInput
-            type="text"
-            label={strings.MESSAGE}
-            {...register('message')}
-            autoComplete="off"
-            required
-            multiline
-            minRows={7}
-            maxRows={7}
+          <input
+            type="tel"
+            className="contact-input"
+            placeholder={strings.PHONE_NUMBER}
+            {...register('phone')}
+            autoComplete="tel"
           />
-        </FormControl>
 
-        <div className="buttons">
-          <Button type="submit" variant="contained" className="btn-primary btn-margin-bottom btn" aria-label="Send" disabled={isSubmitting}>
-            {
-              isSubmitting
-                ? <CircularProgress color="inherit" size={24} />
-                : strings.SEND
-            }
-          </Button>
-          <Button
-            variant="outlined"
-            color="primary"
-            className="btn-margin-bottom btn"
-            aria-label="Cancel"
-            onClick={() => {
-              navigate('/')
-            }}
-          >
-            {commonStrings.CANCEL}
-          </Button>
+          <input
+            type="text"
+            className="contact-input"
+            placeholder={strings.SUBJECT}
+            {...register('subject')}
+            autoComplete="off"
+          />
+
+          <textarea
+            className="contact-input contact-textarea"
+            placeholder={strings.MESSAGE}
+            {...register('message')}
+            rows={5}
+          />
         </div>
+
+        <button
+          type="submit"
+          className="contact-submit-btn"
+          disabled={isSubmitting}
+        >
+          {isSubmitting
+            ? <CircularProgress color="inherit" size={22} />
+            : strings.BOOK_NOW}
+        </button>
       </form>
     </Paper>
   )

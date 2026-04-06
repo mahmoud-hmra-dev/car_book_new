@@ -4,7 +4,7 @@
 
 .dlp-wrapper {
   border-radius: var(--bc-radius-lg, 16px);
-  border: 1px solid rgba(27, 107, 74, 0.15);
+  border: 1px solid rgba(107, 60, 230, 0.15);
   overflow: hidden;
   background: #ffffff;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
@@ -16,7 +16,7 @@
   align-items: flex-start;
   gap: 12px;
   padding: 18px 20px 14px;
-  background: linear-gradient(135deg, #1B6B4A 0%, #2D9D6F 100%);
+  background: linear-gradient(135deg, #6B3CE6 0%, #8B6AEF 100%);
   color: #fff;
 }
 
@@ -49,7 +49,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f0f4f1;
+  background: #f0eef8;
   z-index: 5;
 }
 
@@ -70,7 +70,7 @@
 }
 
 .dlp-geo-btn {
-  background: #1B6B4A !important;
+  background: #6B3CE6 !important;
   min-width: 0 !important;
   width: 40px !important;
   height: 40px !important;
@@ -80,7 +80,7 @@
 }
 
 .dlp-geo-btn:hover {
-  background: #155c3e !important;
+  background: #5229BF !important;
 }
 
 /* ── Legend ──────────────────────────────────────────────── */
@@ -114,14 +114,14 @@
   flex-shrink: 0;
 }
 
-.dlp-dot--green { background: #1B6B4A; }
+.dlp-dot--green { background: #6B3CE6; }
 .dlp-dot--red   { background: #E53935; }
 
 /* ── Summary card ────────────────────────────────────────── */
 .dlp-summary {
   padding: 16px 20px;
   border-top: 1px solid rgba(0,0,0,0.06);
-  background: #F8FDFB;
+  background: #F8F6FD;
 }
 
 .dlp-summary-address {
@@ -135,7 +135,7 @@
 }
 
 .dlp-summary-icon {
-  color: #1B6B4A;
+  color: #6B3CE6;
   flex-shrink: 0;
 }
 
@@ -197,7 +197,7 @@
 }
 
 .dlp-free {
-  color: #1B6B4A !important;
+  color: #6B3CE6 !important;
   font-size: 18px !important;
 }
 

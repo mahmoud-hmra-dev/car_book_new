@@ -4,11 +4,11 @@
   --toastify-icon-color-info: #fff !important;
 
   /* Design System */
-  --bc-primary: #1B6B4A;
-  --bc-primary-light: #2D9D6F;
-  --bc-primary-dark: #145038;
-  --bc-accent: #E8A838;
-  --bc-accent-light: #F5C663;
+  --bc-primary: #6B3CE6;
+  --bc-primary-light: #8B6AEF;
+  --bc-primary-dark: #5229BF;
+  --bc-accent: #6B3CE6;
+  --bc-accent-light: #8B6AEF;
   --bc-dark: #0F1419;
   --bc-dark-soft: #1A2332;
   --bc-gray-900: #1E293B;
@@ -16,17 +16,17 @@
   --bc-gray-500: #64748B;
   --bc-gray-300: #CBD5E1;
   --bc-gray-100: #F1F5F9;
-  --bc-white: #FFFFFF;
+  --bc-white: #FFF;
 
   /* Gradients */
-  --bc-gradient-hero: linear-gradient(135deg, #0F1419 0%, #1A2332 50%, #1B3A2E 100%);
-  --bc-gradient-primary: linear-gradient(135deg, #1B6B4A 0%, #2D9D6F 100%);
+  --bc-gradient-hero: linear-gradient(135deg, #0F1419 0%, #1A2332 50%, #2A1B4E 100%);
+  --bc-gradient-primary: linear-gradient(135deg, #6B3CE6 0%, #8B6AEF 100%);
 
   /* Shadows */
-  --bc-shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-  --bc-shadow-md: 0 4px 16px rgba(0,0,0,0.08);
-  --bc-shadow-lg: 0 12px 40px rgba(0,0,0,0.12);
-  --bc-shadow-xl: 0 20px 60px rgba(0,0,0,0.18);
+  --bc-shadow-sm: 0 1px 3px rgb(0 0 0 / 6%), 0 1px 2px rgb(0 0 0 / 4%);
+  --bc-shadow-md: 0 4px 16px rgb(0 0 0 / 8%);
+  --bc-shadow-lg: 0 12px 40px rgb(0 0 0 / 12%);
+  --bc-shadow-xl: 0 20px 60px rgb(0 0 0 / 18%);
 
   /* Radius */
   --bc-radius-sm: 8px;
@@ -42,7 +42,7 @@
 
 /* Focus-visible styles for accessibility */
 :focus-visible {
-  outline: 2px solid #1B6B4A;
+  outline: 2px solid #6B3CE6;
   outline-offset: 2px;
 }
 
@@ -65,6 +65,7 @@
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -83,6 +84,7 @@
   0% {
     background-position: -200% 0;
   }
+
   100% {
     background-position: 200% 0;
   }
@@ -93,7 +95,7 @@
 }
 
 #nprogress .bar {
-  background: #1B6B4A !important;
+  background: #6B3CE6 !important;
 }
 
 .buttons button {
@@ -102,7 +104,7 @@
 }
 
 .btn-primary {
-  background-color: #1B6B4A !important;
+  background-color: #6B3CE6 !important;
   color: #fff !important;
   border-radius: 10px !important;
   font-weight: 600 !important;
@@ -112,8 +114,8 @@
 }
 
 .btn-primary:hover {
-  background-color: #145038 !important;
-  box-shadow: 0 4px 12px rgba(27, 107, 74, 0.3) !important;
+  background-color: #5229BF !important;
+  box-shadow: 0 4px 12px rgb(107 60 230 / 30%) !important;
 }
 
 .hidden {
@@ -380,7 +382,6 @@ html[dir='rtl'] .d-adornment {
 }
 
 @media only screen and (width <=960px) {
-
   .buttons {
     margin-top: 15px;
     margin-bottom: 5px;

@@ -17,6 +17,10 @@ const strings = new LocalizedStrings({
     PRIVACY_POLICY: 'Politique de Confidentialité',
     FAQ: 'FAQ',
     COOKIE_POLICY: 'Politique de cookies',
+    VEHICLES: 'Véhicules',
+    ABOUT_US: 'À propos de nous',
+    CONTACT_US: 'Contactez-nous',
+    NEED_HELP: "Besoin d'aide ?",
   },
   en: {
     SIGN_IN: 'Sign in',
@@ -33,6 +37,10 @@ const strings = new LocalizedStrings({
     PRIVACY_POLICY: 'Privacy Policy',
     FAQ: 'FAQ',
     COOKIE_POLICY: 'Cookie Policy',
+    VEHICLES: 'Vehicles',
+    ABOUT_US: 'About Us',
+    CONTACT_US: 'Contact Us',
+    NEED_HELP: 'Need help?',
   },
   ar: {
     SIGN_IN: 'تسجيل الدخول',
@@ -49,6 +57,10 @@ const strings = new LocalizedStrings({
     PRIVACY_POLICY: 'سياسة الخصوصية',
     FAQ: 'الأسئلة الشائعة',
     COOKIE_POLICY: 'سياسة ملفات تعريف الارتباط',
+    VEHICLES: 'المركبات',
+    ABOUT_US: 'من نحن',
+    CONTACT_US: 'اتصل بنا',
+    NEED_HELP: 'تحتاج مساعدة؟',
   },
   es: {
     SIGN_IN: 'Iniciar sesión',
@@ -65,6 +77,10 @@ const strings = new LocalizedStrings({
     PRIVACY_POLICY: 'Política de Privacidad',
     FAQ: 'Preguntas frecuentes',
     COOKIE_POLICY: 'Política de Cookies',
+    VEHICLES: 'Vehículos',
+    ABOUT_US: 'Sobre nosotros',
+    CONTACT_US: 'Contáctenos',
+    NEED_HELP: '¿Necesitas ayuda?',
   },
 })
 

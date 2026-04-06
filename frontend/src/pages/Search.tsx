@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { Button } from '@mui/material'
-import { Tune as FiltersIcon } from '@mui/icons-material'
+import {
+  Tune as FiltersIcon,
+  DirectionsCar as CarIcon,
+} from '@mui/icons-material'
 import * as bookcarsTypes from ':bookcars-types'
 import * as bookcarsHelper from ':bookcars-helper'
 import { strings } from '@/lang/search'
@@ -9,7 +12,6 @@ import * as helper from '@/utils/helper'
 import env from '@/config/env.config'
 import * as LocationService from '@/services/LocationService'
 import * as SupplierService from '@/services/SupplierService'
-// import * as UserService from '@/services/UserService'
 import Layout from '@/components/Layout'
 import NoMatch from './NoMatch'
 import CarFilter from '@/components/CarFilter'
@@ -26,11 +28,16 @@ import CarRangeFilter from '@/components/CarRangeFilter'
 import CarMultimediaFilter from '@/components/CarMultimediaFilter'
 import CarSeatsFilter from '@/components/CarSeatsFilter'
 import Map from '@/components/Map'
-// import Progress from '@/components/Progress'
 import ViewOnMapButton from '@/components/ViewOnMapButton'
 import MapDialog from '@/components/MapDialog'
 
 import '@/assets/css/search.css'
+
+interface RangeTab {
+  key: string
+  label: string
+  range: bookcarsTypes.CarRange | null
+}
 
 const Search = () => {
   const location = useLocation()
@@ -57,9 +64,19 @@ const Search = () => {
   const [rating, setRating] = useState(-1)
   const [seats, setSeats] = useState(-1)
   const [openMapDialog, setOpenMapDialog] = useState(false)
-  // const [distance, setDistance] = useState('')
   const [showFilters, setShowFilters] = useState(false)
-  // const [loadingPage, setLoadingPage] = useState(true)
+  const [activeTab, setActiveTab] = useState<string>('all')
+
+  const rangeTabs: RangeTab[] = [
+    { key: 'all', label: strings.ALL_VEHICLES, range: null },
+    { key: 'mini', label: strings.TAB_SEDAN, range: bookcarsTypes.CarRange.Mini },
+    { key: 'midi', label: strings.TAB_SUV, range: bookcarsTypes.CarRange.Midi },
+    { key: 'maxi', label: strings.TAB_VAN, range: bookcarsTypes.CarRange.Maxi },
+    { key: 'scooter', label: strings.TAB_SCOOTER, range: bookcarsTypes.CarRange.Scooter },
+    { key: 'bus', label: strings.TAB_BUS, range: bookcarsTypes.CarRange.Bus },
+    { key: 'truck', label: strings.TAB_TRUCK, range: bookcarsTypes.CarRange.Truck },
+    { key: 'caravan', label: strings.TAB_CARAVAN, range: bookcarsTypes.CarRange.Caravan },
+  ]
 
   useEffect(() => {
     const fetchSuppliers = async () => {
@@ -103,6 +120,15 @@ const Search = () => {
     }
   }, [pickupLocation, carSpecs, carType, gearbox, mileage, fuelPolicy, deposit, ranges, multimedia, rating, seats, from, to])
 
+  const handleTabChange = (tab: RangeTab) => {
+    setActiveTab(tab.key)
+    if (tab.range === null) {
+      setRanges(bookcarsHelper.getAllRanges())
+    } else {
+      setRanges([tab.range])
+    }
+  }
+
   const handleCarFilterSubmit = async (filter: bookcarsTypes.CarFilter) => {
     if (suppliers.length < allSuppliers.length) {
       const _supplierIds = bookcarsHelper.clone(allSuppliersIds)
@@ -125,6 +151,7 @@ const Search = () => {
 
   const handleRangeFilterChange = (value: bookcarsTypes.CarRange[]) => {
     setRanges(value)
+    setActiveTab('all')
   }
 
   const handleMultimediaFilterChange = (value: bookcarsTypes.CarMultimedia[]) => {
@@ -230,14 +257,6 @@ const Search = () => {
         setRanges(_ranges)
       }
 
-      // if (_pickupLocation.latitude && _pickupLocation.longitude) {
-      //   const l = await helper.getLocation()
-      //   if (l) {
-      //     const d = bookcarsHelper.distance(_pickupLocation.latitude, _pickupLocation.longitude, l[0], l[1], 'K')
-      //     setDistance(bookcarsHelper.formatDistance(d, UserService.getLanguage()))
-      //   }
-      // }
-
       setLoading(false)
       if (!user || (user && user.verified)) {
         setVisible(true)
@@ -251,8 +270,29 @@ const Search = () => {
     <>
       <Layout onLoad={onLoad} strict={false}>
         {visible && supplierIds && pickupLocation && dropOffLocation && from && to && (
-          <div className="search">
-            <div className="col-1">
+          <div className="search-redesign">
+            {/* Page Header */}
+            <div className="search-page-header">
+              <h1 className="search-page-title">{strings.SELECT_VEHICLE_GROUP}</h1>
+
+              {/* Category Tabs */}
+              <div className="search-category-tabs">
+                {rangeTabs.map((tab) => (
+                  <button
+                    key={tab.key}
+                    type="button"
+                    className={`search-tab${activeTab === tab.key ? ' search-tab-active' : ''}`}
+                    onClick={() => handleTabChange(tab)}
+                  >
+                    {tab.key !== 'all' && <CarIcon className="search-tab-icon" />}
+                    <span>{tab.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Filters Bar */}
+            <div className="search-filters-bar">
               {!loading && (
                 <>
                   {((pickupLocation.latitude && pickupLocation.longitude)
@@ -262,7 +302,7 @@ const Search = () => {
                         initialZoom={10}
                         locations={[pickupLocation]}
                         parkingSpots={pickupLocation.parkingSpots}
-                        className="map"
+                        className="search-map"
                       >
                         <ViewOnMapButton onClick={() => setOpenMapDialog(true)} />
                       </Map>
@@ -290,27 +330,27 @@ const Search = () => {
                     {showFilters ? strings.HILE_FILTERS : strings.SHOW_FILTERS}
                   </Button>
 
-                  {
-                    showFilters && (
-                      <>
-                        {!env.HIDE_SUPPLIERS && <SupplierFilter className="filter" suppliers={suppliers} onChange={handleSupplierFilterChange} />}
-                        <CarRatingFilter className="filter" onChange={handleRatingFilterChange} />
-                        <CarRangeFilter className="filter" onChange={handleRangeFilterChange} />
-                        <CarMultimediaFilter className="filter" onChange={handleMultimediaFilterChange} />
-                        <CarSeatsFilter className="filter" onChange={handleSeatsFilterChange} />
-                        <CarSpecsFilter className="filter" onChange={handleCarSpecsFilterChange} />
-                        <CarType className="filter" onChange={handleCarTypeFilterChange} />
-                        <GearboxFilter className="filter" onChange={handleGearboxFilterChange} />
-                        <MileageFilter className="filter" onChange={handleMileageFilterChange} />
-                        <FuelPolicyFilter className="filter" onChange={handleFuelPolicyFilterChange} />
-                        <DepositFilter className="filter" onChange={handleDepositFilterChange} />
-                      </>
-                    )
-                  }
+                  {showFilters && (
+                    <div className="search-advanced-filters">
+                      {!env.HIDE_SUPPLIERS && <SupplierFilter className="filter" suppliers={suppliers} onChange={handleSupplierFilterChange} />}
+                      <CarRatingFilter className="filter" onChange={handleRatingFilterChange} />
+                      <CarRangeFilter className="filter" onChange={handleRangeFilterChange} />
+                      <CarMultimediaFilter className="filter" onChange={handleMultimediaFilterChange} />
+                      <CarSeatsFilter className="filter" onChange={handleSeatsFilterChange} />
+                      <CarSpecsFilter className="filter" onChange={handleCarSpecsFilterChange} />
+                      <CarType className="filter" onChange={handleCarTypeFilterChange} />
+                      <GearboxFilter className="filter" onChange={handleGearboxFilterChange} />
+                      <MileageFilter className="filter" onChange={handleMileageFilterChange} />
+                      <FuelPolicyFilter className="filter" onChange={handleFuelPolicyFilterChange} />
+                      <DepositFilter className="filter" onChange={handleDepositFilterChange} />
+                    </div>
+                  )}
                 </>
               )}
             </div>
-            <div className="col-2">
+
+            {/* Car Grid */}
+            <div className="search-grid-area">
               <CarList
                 carSpecs={carSpecs}
                 suppliers={supplierIds}
@@ -321,7 +361,6 @@ const Search = () => {
                 deposit={deposit}
                 pickupLocation={pickupLocation._id}
                 dropOffLocation={dropOffLocation._id}
-                // pickupLocationName={pickupLocation.name}
                 loading={loading}
                 from={from}
                 to={to}
@@ -329,12 +368,22 @@ const Search = () => {
                 multimedia={multimedia}
                 rating={rating}
                 seats={seats}
-                // distance={distance}
-                // onLoad={() => setLoadingPage(false)}
                 hideSupplier={env.HIDE_SUPPLIERS}
-                // includeAlreadyBookedCars
                 includeComingSoonCars
+                variant="grid"
               />
+            </div>
+
+            {/* Brand Logos */}
+            <div className="search-brands-section">
+              <div className="search-brands-row">
+                <span className="search-brand-logo">Toyota</span>
+                <span className="search-brand-logo">Ford</span>
+                <span className="search-brand-logo">Mercedes-Benz</span>
+                <span className="search-brand-logo">Jeep</span>
+                <span className="search-brand-logo">VW</span>
+                <span className="search-brand-logo">Audi</span>
+              </div>
             </div>
           </div>
         )}
@@ -347,8 +396,6 @@ const Search = () => {
 
         {noMatch && <NoMatch hideHeader />}
       </Layout>
-
-      {/* {loadingPage && !noMatch && <Progress />} */}
     </>
   )
 }

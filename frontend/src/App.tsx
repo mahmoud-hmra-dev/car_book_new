@@ -36,6 +36,7 @@ const Privacy = lazy(() => import('@/pages/Privacy'))
 const About = lazy(() => import('@/pages/About'))
 const ChangePassword = lazy(() => import('@/pages/ChangePassword'))
 const Contact = lazy(() => import('@/pages/Contact'))
+const CarDetail = lazy(() => import('@/pages/CarDetail'))
 const NoMatch = lazy(() => import('@/pages/NoMatch'))
 const Locations = lazy(() => import('@/pages/Locations'))
 const Suppliers = lazy(() => import('@/pages/Suppliers'))
@@ -83,6 +84,7 @@ const router = createBrowserRouter([
       { path: 'forgot-password', element: <ForgotPassword /> },
       { path: 'reset-password', element: <ResetPassword /> },
       { path: 'search', element: <Search /> },
+      { path: 'car-detail', element: <CarDetail /> },
       { path: 'checkout', element: <Checkout /> },
       { path: 'checkout-session/:sessionId', element: <CheckoutSession /> },
       { path: 'checkout-external', element: <CheckoutExternal /> },

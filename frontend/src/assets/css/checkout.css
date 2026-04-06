@@ -54,8 +54,8 @@ div.checkout div.checkout-info {
   gap: 8px;
   padding: 6px 14px;
   border-radius: 100px;
-  background: rgba(27, 107, 74, 0.07);
-  color: var(--bc-primary, #1B6B4A);
+  background: rgba(107, 60, 230, 0.07);
+  color: var(--bc-primary, #6B3CE6);
   font-size: 13px;
   font-weight: 700;
   width: fit-content;
@@ -137,7 +137,7 @@ div.checkout div.checkout-details div.checkout-detail div.checkout-price,
 div.checkout div.checkout-details div.checkout-detail div.booking-price {
   font-size: 17px;
   font-weight: 800;
-  color: var(--bc-primary, #1B6B4A);
+  color: var(--bc-primary, #6B3CE6);
 }
 
 div.checkout div.checkout-details div.checkout-detail .checklist-content {
@@ -201,13 +201,13 @@ div.checkout .btn-checkout {
   padding: 5px 32px;
   margin-left: 8px;
   font-weight: 600;
-  background: var(--bc-gradient-primary, linear-gradient(135deg, #1B6B4A 0%, #2D9D6F 100%)) !important;
-  box-shadow: 0 4px 14px rgba(27, 107, 74, 0.25);
+  background: var(--bc-gradient-primary, linear-gradient(135deg, #6B3CE6 0%, #8B6AEF 100%)) !important;
+  box-shadow: 0 4px 14px rgba(107, 60, 230, 0.25);
   transition: all 0.25s ease;
 }
 
 div.checkout .btn-checkout:hover {
-  box-shadow: 0 6px 24px rgba(27, 107, 74, 0.35);
+  box-shadow: 0 6px 24px rgba(107, 60, 230, 0.35);
   transform: translateY(-1px);
 }
 
@@ -222,7 +222,7 @@ div.checkout .btn-cancel {
 
 /* Payment Info Bar */
 div.checkout div.payment-info {
-  background: linear-gradient(135deg, #1B6B4A 0%, #2D9D6F 100%);
+  background: linear-gradient(135deg, #6B3CE6 0%, #8B6AEF 100%);
   padding: 20px 24px;
   margin-bottom: 16px;
   border-radius: var(--bc-radius-lg, 16px);
@@ -231,7 +231,7 @@ div.checkout div.payment-info {
   justify-content: space-between;
   align-items: center;
   color: #fff;
-  box-shadow: 0 4px 16px rgba(27, 107, 74, 0.25);
+  box-shadow: 0 4px 16px rgba(107, 60, 230, 0.25);
 }
 
 div.checkout div.payment-info div.payment-info-title {
@@ -318,7 +318,7 @@ div.checkout div.payment-info div.payment-info-price {
   display: flex;
   align-items: center;
   gap: 14px;
-  background: linear-gradient(135deg, #1B6B4A 0%, #2D9D6F 100%);
+  background: linear-gradient(135deg, #6B3CE6 0%, #8B6AEF 100%);
   border-radius: var(--bc-radius-lg, 16px);
   padding: 16px 20px;
   margin-bottom: 20px;
@@ -416,7 +416,7 @@ div.checkout div.payment-info div.payment-info-price {
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #1B6B4A 0%, #2D9D6F 100%);
+  background: linear-gradient(135deg, #6B3CE6 0%, #8B6AEF 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -465,13 +465,13 @@ div.checkout div.payment-info div.payment-info-price {
   font-size: 11px;
   font-weight: 600;
   padding: 2px 8px;
-  background: rgba(27, 107, 74, 0.1);
-  color: #1B6B4A;
+  background: rgba(107, 60, 230, 0.1);
+  color: #6B3CE6;
   border-radius: 100px;
 }
 
 .delivery-free {
-  color: #1B6B4A !important;
+  color: #6B3CE6 !important;
   font-weight: 800 !important;
 }
 

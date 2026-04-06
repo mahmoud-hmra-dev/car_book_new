@@ -1,5 +1,5 @@
 import React, { useState, useEffect, memo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth0 } from '@auth0/auth0-react'
 import {
   AppBar,
@@ -34,6 +34,8 @@ import {
   QuestionAnswer as FaqIcon,
   PersonOutline as SignUpIcon,
   Cookie as CookiePolicyIcon,
+  DirectionsCar as CarIcon,
+  Phone as PhoneIcon,
 } from '@mui/icons-material'
 import { toast } from 'react-toastify'
 import { CircleFlag } from 'react-circle-flags'
@@ -63,9 +65,10 @@ interface HeaderProps {
 const Header = ({
   hidden,
   hideSignin,
-  headerTitle,
+  headerTitle: _headerTitle,
 }: HeaderProps) => {
   const navigate = useNavigate()
+  const location = useLocation()
   const { isAuthenticated: isAuth0Authenticated, logout } = useAuth0()
 
   const { user } = useUserContext() as UserContextType
@@ -142,16 +145,6 @@ const Header = ({
   }
 
   const refreshPage = () => {
-    // const params = new URLSearchParams(window.location.search)
-
-    // if (params.has('l')) {
-    //   params.delete('l')
-    //   // window.location.href = window.location.href.split('?')[0] + ([...params].length > 0 ? `?${params}` : '')
-    //   window.location.replace(window.location.href.split('?')[0] + ([...params].length > 0 ? `?${params}` : ''))
-    // } else {
-    //   // window.location.reload()
-    //   window.location.replace(window.location.href)
-    // }
     navigate(0)
   }
 
@@ -245,6 +238,16 @@ const Header = ({
     navigate('/notifications')
   }
 
+  const isNavActive = (path: string) => location.pathname === path
+
+  const navLinks = [
+    { label: strings.HOME, path: '/' },
+    { label: strings.VEHICLES, path: '/search' },
+    { label: strings.LOCATIONS, path: '/locations' },
+    { label: strings.ABOUT_US, path: '/about' },
+    { label: strings.CONTACT_US, path: '/contact' },
+  ]
+
   const menuId = 'primary-account-menu'
   const renderMenu = (
     <Menu
@@ -284,12 +287,6 @@ const Header = ({
         <SettingsIcon className="header-action" />
         <p>{strings.SETTINGS}</p>
       </MenuItem>
-      {/* <MenuItem onClick={handleLangMenuOpen}>
-        <IconButton aria-label="language of current user" aria-controls="primary-search-account-menu" aria-haspopup="true" color="inherit">
-          <LanguageIcon />
-        </IconButton>
-        <p>{strings.LANGUAGE}</p>
-      </MenuItem> */}
       <MenuItem onClick={handleSignout}>
         <IconButton color="inherit">
           <SignoutIcon />
@@ -348,204 +345,245 @@ const Header = ({
 
   return (
     (!hidden && (
-      <div style={classes.grow} className="header">
-        <AppBar position="relative" sx={{ bgcolor: '#fff', boxShadow: 'none', borderBottom: '1px solid #ddd' }}>
-          <Toolbar className="toolbar">
-            {isLoaded && (
-              <>
-                <IconButton edge="start" sx={classes.menuButton} aria-label="open drawer" onClick={handleSideMenuOpen}>
+      <div className="header">
+        <AppBar position="relative" sx={{ bgcolor: '#fff', boxShadow: 'none' }}>
+          {/* Secondary bar: language, currency, auth */}
+          <div className="header-secondary">
+            <div className="header-secondary-inner">
+              <div className="header-secondary-actions">
+                {isLoaded && (
+                  <Button variant="text" onClick={handleCurrencyMenuOpen} disableElevation className="btn-secondary bold">
+                    {PaymentService.getCurrency()}
+                  </Button>
+                )}
+                {isLoaded && (
+                  <Button variant="text" onClick={handleLangMenuOpen} disableElevation className="btn-secondary">
+                    <div className="language">
+                      <CircleFlag countryCode={lang?.countryCode as string} height={20} className="flag-sm" title={lang?.label} />
+                      <span className="lang-label">{lang?.label}</span>
+                    </div>
+                  </Button>
+                )}
+                {!hideSignin && !isSignedIn && isLoaded && (
+                  <Button variant="text" size="small" startIcon={<SignUpIcon />} onClick={() => navigate('/sign-up')} disableElevation className="btn-secondary btn-auth" aria-label="Sign up">
+                    <span className="btn-auth-txt">{suStrings.SIGN_UP}</span>
+                  </Button>
+                )}
+                {!hideSignin && !isSignedIn && isLoaded && (
+                  <Button variant="text" size="small" startIcon={<LoginIcon />} onClick={() => navigate('/sign-in')} disableElevation className="btn-secondary btn-auth" aria-label="Sign in">
+                    <span className="btn-auth-txt">{strings.SIGN_IN}</span>
+                  </Button>
+                )}
+                {isSignedIn && (
+                  <IconButton aria-label="notifications" onClick={handleNotificationsClick} className="btn-secondary">
+                    <Badge badgeContent={notificationCount > 0 ? notificationCount : null} color="error">
+                      <NotificationsIcon fontSize="small" />
+                    </Badge>
+                  </IconButton>
+                )}
+                {isSignedIn && (
+                  <IconButton edge="end" aria-label="account" aria-controls={menuId} aria-haspopup="true" onClick={handleAccountMenuOpen} className="btn-secondary">
+                    <Avatar loggedUser={currentUser} user={currentUser} size="small" readonly />
+                  </IconButton>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Main header bar */}
+          <Toolbar className="toolbar header-main">
+            <div className="header-main-inner">
+              {/* LEFT: Logo */}
+              <div className="header-logo-section">
+                {isLoaded && (
+                  <Button onClick={() => navigate('/')} className="logo" disableRipple>
+                    <CarIcon className="logo-icon" />
+                    <span className="logo-text">{env.WEBSITE_NAME}</span>
+                  </Button>
+                )}
+              </div>
+
+              {/* CENTER: Navigation */}
+              <nav className="header-nav">
+                {navLinks.map((link) => (
+                  <button
+                    key={link.path}
+                    type="button"
+                    className={`nav-link${isNavActive(link.path) ? ' nav-link-active' : ''}`}
+                    onClick={() => navigate(link.path)}
+                  >
+                    {link.label}
+                  </button>
+                ))}
+              </nav>
+
+              {/* RIGHT: Phone CTA */}
+              <div className="header-cta-section">
+                <div className="phone-cta">
+                  <div className="phone-icon-circle">
+                    <PhoneIcon className="phone-icon" />
+                  </div>
+                  <div className="phone-info">
+                    <span className="phone-help-text">{strings.NEED_HELP}</span>
+                    <span className="phone-number">{env.CONTACT_EMAIL || '+1 (234) 567-890'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Mobile: hamburger + compact actions */}
+              <div className="header-mobile-controls">
+                {isLoaded && (
+                  <Button variant="text" onClick={handleCurrencyMenuOpen} disableElevation className="btn-secondary bold">
+                    {PaymentService.getCurrency()}
+                  </Button>
+                )}
+                {isLoaded && (
+                  <Button variant="text" onClick={handleLangMenuOpen} disableElevation className="btn-secondary">
+                    <div className="language">
+                      <CircleFlag countryCode={lang?.countryCode as string} height={20} className="flag-sm" title={lang?.label} />
+                    </div>
+                  </Button>
+                )}
+                {isSignedIn && (
+                  <IconButton onClick={handleNotificationsClick} className="btn-secondary">
+                    <Badge badgeContent={notificationCount > 0 ? notificationCount : null} color="error">
+                      <NotificationsIcon fontSize="small" />
+                    </Badge>
+                  </IconButton>
+                )}
+                {isSignedIn && (
+                  <IconButton aria-label="show more" aria-controls={mobileMenuId} aria-haspopup="true" onClick={handleMobileMenuOpen} className="btn-secondary">
+                    <MoreIcon />
+                  </IconButton>
+                )}
+                <IconButton edge="end" sx={classes.menuButton} aria-label="open drawer" onClick={handleSideMenuOpen}>
                   <MenuIcon />
                 </IconButton>
-
-                <Button onClick={() => navigate('/')} className="logo">{env.WEBSITE_NAME}</Button>
-
-                {!env.isMobile && headerTitle && <div className="header-title">{headerTitle}</div>}
-              </>
-            )}
-
-            <Drawer open={isSideMenuOpen} onClose={handleSideMenuClose} className="menu side-menu">
-              <List sx={classes.list}>
-                <ListItem
-                  onClick={() => {
-                    navigate('/')
-                    handleSideMenuClose()
-                  }}
-                >
-                  <ListItemIcon><HomeIcon /></ListItemIcon>
-                  <ListItemText primary={strings.HOME} />
-                </ListItem>
-                {isSignedIn && (
-                  <ListItem
-                    onClick={() => {
-                      navigate('/bookings')
-                      handleSideMenuClose()
-                    }}
-                  >
-                    <ListItemIcon><BookingsIcon /></ListItemIcon>
-                    <ListItemText primary={strings.BOOKINGS} />
-                  </ListItem>
-                )}
-                {!env.HIDE_SUPPLIERS && (
-                  <ListItem
-                    onClick={() => {
-                      navigate('/suppliers')
-                      handleSideMenuClose()
-                    }}
-                  >
-                    <ListItemIcon><SupplierIcon /></ListItemIcon>
-                    <ListItemText primary={strings.SUPPLIERS} />
-                  </ListItem>
-                )}
-                <ListItem
-                  onClick={() => {
-                    navigate('/locations')
-                    handleSideMenuClose()
-                  }}
-                >
-                  <ListItemIcon><LocationIcon /></ListItemIcon>
-                  <ListItemText primary={strings.LOCATIONS} />
-                </ListItem>
-                <ListItem
-                  onClick={() => {
-                    navigate('/about')
-                    handleSideMenuClose()
-                  }}
-                >
-                  <ListItemIcon><AboutIcon /></ListItemIcon>
-                  <ListItemText primary={strings.ABOUT} />
-                </ListItem>
-                <ListItem
-                  onClick={() => {
-                    navigate('/cookie-policy')
-                    handleSideMenuClose()
-                  }}
-                >
-                  <ListItemIcon><CookiePolicyIcon /></ListItemIcon>
-                  <ListItemText primary={strings.COOKIE_POLICY} />
-                </ListItem>
-                <ListItem
-                  onClick={() => {
-                    navigate('/privacy')
-                    handleSideMenuClose()
-                  }}
-                >
-                  <ListItemIcon><PrivacyIcon /></ListItemIcon>
-                  <ListItemText primary={strings.PRIVACY_POLICY} />
-                </ListItem>
-                <ListItem
-                  onClick={() => {
-                    navigate('/tos')
-                    handleSideMenuClose()
-                  }}
-                >
-                  <ListItemIcon><TosIcon /></ListItemIcon>
-                  <ListItemText primary={strings.TOS} />
-                </ListItem>
-                <ListItem
-                  onClick={() => {
-                    navigate('/faq')
-                    handleSideMenuClose()
-                  }}
-                >
-                  <ListItemIcon><FaqIcon /></ListItemIcon>
-                  <ListItemText primary={strings.FAQ} />
-                </ListItem>
-                <ListItem
-                  onClick={() => {
-                    navigate('/contact')
-                    handleSideMenuClose()
-                  }}
-                >
-                  <ListItemIcon><MailIcon /></ListItemIcon>
-                  <ListItemText primary={strings.CONTACT} />
-                </ListItem>
-                {env.isMobile && !hideSignin && !isSignedIn && isLoaded && (
-                  <>
-                    <ListItem
-                      onClick={() => {
-                        navigate('/sign-in')
-                        handleSideMenuClose()
-                      }}
-                    >
-                      <ListItemIcon><LoginIcon /></ListItemIcon>
-                      <ListItemText primary={strings.SIGN_IN} />
-                    </ListItem>
-                    <ListItem
-                      onClick={() => {
-                        navigate('/sign-up')
-                        handleSideMenuClose()
-                      }}
-                    >
-                      <ListItemIcon><SignUpIcon /></ListItemIcon>
-                      <ListItemText primary={suStrings.SIGN_UP} />
-                    </ListItem>
-                  </>
-                )}
-              </List>
-            </Drawer>
-
-            {(env.isMobile || !headerTitle) && <div style={classes.grow} />}
-            <div className="header-desktop">
-              {isLoaded && (
-                <Button variant="contained" onClick={handleCurrencyMenuOpen} disableElevation className="btn bold">
-                  {PaymentService.getCurrency()}
-                </Button>
-              )}
-              {isLoaded && (
-                <Button variant="contained" onClick={handleLangMenuOpen} disableElevation className="btn">
-                  <div className="language">
-                    <CircleFlag countryCode={lang?.countryCode as string} height={flagHeight} className="flag" title={lang?.label} />
-                  </div>
-                </Button>
-              )}
-              {!hideSignin && !isSignedIn && isLoaded && (
-                <Button variant="contained" size="medium" startIcon={<SignUpIcon />} onClick={() => navigate('/sign-up')} disableElevation className="btn btn-auth" aria-label="Sign in">
-                  <span className="btn-auth-txt">{suStrings.SIGN_UP}</span>
-                </Button>
-              )}
-              {!hideSignin && !isSignedIn && isLoaded && (
-                <Button variant="contained" size="medium" startIcon={<LoginIcon />} onClick={() => navigate('/sign-in')} disableElevation className="btn btn-auth" aria-label="Sign up">
-                  <span className="btn-auth-txt">{strings.SIGN_IN}</span>
-                </Button>
-              )}
-              {isSignedIn && (
-                <IconButton aria-label="" onClick={handleNotificationsClick} className="btn">
-                  <Badge badgeContent={notificationCount > 0 ? notificationCount : null} color="error">
-                    <NotificationsIcon />
-                  </Badge>
-                </IconButton>
-              )}
-              {isSignedIn && (
-                <IconButton edge="end" aria-label="account" aria-controls={menuId} aria-haspopup="true" onClick={handleAccountMenuOpen} className="btn">
-                  <Avatar loggedUser={currentUser} user={currentUser} size="small" readonly />
-                </IconButton>
-              )}
-            </div>
-            <div className="header-mobile">
-              <Button variant="contained" onClick={handleCurrencyMenuOpen} disableElevation fullWidth className="btn bold">
-                {PaymentService.getCurrency()}
-              </Button>
-              <Button variant="contained" onClick={handleLangMenuOpen} disableElevation fullWidth className="btn">
-                <div className="language">
-                  <CircleFlag countryCode={lang?.countryCode as string} height={flagHeight} className="flag" title={lang?.label} />
-                  {/* <span>{lang?.label}</span> */}
-                </div>
-              </Button>
-              {isSignedIn && (
-                <IconButton onClick={handleNotificationsClick} className="btn">
-                  <Badge badgeContent={notificationCount > 0 ? notificationCount : null} color="error">
-                    <NotificationsIcon />
-                  </Badge>
-                </IconButton>
-              )}
-              {isSignedIn && (
-                <IconButton aria-label="show more" aria-controls={mobileMenuId} aria-haspopup="true" onClick={handleMobileMenuOpen} className="btn">
-                  <MoreIcon />
-                </IconButton>
-              )}
+              </div>
             </div>
           </Toolbar>
         </AppBar>
+
+        <Drawer open={isSideMenuOpen} onClose={handleSideMenuClose} className="menu side-menu">
+          <List sx={classes.list}>
+            <ListItem
+              onClick={() => {
+                navigate('/')
+                handleSideMenuClose()
+              }}
+            >
+              <ListItemIcon><HomeIcon /></ListItemIcon>
+              <ListItemText primary={strings.HOME} />
+            </ListItem>
+            {isSignedIn && (
+              <ListItem
+                onClick={() => {
+                  navigate('/bookings')
+                  handleSideMenuClose()
+                }}
+              >
+                <ListItemIcon><BookingsIcon /></ListItemIcon>
+                <ListItemText primary={strings.BOOKINGS} />
+              </ListItem>
+            )}
+            {!env.HIDE_SUPPLIERS && (
+              <ListItem
+                onClick={() => {
+                  navigate('/suppliers')
+                  handleSideMenuClose()
+                }}
+              >
+                <ListItemIcon><SupplierIcon /></ListItemIcon>
+                <ListItemText primary={strings.SUPPLIERS} />
+              </ListItem>
+            )}
+            <ListItem
+              onClick={() => {
+                navigate('/locations')
+                handleSideMenuClose()
+              }}
+            >
+              <ListItemIcon><LocationIcon /></ListItemIcon>
+              <ListItemText primary={strings.LOCATIONS} />
+            </ListItem>
+            <ListItem
+              onClick={() => {
+                navigate('/about')
+                handleSideMenuClose()
+              }}
+            >
+              <ListItemIcon><AboutIcon /></ListItemIcon>
+              <ListItemText primary={strings.ABOUT} />
+            </ListItem>
+            <ListItem
+              onClick={() => {
+                navigate('/cookie-policy')
+                handleSideMenuClose()
+              }}
+            >
+              <ListItemIcon><CookiePolicyIcon /></ListItemIcon>
+              <ListItemText primary={strings.COOKIE_POLICY} />
+            </ListItem>
+            <ListItem
+              onClick={() => {
+                navigate('/privacy')
+                handleSideMenuClose()
+              }}
+            >
+              <ListItemIcon><PrivacyIcon /></ListItemIcon>
+              <ListItemText primary={strings.PRIVACY_POLICY} />
+            </ListItem>
+            <ListItem
+              onClick={() => {
+                navigate('/tos')
+                handleSideMenuClose()
+              }}
+            >
+              <ListItemIcon><TosIcon /></ListItemIcon>
+              <ListItemText primary={strings.TOS} />
+            </ListItem>
+            <ListItem
+              onClick={() => {
+                navigate('/faq')
+                handleSideMenuClose()
+              }}
+            >
+              <ListItemIcon><FaqIcon /></ListItemIcon>
+              <ListItemText primary={strings.FAQ} />
+            </ListItem>
+            <ListItem
+              onClick={() => {
+                navigate('/contact')
+                handleSideMenuClose()
+              }}
+            >
+              <ListItemIcon><MailIcon /></ListItemIcon>
+              <ListItemText primary={strings.CONTACT} />
+            </ListItem>
+            {env.isMobile && !hideSignin && !isSignedIn && isLoaded && (
+              <>
+                <ListItem
+                  onClick={() => {
+                    navigate('/sign-in')
+                    handleSideMenuClose()
+                  }}
+                >
+                  <ListItemIcon><LoginIcon /></ListItemIcon>
+                  <ListItemText primary={strings.SIGN_IN} />
+                </ListItem>
+                <ListItem
+                  onClick={() => {
+                    navigate('/sign-up')
+                    handleSideMenuClose()
+                  }}
+                >
+                  <ListItemIcon><SignUpIcon /></ListItemIcon>
+                  <ListItemText primary={suStrings.SIGN_UP} />
+                </ListItem>
+              </>
+            )}
+          </List>
+        </Drawer>
 
         {renderMobileMenu}
         {renderMenu}

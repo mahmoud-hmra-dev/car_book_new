@@ -111,7 +111,7 @@ div.bs-list div.booking-details div.booking-detail div.booking-detail-value span
 div.bs-list div.booking-details div.booking-detail div.booking-price {
   font-size: 20px;
   font-weight: 800;
-  color: var(--bc-primary, #1B6B4A);
+  color: var(--bc-primary, #6B3CE6);
 }
 
 /* Status Badges */
@@ -151,7 +151,7 @@ div.bs-list div.booking-details div.bs-paid {
 }
 
 div.bs-list div.booking-details div.bs-paidinfull {
-  background: #1B6B4A;
+  background: #6B3CE6;
   color: #FFF;
 }
 

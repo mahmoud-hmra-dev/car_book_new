@@ -45,6 +45,7 @@ interface CarListProps {
   includeAlreadyBookedCars?: boolean
   includeComingSoonCars?: boolean
   onLoad?: bookcarsTypes.DataEvent<bookcarsTypes.Car>
+  variant?: 'list' | 'grid'
 }
 
 const CarList = ({
@@ -76,6 +77,7 @@ const CarList = ({
   includeAlreadyBookedCars,
   includeComingSoonCars,
   onLoad,
+  variant,
 }: CarListProps) => {
   const [init, setInit] = useState(true)
   const [loading, setLoading] = useState(false)
@@ -215,7 +217,7 @@ const CarList = ({
 
   return (
     <>
-      <section className={`${className ? `${className} ` : ''}car-list`}>
+      <section className={`${className ? `${className} ` : ''}car-list${variant === 'grid' ? ' car-list-grid-mode' : ''}`}>
         {rows.length === 0
           ? !init
           && !loading
@@ -230,7 +232,7 @@ const CarList = ({
           : ((from && to && pickupLocation && dropOffLocation) || hidePrice) // || (hidePrice && booking))
           && (
             <>
-              {totalRecords > 0 && (
+              {variant !== 'grid' && totalRecords > 0 && (
                 <div className="title">
                   <div className="bookcars">
                     <span>{strings.TITLE_1}</span>
@@ -243,22 +245,25 @@ const CarList = ({
                 </div>
               )}
 
-              {rows.map((car) => (
-                <Car
-                  key={car._id}
-                  car={car}
-                  booking={booking}
-                  pickupLocation={pickupLocation}
-                  dropOffLocation={dropOffLocation}
-                  from={from as Date}
-                  to={to as Date}
-                  pickupLocationName={pickupLocationName}
-                  distance={distance}
-                  hideSupplier={hideSupplier}
-                  sizeAuto={sizeAuto}
-                  hidePrice={hidePrice}
-                />
-              ))}
+              <div className={variant === 'grid' ? 'car-list-grid' : 'car-list-default'}>
+                {rows.map((car) => (
+                  <Car
+                    key={car._id}
+                    car={car}
+                    booking={booking}
+                    pickupLocation={pickupLocation}
+                    dropOffLocation={dropOffLocation}
+                    from={from as Date}
+                    to={to as Date}
+                    pickupLocationName={pickupLocationName}
+                    distance={distance}
+                    hideSupplier={hideSupplier}
+                    sizeAuto={sizeAuto}
+                    hidePrice={hidePrice}
+                    variant={variant}
+                  />
+                ))}
+              </div>
             </>
           )}
         {loading && <Progress />}

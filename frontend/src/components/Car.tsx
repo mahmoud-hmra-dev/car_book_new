@@ -3,9 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import {
   Button,
   Tooltip,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
 } from '@mui/material'
 import {
   LocalGasStation as CarTypeIcon,
@@ -17,7 +14,7 @@ import {
   Clear as UncheckIcon,
   Info as InfoIcon,
   LocationOn as LocationIcon,
-  ExpandMore as ExpandMoreIcon,
+  Settings as GearIcon,
 } from '@mui/icons-material'
 import * as bookcarsTypes from ':bookcars-types'
 import * as bookcarsHelper from ':bookcars-helper'
@@ -50,6 +47,7 @@ interface CarProps {
   hideSupplier?: boolean
   sizeAuto?: boolean
   hidePrice?: boolean
+  variant?: 'list' | 'grid'
 }
 
 const Car = ({
@@ -64,6 +62,7 @@ const Car = ({
   hideSupplier,
   sizeAuto,
   hidePrice,
+  variant = 'list',
 }: CarProps) => {
   const navigate = useNavigate()
 
@@ -127,7 +126,7 @@ const Car = ({
       setLoading(false)
 
       if (!hidePrice) {
-        let _totalPrice = await PaymentService.convertPrice(bookcarsHelper.calculateTotalPrice(car, from as Date, to as Date, car.supplier.priceChangeRate || 0))
+        const _totalPrice = await PaymentService.convertPrice(bookcarsHelper.calculateTotalPrice(car, from as Date, to as Date, car.supplier.priceChangeRate || 0))
         setTotalPrice(_totalPrice)
       }
     }
@@ -170,6 +169,88 @@ const Car = ({
   }
   const fr = language === 'fr'
 
+  // Grid variant - new Figma card design
+  if (variant === 'grid') {
+    const perDayPrice = days > 0 ? totalPrice / days : 0
+    const rangeLabel = car.range ? helper.getCarRange(car.range as bookcarsTypes.CarRange) : ''
+    const gearboxLabel = car.gearbox === bookcarsTypes.GearboxType.Automatic
+      ? strings.GEARBOX_AUTOMATIC
+      : strings.GEARBOX_MANUAL
+    const fuelLabel = helper.getCarTypeShort(car.type)
+
+    return (
+      <div className="car-grid-card">
+        <div className="car-grid-card-image">
+          <img src={helper.carImageURL(car.image)} alt={car.name} loading="lazy" />
+        </div>
+        <div className="car-grid-card-body">
+          <div className="car-grid-card-header">
+            <div className="car-grid-card-name-block">
+              <div className="car-grid-card-name">{car.name}</div>
+              {rangeLabel && <div className="car-grid-card-type">{rangeLabel}</div>}
+            </div>
+            {!hidePrice && (
+              <div className="car-grid-card-price">
+                <span className="car-grid-card-price-value">
+                  {bookcarsHelper.formatPrice(perDayPrice, commonStrings.CURRENCY, language)}
+                </span>
+                <span className="car-grid-card-price-unit">{strings.PER_DAY}</span>
+              </div>
+            )}
+          </div>
+
+          <div className="car-grid-card-specs">
+            <div className="car-grid-card-spec">
+              <GearIcon fontSize="small" />
+              <span>{gearboxLabel}</span>
+            </div>
+            {car.type !== bookcarsTypes.CarType.Unknown && (
+              <div className="car-grid-card-spec">
+                <CarTypeIcon fontSize="small" />
+                <span>{fuelLabel}</span>
+              </div>
+            )}
+            {car.aircon && (
+              <div className="car-grid-card-spec">
+                <AirconIcon fontSize="small" />
+                <span>{strings.AIRCON_LABEL}</span>
+              </div>
+            )}
+          </div>
+
+          {!hidePrice && car.available && !car.comingSoon && !car.fullyBooked && (
+            <Button
+              variant="contained"
+              className="car-grid-card-btn"
+              fullWidth
+              onClick={() => {
+                navigate('/car-detail', {
+                  state: {
+                    carId: car._id,
+                    pickupLocationId: pickupLocation,
+                    dropOffLocationId: dropOffLocation,
+                    from,
+                    to,
+                  },
+                })
+              }}
+            >
+              {strings.VIEW_DETAILS}
+            </Button>
+          )}
+
+          {car.comingSoon && (
+            <span className="car-grid-card-status coming-soon">{strings.COMING_SOON}</span>
+          )}
+          {car.fullyBooked && (
+            <span className="car-grid-card-status fully-booked">{strings.FULLY_BOOKED}</span>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  // List variant - original design (default)
   return (
     <div key={car._id} className="car-container">
       {/* Supplier banner with location */}
@@ -220,7 +301,24 @@ const Car = ({
       )}
       <article>
         <div className="car">
-          <img src={helper.carImageURL(car.image)} alt={car.name} className="car-img" loading="lazy" />
+          <img
+            src={helper.carImageURL(car.image)}
+            alt={car.name}
+            className="car-img"
+            loading="lazy"
+            style={{ cursor: 'pointer' }}
+            onClick={() => {
+              navigate('/car-detail', {
+                state: {
+                  carId: car._id,
+                  pickupLocationId: pickupLocation,
+                  dropOffLocationId: dropOffLocation,
+                  from,
+                  to,
+                },
+              })
+            }}
+          />
           <div className="car-row">
             {/* Supplier info now shown in banner above - hidden here */}
             <div className="car-footer">
@@ -253,7 +351,23 @@ const Car = ({
         </div>
         <div className="car-info">
           <div className="car-info-header">
-            <div className="name">{car.name}</div>
+            <div
+              className="name"
+              style={{ cursor: 'pointer' }}
+              onClick={() => {
+                navigate('/car-detail', {
+                  state: {
+                    carId: car._id,
+                    pickupLocationId: pickupLocation,
+                    dropOffLocationId: dropOffLocation,
+                    from,
+                    to,
+                  },
+                })
+              }}
+            >
+              {car.name}
+            </div>
             {!hidePrice && (
               <div className="price">
                 <span className="price-days">{helper.getDays(days)}</span>
@@ -322,9 +436,6 @@ const Car = ({
               </li>
             )}
           </ul>
-          {/* <Accordion className="accordion">
-            <AccordionSummary className="accordion-summary" expandIcon={<ExpandMoreIcon />}>{strings.DETAILS}</AccordionSummary>
-            <AccordionDetails> */}
           <ul className="extras-list">
             {car.mileage !== 0 && (
               <li className="mileage">
@@ -416,8 +527,6 @@ const Car = ({
               </li>
             )}
           </ul>
-          {/* </AccordionDetails>
-          </Accordion> */}
 
           {!hidePrice && (
             <div className="action">
@@ -427,14 +536,14 @@ const Car = ({
                     variant="contained"
                     className="btn-primary btn-book btn-margin-bottom"
                     onClick={() => {
-                      navigate('/checkout', {
+                      navigate('/car-detail', {
                         state: {
                           carId: car._id,
                           pickupLocationId: pickupLocation,
                           dropOffLocationId: dropOffLocation,
                           from,
-                          to
-                        }
+                          to,
+                        },
                       })
                     }}
                   >
