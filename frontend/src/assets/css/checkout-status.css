@@ -47,7 +47,7 @@ div.checkout-status div.details div.status-details div.status-detail-value {
 
 div.checkout-status div.details div.status-details div.status-detail div.status-detail-value {
   color: rgb(0 0 0 / 55%);
-  word-break: break-word;
+  overflow-wrap: break-word;
   vertical-align: middle;
 }
 

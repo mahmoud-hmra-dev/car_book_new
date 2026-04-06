@@ -1,12 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import {
-  FormControl,
-  FormControlLabel,
   Switch,
 } from '@mui/material'
-import {
-  EventSeat as BookingIcon,
-} from '@mui/icons-material'
 import * as bookcarsTypes from ':bookcars-types'
 import * as bookcarsHelper from ':bookcars-helper'
 import { strings as csStrings } from '@/lang/cars'
@@ -21,6 +16,7 @@ interface CheckoutOptionsProps {
   from: Date
   to: Date
   language: string
+  sectionNumber?: string
   allowAdditionalDriver?: boolean
   clientSecret: string | null
   payPalLoaded: boolean
@@ -34,11 +30,24 @@ interface CheckoutOptionsProps {
   onAdditionalDriverChange: (value: boolean) => void
 }
 
+interface OptionInfo {
+  label: string
+  description: string
+  priceText: string
+  isIncluded: boolean
+  isUnavailable: boolean
+  value: number
+  checked: boolean
+  disabled: boolean
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+}
+
 const CheckoutOptions = ({
   car,
   from,
   to,
   language,
+  sectionNumber = '2',
   allowAdditionalDriver = true,
   clientSecret,
   payPalLoaded,
@@ -110,6 +119,11 @@ const CheckoutOptions = ({
     return null
   }
 
+  const calculateNewPrice = async (options: bookcarsTypes.CarOptions) => {
+    const _price = await PaymentService.convertPrice(bookcarsHelper.calculateTotalPrice(car, from, to, car.supplier.priceChangeRate || 0, options))
+    return _price
+  }
+
   const handleCancellationChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (car && from && to) {
       const _cancellation = e.target.checked
@@ -121,8 +135,7 @@ const CheckoutOptions = ({
         fullInsurance,
         additionalDriver,
       }
-      const _price = await PaymentService.convertPrice(bookcarsHelper.calculateTotalPrice(car, from, to, car.supplier.priceChangeRate || 0, options))
-
+      const _price = await calculateNewPrice(options)
       setCancellation(_cancellation)
       onCancellationChange(_cancellation)
       onPriceChange(_price)
@@ -140,8 +153,7 @@ const CheckoutOptions = ({
         fullInsurance,
         additionalDriver,
       }
-      const _price = await PaymentService.convertPrice(bookcarsHelper.calculateTotalPrice(car, from, to, car.supplier.priceChangeRate || 0, options))
-
+      const _price = await calculateNewPrice(options)
       setAmendments(_amendments)
       onAmendmentsChange(_amendments)
       onPriceChange(_price)
@@ -159,8 +171,7 @@ const CheckoutOptions = ({
         fullInsurance,
         additionalDriver,
       }
-      const _price = await PaymentService.convertPrice(bookcarsHelper.calculateTotalPrice(car, from, to, car.supplier.priceChangeRate || 0, options))
-
+      const _price = await calculateNewPrice(options)
       setTheftProtection(_theftProtection)
       onTheftProtectionChange(_theftProtection)
       onPriceChange(_price)
@@ -178,8 +189,7 @@ const CheckoutOptions = ({
         fullInsurance,
         additionalDriver,
       }
-      const _price = await PaymentService.convertPrice(bookcarsHelper.calculateTotalPrice(car, from, to, car.supplier.priceChangeRate || 0, options))
-
+      const _price = await calculateNewPrice(options)
       setCollisionDamageWaiver(_collisionDamageWaiver)
       onCollisionDamageWaiverChange(_collisionDamageWaiver)
       onPriceChange(_price)
@@ -197,8 +207,7 @@ const CheckoutOptions = ({
         fullInsurance: _fullInsurance,
         additionalDriver,
       }
-      const _price = await PaymentService.convertPrice(bookcarsHelper.calculateTotalPrice(car, from, to, car.supplier.priceChangeRate || 0, options))
-
+      const _price = await calculateNewPrice(options)
       setFullInsurance(_fullInsurance)
       onFullInsuranceChange(_fullInsurance)
       onPriceChange(_price)
@@ -216,8 +225,7 @@ const CheckoutOptions = ({
         fullInsurance,
         additionalDriver: _additionalDriver,
       }
-      const _price = await PaymentService.convertPrice(bookcarsHelper.calculateTotalPrice(car, from, to, car.supplier.priceChangeRate || 0, options))
-
+      const _price = await calculateNewPrice(options)
       setAdditionalDriver(_additionalDriver)
       onAdditionalDriverChange(_additionalDriver)
       onPriceChange(_price)
@@ -225,92 +233,142 @@ const CheckoutOptions = ({
     }
   }
 
+  const descriptions: Record<string, string> = {
+    cancellation: csStrings.CANCELLATION_TOOLTIP,
+    amendments: csStrings.AMENDMENTS_TOOLTIP,
+    theftProtection: csStrings.THEFT_PROTECTION_TOOLTIP,
+    collisionDamageWaiver: csStrings.COLLISION_DAMAGE_WAVER_TOOLTIP,
+    fullInsurance: csStrings.FULL_INSURANCE_TOOLTIP,
+    additionalDriver: '',
+  }
+
+  const paymentLocked = !!clientSecret || payPalLoaded
+
+  const options: OptionInfo[] = [
+    {
+      label: csStrings.CANCELLATION,
+      description: descriptions.cancellation,
+      priceText: cancellationOption,
+      isIncluded: car.cancellation === 0,
+      isUnavailable: car.cancellation === -1,
+      value: car.cancellation,
+      checked: cancellation,
+      disabled: car.cancellation === -1 || car.cancellation === 0 || paymentLocked,
+      onChange: handleCancellationChange,
+    },
+    {
+      label: csStrings.AMENDMENTS,
+      description: descriptions.amendments,
+      priceText: amendmentsOption,
+      isIncluded: car.amendments === 0,
+      isUnavailable: car.amendments === -1,
+      value: car.amendments,
+      checked: amendments,
+      disabled: car.amendments === -1 || car.amendments === 0 || paymentLocked,
+      onChange: handleAmendmentsChange,
+    },
+    {
+      label: csStrings.THEFT_PROTECTION,
+      description: descriptions.theftProtection,
+      priceText: theftProtectionOption,
+      isIncluded: car.theftProtection === 0,
+      isUnavailable: car.theftProtection === -1,
+      value: car.theftProtection,
+      checked: theftProtection,
+      disabled: car.theftProtection === -1 || car.theftProtection === 0 || paymentLocked,
+      onChange: handleTheftProtectionChange,
+    },
+    {
+      label: csStrings.COLLISION_DAMAGE_WAVER,
+      description: descriptions.collisionDamageWaiver,
+      priceText: collisionDamageWaiverOption,
+      isIncluded: car.collisionDamageWaiver === 0,
+      isUnavailable: car.collisionDamageWaiver === -1,
+      value: car.collisionDamageWaiver,
+      checked: collisionDamageWaiver,
+      disabled: car.collisionDamageWaiver === -1 || car.collisionDamageWaiver === 0 || paymentLocked,
+      onChange: handleCollisionDamageWaiverChange,
+    },
+    {
+      label: csStrings.FULL_INSURANCE,
+      description: descriptions.fullInsurance,
+      priceText: fullInsuranceOption,
+      isIncluded: car.fullInsurance === 0,
+      isUnavailable: car.fullInsurance === -1,
+      value: car.fullInsurance,
+      checked: fullInsurance,
+      disabled: car.fullInsurance === -1 || car.fullInsurance === 0 || paymentLocked,
+      onChange: handleFullInsuranceChange,
+    },
+  ]
+
+  if (allowAdditionalDriver) {
+    options.push({
+      label: csStrings.ADDITIONAL_DRIVER,
+      description: descriptions.additionalDriver,
+      priceText: additionalDriverOption,
+      isIncluded: car.additionalDriver === 0,
+      isUnavailable: car.additionalDriver === -1,
+      value: car.additionalDriver,
+      checked: additionalDriver,
+      disabled: car.additionalDriver === -1 || car.additionalDriver === 0 || paymentLocked,
+      onChange: handleAdditionalDriverChange,
+    })
+  }
+
+  // Filter out unavailable options
+  const visibleOptions = options.filter((opt) => !opt.isUnavailable)
+
   return (
     <div className="checkout-options-container">
       <div className="checkout-info">
-        <BookingIcon />
-        <span>{strings.BOOKING_OPTIONS}</span>
+        <div className="checkout-section-number">{sectionNumber}</div>
+        <span className="checkout-section-title">{strings.BOOKING_OPTIONS}</span>
       </div>
       <div className="checkout-options">
-        <FormControl fullWidth margin="dense">
-          <FormControlLabel
-            disabled={car.cancellation === -1 || car.cancellation === 0 || !!clientSecret || payPalLoaded}
-            control={<Switch checked={cancellation} onChange={handleCancellationChange} color="primary" />}
-            label={(
-              <span>
-                <span className="checkout-option-label">{csStrings.CANCELLATION}</span>
-                <span className="checkout-option-value">{cancellationOption}</span>
-              </span>
-            )}
-          />
-        </FormControl>
-
-        <FormControl fullWidth margin="dense">
-          <FormControlLabel
-            disabled={car.amendments === -1 || car.amendments === 0 || !!clientSecret || payPalLoaded}
-            control={<Switch checked={amendments} onChange={handleAmendmentsChange} color="primary" />}
-            label={(
-              <span>
-                <span className="checkout-option-label">{csStrings.AMENDMENTS}</span>
-                <span className="checkout-option-value">{amendmentsOption}</span>
-              </span>
-            )}
-          />
-        </FormControl>
-
-        <FormControl fullWidth margin="dense">
-          <FormControlLabel
-            disabled={car.theftProtection === -1 || car.theftProtection === 0 || !!clientSecret || payPalLoaded}
-            control={<Switch checked={theftProtection} onChange={handleTheftProtectionChange} color="primary" />}
-            label={(
-              <span>
-                <span className="checkout-option-label">{csStrings.THEFT_PROTECTION}</span>
-                <span className="checkout-option-value">{theftProtectionOption}</span>
-              </span>
-            )}
-          />
-        </FormControl>
-
-        <FormControl fullWidth margin="dense">
-          <FormControlLabel
-            disabled={car.collisionDamageWaiver === -1 || car.collisionDamageWaiver === 0 || !!clientSecret || payPalLoaded}
-            control={<Switch checked={collisionDamageWaiver} onChange={handleCollisionDamageWaiverChange} color="primary" />}
-            label={(
-              <span>
-                <span className="checkout-option-label">{csStrings.COLLISION_DAMAGE_WAVER}</span>
-                <span className="checkout-option-value">{collisionDamageWaiverOption}</span>
-              </span>
-            )}
-          />
-        </FormControl>
-
-        <FormControl fullWidth margin="dense">
-          <FormControlLabel
-            disabled={car.fullInsurance === -1 || car.fullInsurance === 0 || !!clientSecret || payPalLoaded}
-            control={<Switch checked={fullInsurance} onChange={handleFullInsuranceChange} color="primary" />}
-            label={(
-              <span>
-                <span className="checkout-option-label">{csStrings.FULL_INSURANCE}</span>
-                <span className="checkout-option-value">{fullInsuranceOption}</span>
-              </span>
-            )}
-          />
-        </FormControl>
-
-        {allowAdditionalDriver && (
-          <FormControl fullWidth margin="dense">
-            <FormControlLabel
-              disabled={car.additionalDriver === -1 || car.additionalDriver === 0 || !!clientSecret || payPalLoaded}
-              control={<Switch checked={additionalDriver} onChange={handleAdditionalDriverChange} color="primary" />}
-              label={(
-                <span>
-                  <span className="checkout-option-label">{csStrings.ADDITIONAL_DRIVER}</span>
-                  <span className="checkout-option-value">{additionalDriverOption}</span>
-                </span>
-              )}
+        {visibleOptions.map((opt) => (
+          <div
+            key={opt.label}
+            className={`option-card${opt.checked ? ' selected' : ''}${opt.disabled ? ' disabled' : ''}`}
+            onClick={() => {
+              if (!opt.disabled) {
+                const syntheticEvent = { target: { checked: !opt.checked } } as React.ChangeEvent<HTMLInputElement>
+                opt.onChange(syntheticEvent)
+              }
+            }}
+            role="button"
+            tabIndex={opt.disabled ? -1 : 0}
+            onKeyDown={(e) => {
+              if (!opt.disabled && (e.key === 'Enter' || e.key === ' ')) {
+                e.preventDefault()
+                const syntheticEvent = { target: { checked: !opt.checked } } as React.ChangeEvent<HTMLInputElement>
+                opt.onChange(syntheticEvent)
+              }
+            }}
+          >
+            <Switch
+              checked={opt.checked}
+              disabled={opt.disabled}
+              color="primary"
+              size="small"
+              onClick={(e) => e.stopPropagation()}
+              onChange={opt.onChange}
             />
-          </FormControl>
-        )}
+            <div className="option-card-body">
+              <div className="option-card-name">{opt.label}</div>
+              {opt.description && (
+                <div className="option-card-desc">{opt.description}</div>
+              )}
+            </div>
+            <div className="option-card-price">
+              {opt.isIncluded ? (
+                <span className="option-card-price-included">{csStrings.INCLUDED}</span>
+              ) : (
+                <span className="option-card-price-value">{opt.priceText}</span>
+              )}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   )

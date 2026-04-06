@@ -6,7 +6,6 @@ import {
   FormControl,
   FormHelperText,
   Button,
-  Paper,
   Checkbox,
   Link,
   FormControlLabel,
@@ -15,14 +14,13 @@ import {
   CircularProgress,
 } from '@mui/material'
 import {
-  DirectionsCar as CarIcon,
-  Person as DriverIcon,
-  Settings as PaymentOptionsIcon,
-  Payment as LicenseIcon,
-  AssignmentTurnedIn as ChecklistIcon,
   LocalShipping as DeliveryIcon,
   Store as StoreIcon,
   LocationOn as LocationOnIcon,
+  CalendarMonth as CalendarIcon,
+  Lock as LockIcon,
+  ExpandMore as ExpandMoreIcon,
+  Check as CheckIcon,
 } from '@mui/icons-material'
 import Switch from '@mui/material/Switch'
 import { format } from 'date-fns'
@@ -36,7 +34,6 @@ import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import validator from 'validator'
 import { createSchema, FormFields } from '@/models/CheckoutForm'
-import CarList from '@/components/CarList'
 import * as bookcarsTypes from ':bookcars-types'
 import * as bookcarsHelper from ':bookcars-helper'
 import env from '@/config/env.config'
@@ -74,7 +71,7 @@ import DeliveryLocationPicker, { DeliveryLocationInfo } from '@/components/Deliv
 import '@/assets/css/checkout.css'
 
 //
-// Make sure to call `loadStripe` outside of a component’s render to avoid
+// Make sure to call `loadStripe` outside of a component's render to avoid
 // recreating the `Stripe` object on every render.
 //
 const stripePromise = env.PAYMENT_GATEWAY === bookcarsTypes.PaymentGateway.Stripe ? loadStripe(env.STRIPE_PUBLISHABLE_KEY) : null
@@ -108,7 +105,6 @@ const Checkout = () => {
   const [clientSecret, setClientSecret] = useState<string | null>(null)
   const [bookingId, setBookingId] = useState<string>()
   const [sessionId, setSessionId] = useState<string>()
-  // const [distance, setDistance] = useState('')
   const [licenseRequired, setLicenseRequired] = useState(false)
   const [license, setLicense] = useState<string | null>(null)
   const [openMapDialog, setOpenMapDialog] = useState(false)
@@ -117,6 +113,7 @@ const Checkout = () => {
   const [payPalLoaded, setPayPalLoaded] = useState(false)
   const [payPalInit, setPayPalInit] = useState(false)
   const [payPalProcessing, setPayPalProcessing] = useState(false)
+  const [checklistOpen, setChecklistOpen] = useState(false)
 
   const birthDateRef = useRef<HTMLInputElement | null>(null)
   const additionalDriverBirthDateRef = useRef<HTMLInputElement | null>(null)
@@ -128,7 +125,6 @@ const Checkout = () => {
   const _ar = language === 'ar'
   const _locale = getDateFnsLocale(language)
   const _format = _fr ? 'eee d LLL yyyy kk:mm' : _es ? 'eee, d LLLL yyyy HH:mm' : _ar ? 'eee، d LLL yyyy، p' : 'eee, d LLL yyyy, p'
-  const bookingDetailHeight = env.SUPPLIER_IMAGE_HEIGHT + 10
   const days = bookcarsHelper.days(from, to)
   const daysLabel = from && to && `${helper.getDaysShort(days)} (${bookcarsHelper.capitalize(format(from, _format, { locale: _locale }))} - ${bookcarsHelper.capitalize(format(to, _format, { locale: _locale }))})`
 
@@ -444,14 +440,6 @@ const Checkout = () => {
         return
       }
 
-      // if (_pickupLocation.latitude && _pickupLocation.longitude) {
-      //   const l = await helper.getLocation()
-      //   if (l) {
-      //     const d = bookcarsHelper.distance(_pickupLocation.latitude, _pickupLocation.longitude, l[0], l[1], 'K')
-      //     setDistance(bookcarsHelper.formatDistance(d, UserService.getLanguage()))
-      //   }
-      // }
-
       if (dropOffLocationId !== pickupLocationId) {
         _dropOffLocation = await LocationService.getLocation(dropOffLocationId)
       } else {
@@ -484,10 +472,44 @@ const Checkout = () => {
       setValue('fullInsurance', included(_car.fullInsurance))
       setLicense(_user?.license || null)
       setVisible(true)
+      setLoadingPage(false)
     } catch (err) {
       helper.error(err)
     }
   }
+
+  // Compute the final total including delivery
+  const computeTotal = useCallback(() => {
+    let total = price
+    if (payDeposit) {
+      total = depositPrice
+    } else if (payInFull) {
+      total = price + depositPrice
+    }
+    total += (deliveryInfo?.deliveryFee || 0)
+    return total
+  }, [price, payDeposit, payInFull, depositPrice, deliveryInfo])
+
+  // Section numbering helper
+  const getSectionNumbers = useCallback(() => {
+    let n = 1
+    const nums: Record<string, string> = {}
+    nums.car = String(n++)
+    nums.options = String(n++)
+    nums.delivery = String(n++)
+    if (!authenticated) {
+      nums.driver = String(n++)
+    }
+    if (car?.supplier.licenseRequired) {
+      nums.license = String(n++)
+    }
+    if (adManuallyChecked && additionalDriver) {
+      nums.additionalDriver = String(n++)
+    }
+    nums.payment = String(n++)
+    nums.checklist = String(n++)
+    return nums
+  }, [authenticated, car, adManuallyChecked, additionalDriver])
 
   return (
     <>
@@ -495,49 +517,117 @@ const Checkout = () => {
         {!user?.blacklisted && visible && car && from && to && pickupLocation && dropOffLocation && (
           <>
             <div className="checkout">
-              <Paper className="checkout-form" elevation={10}>
-                <h1 className="checkout-form-title">{strings.BOOKING_HEADING}</h1>
-                <form onSubmit={handleSubmit(onSubmit, onError)}>
-                  <div>
-                    {(
-                      (pickupLocation.latitude && pickupLocation.longitude)
-                      || (pickupLocation.parkingSpots && pickupLocation.parkingSpots.length > 0)
-                    ) && (
-                        <Map
-                          position={[pickupLocation.latitude || Number(pickupLocation.parkingSpots![0].latitude), pickupLocation.longitude || Number(pickupLocation.parkingSpots![0].longitude)]}
-                          initialZoom={10}
-                          parkingSpots={pickupLocation.parkingSpots}
-                          locations={[pickupLocation]}
-                          className="map"
-                        >
-                          <ViewOnMapButton onClick={() => setOpenMapDialog(true)} />
-                        </Map>
+              <form onSubmit={handleSubmit(onSubmit, onError)}>
+                <div className="checkout-layout">
+                  {/* ═══════════════════════════════════════════════
+                      LEFT COLUMN - Main Form Content
+                      ═══════════════════════════════════════════════ */}
+                  <div className="checkout-main">
+
+                    {/* ── Section A: Car Summary ── */}
+                    <div className="checkout-section">
+                      <div className="checkout-section-header">
+                        <div className="checkout-section-number">{getSectionNumbers().car}</div>
+                        <div className="checkout-section-title">{strings.CAR}</div>
+                      </div>
+
+                      {/* Map */}
+                      {(
+                        (pickupLocation.latitude && pickupLocation.longitude)
+                        || (pickupLocation.parkingSpots && pickupLocation.parkingSpots.length > 0)
+                      ) && (
+                          <Map
+                            position={[pickupLocation.latitude || Number(pickupLocation.parkingSpots![0].latitude), pickupLocation.longitude || Number(pickupLocation.parkingSpots![0].longitude)]}
+                            initialZoom={10}
+                            parkingSpots={pickupLocation.parkingSpots}
+                            locations={[pickupLocation]}
+                            className="map"
+                          >
+                            <ViewOnMapButton onClick={() => setOpenMapDialog(true)} />
+                          </Map>
+                        )}
+
+                      {/* Supplier Office Info Card */}
+                      {!env.HIDE_SUPPLIERS && car.supplier.latitude && car.supplier.longitude && (
+                        <div className="supplier-office-info-card">
+                          <div className="supplier-office-info-icon">
+                            <StoreIcon fontSize="inherit" />
+                          </div>
+                          <div className="supplier-office-info-body">
+                            <div className="supplier-office-info-title">Supplier Office</div>
+                            <div className="supplier-office-info-name">{car.supplier.fullName}</div>
+                          </div>
+                          <a
+                            className="supplier-office-info-link"
+                            href={`https://maps.google.com/?q=${car.supplier.latitude},${car.supplier.longitude}`}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            <LocationOnIcon sx={{ fontSize: 15 }} />
+                            View on map
+                          </a>
+                        </div>
                       )}
 
-                    {/* ── Supplier Office Info Card (no extra map to avoid race condition) ── */}
-                    {!env.HIDE_SUPPLIERS && car.supplier.latitude && car.supplier.longitude && (
-                      <div className="supplier-office-info-card">
-                        <div className="supplier-office-info-icon">
-                          <StoreIcon fontSize="inherit" />
+                      {/* Car Summary Card */}
+                      <div className="car-summary-card">
+                        <div className="car-summary-image">
+                          <img src={helper.carImageURL(car.image)} alt={car.name} />
                         </div>
-                        <div className="supplier-office-info-body">
-                          <div className="supplier-office-info-title">Supplier Office</div>
-                          <div className="supplier-office-info-name">{car.supplier.fullName}</div>
+                        <div className="car-summary-details">
+                          <div className="car-summary-name">{car.name}</div>
+                          {!env.HIDE_SUPPLIERS && (
+                            <div className="car-summary-supplier">
+                              <img src={helper.supplierImageURL(car.supplier.avatar)} alt={car.supplier.fullName} />
+                              <span className="car-summary-supplier-name">{car.supplier.fullName}</span>
+                            </div>
+                          )}
+                          <div className="car-summary-pricing">
+                            <span className="car-summary-daily-price">
+                              {bookcarsHelper.formatPrice(price / days, commonStrings.CURRENCY, language)}
+                            </span>
+                            <span className="car-summary-days">
+                              {commonStrings.DAILY}
+                              {' '}
+                              &middot;
+                              {' '}
+                              {days}
+                              {' '}
+                              {days > 1 ? strings.DAYS.toLowerCase() : strings.DAY}
+                            </span>
+                          </div>
                         </div>
-                        <a
-                          className="supplier-office-info-link"
-                          href={`https://maps.google.com/?q=${car.supplier.latitude},${car.supplier.longitude}`}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          <LocationOnIcon sx={{ fontSize: 15 }} />
-                          View on map
-                        </a>
                       </div>
-                    )}
+                    </div>
 
-                    {/* ── Delivery Option Toggle ───────────────────────────── */}
+                    {/* ── Section B: Rental Options / Insurance ── */}
+                    <CheckoutOptions
+                      car={car}
+                      from={from}
+                      to={to}
+                      language={language}
+                      sectionNumber={getSectionNumbers().options}
+                      allowAdditionalDriver={!authenticated}
+                      clientSecret={clientSecret}
+                      payPalLoaded={payPalLoaded}
+                      onPriceChange={(value) => setPrice(value)}
+                      onAdManuallyCheckedChange={(value) => setAdManuallyChecked(value)}
+                      onCancellationChange={(value) => setValue('cancellation', value)}
+                      onAmendmentsChange={(value) => setValue('amendments', value)}
+                      onTheftProtectionChange={(value) => setValue('theftProtection', value)}
+                      onCollisionDamageWaiverChange={(value) => setValue('collisionDamageWaiver', value)}
+                      onFullInsuranceChange={(value) => setValue('fullInsurance', value)}
+                      onAdditionalDriverChange={(value) => setValue('additionalDriver', value)}
+                    />
+
+                    {/* ── Section C: Delivery Option ── */}
                     <div className="delivery-option-section">
+                      <div style={{ padding: '20px 20px 0' }}>
+                        <div className="checkout-section-header" style={{ marginBottom: 0 }}>
+                          <div className="checkout-section-number">{getSectionNumbers().delivery}</div>
+                          <div className="checkout-section-title">Delivery Option</div>
+                        </div>
+                      </div>
                       <div
                         className="delivery-option-toggle"
                         role="button"
@@ -611,213 +701,125 @@ const Checkout = () => {
                       )}
                     </div>
 
-                    <CarList
-                      cars={[car]}
-                      // pickupLocationName={pickupLocation.name}
-                      // distance={distance}
-                      hidePrice
-                      sizeAuto
-                      onLoad={() => setLoadingPage(false)}
-                      hideSupplier={env.HIDE_SUPPLIERS}
-                    />
-
-                    <CheckoutOptions
-                      car={car}
-                      from={from}
-                      to={to}
-                      language={language}
-                      allowAdditionalDriver={!authenticated}
-                      clientSecret={clientSecret}
-                      payPalLoaded={payPalLoaded}
-                      onPriceChange={(value) => setPrice(value)}
-                      onAdManuallyCheckedChange={(value) => setAdManuallyChecked(value)}
-                      onCancellationChange={(value) => setValue('cancellation', value)}
-                      onAmendmentsChange={(value) => setValue('amendments', value)}
-                      onTheftProtectionChange={(value) => setValue('theftProtection', value)}
-                      onCollisionDamageWaiverChange={(value) => setValue('collisionDamageWaiver', value)}
-                      onFullInsuranceChange={(value) => setValue('fullInsurance', value)}
-                      onAdditionalDriverChange={(value) => setValue('additionalDriver', value)}
-                    />
-
-                    <div className="checkout-details-container">
-                      <div className="checkout-info">
-                        <CarIcon />
-                        <span>{strings.BOOKING_DETAILS}</span>
-                      </div>
-                      <div className="checkout-details">
-                        <div className="checkout-detail" style={{ height: bookingDetailHeight }}>
-                          <span className="checkout-detail-title">{strings.DAYS}</span>
-                          <div className="checkout-detail-value">
-                            {daysLabel}
-                          </div>
-                        </div>
-                        <div className="checkout-detail" style={{ height: bookingDetailHeight }}>
-                          <span className="checkout-detail-title">{commonStrings.PICK_UP_LOCATION}</span>
-                          <div className="checkout-detail-value">{pickupLocation.name}</div>
-                        </div>
-                        <div className="checkout-detail" style={{ height: bookingDetailHeight }}>
-                          <span className="checkout-detail-title">{commonStrings.DROP_OFF_LOCATION}</span>
-                          <div className="checkout-detail-value">{dropOffLocation.name}</div>
-                        </div>
-                        <div className="checkout-detail" style={{ height: bookingDetailHeight }}>
-                          <span className="checkout-detail-title">{strings.CAR}</span>
-                          <div className="checkout-detail-value">{`${car.name} (${bookcarsHelper.formatPrice(price / days, commonStrings.CURRENCY, language)}${commonStrings.DAILY})`}</div>
-                        </div>
-                        {!env.HIDE_SUPPLIERS && (
-                          <div className="checkout-detail" style={{ height: bookingDetailHeight }}>
-                            <span className="checkout-detail-title">{commonStrings.SUPPLIER}</span>
-                            <div className="checkout-detail-value">
-                              <div className="car-supplier">
-                                <img src={helper.supplierImageURL(car.supplier.avatar)} alt={car.supplier.fullName} style={{ height: env.SUPPLIER_IMAGE_HEIGHT }} />
-                                <span className="car-supplier-name">{car.supplier.fullName}</span>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                        <div className="checkout-detail" style={{ height: bookingDetailHeight }}>
-                          <span className="checkout-detail-title">{strings.COST}</span>
-                          <div className="checkout-detail-value booking-price">{bookcarsHelper.formatPrice(price, commonStrings.CURRENCY, language)}</div>
-                        </div>
-                        {deliveryInfo && (
-                          <div className="checkout-detail delivery-fee-row" style={{ height: bookingDetailHeight }}>
-                            <span className="checkout-detail-title">
-                              🚗 Delivery Fee
-                              <span className="delivery-distance-badge">{deliveryInfo.distanceKm.toFixed(1)} km away</span>
-                            </span>
-                            <div className={`checkout-detail-value ${deliveryInfo.deliveryFee === 0 ? 'delivery-free' : 'delivery-paid'}`}>
-                              {deliveryInfo.deliveryFee === 0
-                                ? '🎉 Free Delivery!'
-                                : `$${deliveryInfo.deliveryFee}`}
-                            </div>
-                          </div>
-                        )}
-                        {deliveryInfo && (
-                          <div className="checkout-detail" style={{ height: bookingDetailHeight }}>
-                            <span className="checkout-detail-title">📍 Pickup Address</span>
-                            <div className="checkout-detail-value" style={{ fontSize: 12, color: '#64748b' }}>
-                              {deliveryInfo.address}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
+                    {/* ── Section D: Driver Details (unauthenticated only) ── */}
                     {!authenticated && (
                       <div className="driver-details">
-                        <div className="checkout-info">
-                          <DriverIcon />
-                          <span>{strings.DRIVER_DETAILS}</span>
+                        <div className="checkout-section-header">
+                          <div className="checkout-section-number">{getSectionNumbers().driver}</div>
+                          <div className="checkout-section-title">{strings.DRIVER_DETAILS}</div>
                         </div>
                         <div className="driver-details-form">
-                          <FormControl fullWidth margin="dense">
-                            <InputLabel className="required">{commonStrings.FULL_NAME}</InputLabel>
-                            <OutlinedInput
-                              {...register('fullName')}
-                              type="text"
-                              label={commonStrings.FULL_NAME}
-                              required
-                              error={!!errors.fullName}
-                              autoComplete="off"
-                            />
-                          </FormControl>
-                          <FormControl fullWidth margin="dense">
-                            <InputLabel className="required">{commonStrings.EMAIL}</InputLabel>
-                            <OutlinedInput
-                              // {...register('email')}
-                              type="text"
-                              label={commonStrings.EMAIL}
-                              error={!!errors.email || emailRegistered}
-                              required
-                              autoComplete="off"
-                              onChange={(e) => {
-                                if (errors.email) {
-                                  clearErrors('email')
-                                }
-                                setEmailRegistered(false)
-                                setEmailInfo(false)
-                                setValue('email', e.target.value)
-                              }}
-                              onBlur={async (e) => {
-                                trigger('email')
-                                const email = e.target.value
-
-                                if (validateEmail(email)) {
-                                  const status = await UserService.validateEmail({ email })
-                                  if (status === 200) {
-                                    setEmailRegistered(false)
-                                    setEmailInfo(true)
-                                  } else {
-                                    setEmailRegistered(true)
-                                    setEmailInfo(false)
+                          <div className="driver-details-form-grid">
+                            <FormControl fullWidth margin="dense">
+                              <InputLabel className="required">{commonStrings.FULL_NAME}</InputLabel>
+                              <OutlinedInput
+                                {...register('fullName')}
+                                type="text"
+                                label={commonStrings.FULL_NAME}
+                                required
+                                error={!!errors.fullName}
+                                autoComplete="off"
+                              />
+                            </FormControl>
+                            <FormControl fullWidth margin="dense">
+                              <InputLabel className="required">{commonStrings.EMAIL}</InputLabel>
+                              <OutlinedInput
+                                type="text"
+                                label={commonStrings.EMAIL}
+                                error={!!errors.email || emailRegistered}
+                                required
+                                autoComplete="off"
+                                onChange={(e) => {
+                                  if (errors.email) {
+                                    clearErrors('email')
                                   }
-                                } else {
                                   setEmailRegistered(false)
                                   setEmailInfo(false)
-                                }
-                              }}
-                            />
-                            <FormHelperText error={!!errors.email || emailRegistered}>
-                              {(errors.email && errors.email.message) || ''}
-                              {(emailRegistered && (
-                                <span>
-                                  <span>{commonStrings.EMAIL_ALREADY_REGISTERED}</span>
-                                  <span> </span>
-                                  <a href={`/sign-in?c=${car._id}&p=${pickupLocation._id}&d=${dropOffLocation._id}&f=${from.getTime()}&t=${to.getTime()}&from=checkout`}>{strings.SIGN_IN}</a>
-                                </span>
-                              ))
-                                || ''}
-                              {(emailInfo && !errors.email && strings.EMAIL_INFO) || ''}
-                            </FormHelperText>
-                          </FormControl>
-                          <FormControl fullWidth margin="dense">
-                            <InputLabel className="required">{commonStrings.PHONE}</InputLabel>
-                            <OutlinedInput
-                              // {...register('phone')}
-                              type="text"
-                              label={commonStrings.PHONE}
-                              error={!!errors.phone}
-                              required
-                              autoComplete="off"
-                              onChange={(e) => {
-                                if (errors.phone) {
-                                  clearErrors('phone')
-                                }
-                                setPhoneInfo(false)
-                                setValue('phone', e.target.value)
-                              }}
-                              onBlur={(e) => {
-                                trigger('phone')
-                                setPhoneInfo(validatePhone(e.target.value))
-                              }}
-                            />
-                            <FormHelperText error={!!errors.phone}>
-                              {(errors.phone && errors.phone.message) || ''}
-                              {(phoneInfo && strings.PHONE_INFO) || ''}
-                            </FormHelperText>
-                          </FormControl>
-                          <FormControl fullWidth margin="dense">
-                            <DatePicker
-                              {...register('birthDate')}
-                              ref={birthDateRef}
-                              label={commonStrings.BIRTH_DATE}
-                              variant="outlined"
-                              required
-                              onChange={(_birthDate) => {
-                                if (errors.birthDate) {
-                                  clearErrors('birthDate')
-                                }
-                                if (_birthDate) {
-                                  setValue('birthDate', _birthDate, { shouldValidate: true })
-                                } else {
-                                  setValue('birthDate', undefined, { shouldValidate: true })
-                                }
-                              }}
-                              language={language}
-                            />
-                            <FormHelperText error={!!errors.birthDate}>
-                              {(errors.birthDate && errors.birthDate.message) || ''}
-                            </FormHelperText>
-                          </FormControl>
+                                  setValue('email', e.target.value)
+                                }}
+                                onBlur={async (e) => {
+                                  trigger('email')
+                                  const email = e.target.value
+
+                                  if (validateEmail(email)) {
+                                    const status = await UserService.validateEmail({ email })
+                                    if (status === 200) {
+                                      setEmailRegistered(false)
+                                      setEmailInfo(true)
+                                    } else {
+                                      setEmailRegistered(true)
+                                      setEmailInfo(false)
+                                    }
+                                  } else {
+                                    setEmailRegistered(false)
+                                    setEmailInfo(false)
+                                  }
+                                }}
+                              />
+                              <FormHelperText error={!!errors.email || emailRegistered}>
+                                {(errors.email && errors.email.message) || ''}
+                                {(emailRegistered && (
+                                  <span>
+                                    <span>{commonStrings.EMAIL_ALREADY_REGISTERED}</span>
+                                    <span> </span>
+                                    <a href={`/sign-in?c=${car._id}&p=${pickupLocation._id}&d=${dropOffLocation._id}&f=${from.getTime()}&t=${to.getTime()}&from=checkout`}>{strings.SIGN_IN}</a>
+                                  </span>
+                                ))
+                                  || ''}
+                                {(emailInfo && !errors.email && strings.EMAIL_INFO) || ''}
+                              </FormHelperText>
+                            </FormControl>
+                          </div>
+                          <div className="driver-details-form-grid">
+                            <FormControl fullWidth margin="dense">
+                              <InputLabel className="required">{commonStrings.PHONE}</InputLabel>
+                              <OutlinedInput
+                                type="text"
+                                label={commonStrings.PHONE}
+                                error={!!errors.phone}
+                                required
+                                autoComplete="off"
+                                onChange={(e) => {
+                                  if (errors.phone) {
+                                    clearErrors('phone')
+                                  }
+                                  setPhoneInfo(false)
+                                  setValue('phone', e.target.value)
+                                }}
+                                onBlur={(e) => {
+                                  trigger('phone')
+                                  setPhoneInfo(validatePhone(e.target.value))
+                                }}
+                              />
+                              <FormHelperText error={!!errors.phone}>
+                                {(errors.phone && errors.phone.message) || ''}
+                                {(phoneInfo && strings.PHONE_INFO) || ''}
+                              </FormHelperText>
+                            </FormControl>
+                            <FormControl fullWidth margin="dense">
+                              <DatePicker
+                                {...register('birthDate')}
+                                ref={birthDateRef}
+                                label={commonStrings.BIRTH_DATE}
+                                variant="outlined"
+                                required
+                                onChange={(_birthDate) => {
+                                  if (errors.birthDate) {
+                                    clearErrors('birthDate')
+                                  }
+                                  if (_birthDate) {
+                                    setValue('birthDate', _birthDate, { shouldValidate: true })
+                                  } else {
+                                    setValue('birthDate', undefined, { shouldValidate: true })
+                                  }
+                                }}
+                                language={language}
+                              />
+                              <FormHelperText error={!!errors.birthDate}>
+                                {(errors.birthDate && errors.birthDate.message) || ''}
+                              </FormHelperText>
+                            </FormControl>
+                          </div>
 
                           <div className="checkout-tos">
                             <table>
@@ -854,11 +856,12 @@ const Checkout = () => {
                       </div>
                     )}
 
+                    {/* ── Section E: Driver License (if required) ── */}
                     {car.supplier.licenseRequired && (
                       <div className="driver-details">
-                        <div className="checkout-info">
-                          <LicenseIcon />
-                          <span>{commonStrings.DRIVER_LICENSE}</span>
+                        <div className="checkout-section-header">
+                          <div className="checkout-section-number">{getSectionNumbers().license}</div>
+                          <div className="checkout-section-title">{commonStrings.DRIVER_LICENSE}</div>
                         </div>
                         <div className="driver-details-form">
                           <DriverLicense
@@ -882,105 +885,107 @@ const Checkout = () => {
                       </div>
                     )}
 
+                    {/* ── Additional Driver Details ── */}
                     {(adManuallyChecked && additionalDriver) && (
                       <div className="driver-details">
-                        <div className="checkout-info">
-                          <DriverIcon />
-                          <span>{csStrings.ADDITIONAL_DRIVER}</span>
+                        <div className="checkout-section-header">
+                          <div className="checkout-section-number">{getSectionNumbers().additionalDriver}</div>
+                          <div className="checkout-section-title">{csStrings.ADDITIONAL_DRIVER}</div>
                         </div>
                         <div className="driver-details-form">
-                          <FormControl fullWidth margin="dense">
-                            <InputLabel className="required">{commonStrings.FULL_NAME}</InputLabel>
-                            <OutlinedInput
-                              {...register('additionalDriverFullName')}
-                              type="text"
-                              label={commonStrings.FULL_NAME}
-                              required={adRequired}
-                              autoComplete="off"
-                            />
-                          </FormControl>
-                          <FormControl fullWidth margin="dense">
-                            <InputLabel className="required">{commonStrings.EMAIL}</InputLabel>
-                            <OutlinedInput
-                              // {...register('additionalDriverEmail')}
-                              inputRef={additionalDriverEmailRef}
-                              value={additionalDriverEmail}
-                              type="text"
-                              label={commonStrings.EMAIL}
-                              error={!!errors.additionalDriverEmail}
-                              required={adRequired}
-                              autoComplete="off"
-                              onChange={(e) => {
-                                if (errors.additionalDriverEmail) {
-                                  clearErrors('additionalDriverEmail')
-                                }
-                                setValue('additionalDriverEmail', e.target.value)
-                              }}
-                              onBlur={() => {
-                                trigger('additionalDriverEmail')
-                              }}
-                            />
-                            <FormHelperText error={!!errors.additionalDriverEmail}>
-                              {(errors.additionalDriverEmail && errors.additionalDriverEmail.message) || ''}
-                            </FormHelperText>
-                          </FormControl>
-                          <FormControl fullWidth margin="dense">
-                            <InputLabel className="required">{commonStrings.PHONE}</InputLabel>
-                            <OutlinedInput
-                              // {...register('additionalDriverPhone')}
-                              inputRef={additionalDriverPhoneRef}
-                              value={additionalDriverPhone}
-                              type="text"
-                              label={commonStrings.PHONE}
-                              error={!!errors.additionalDriverPhone}
-                              required={adRequired}
-                              autoComplete="off"
-                              onChange={(e) => {
-                                if (errors.additionalDriverPhone) {
-                                  clearErrors('additionalDriverPhone')
-                                }
-                                setValue('additionalDriverPhone', e.target.value)
-                              }}
-                              onBlur={() => {
-                                trigger('additionalDriverPhone')
-                              }}
-                            />
-                            <FormHelperText error={!!errors.additionalDriverPhone}>
-                              {(errors.additionalDriverPhone && errors.additionalDriverPhone.message) || ''}
-                            </FormHelperText>
-                          </FormControl>
-                          <FormControl fullWidth margin="dense">
-                            <DatePicker
-                              {...register('additionalDriverBirthDate')}
-                              ref={additionalDriverBirthDateRef}
-                              label={commonStrings.BIRTH_DATE}
-                              variant="outlined"
-                              required={adRequired}
-                              onChange={(_birthDate) => {
-                                if (_birthDate) {
-                                  setValue('additionalDriverBirthDate', _birthDate, { shouldValidate: true })
-                                } else {
-                                  setValue('additionalDriverBirthDate', undefined, { shouldValidate: true })
-                                }
-                              }}
-                              language={language}
-                            />
-                            <FormHelperText error={!!errors.additionalDriverBirthDate}>
-                              {(errors.additionalDriverBirthDate && errors.additionalDriverBirthDate.message) || ''}
-                            </FormHelperText>
-                          </FormControl>
+                          <div className="driver-details-form-grid">
+                            <FormControl fullWidth margin="dense">
+                              <InputLabel className="required">{commonStrings.FULL_NAME}</InputLabel>
+                              <OutlinedInput
+                                {...register('additionalDriverFullName')}
+                                type="text"
+                                label={commonStrings.FULL_NAME}
+                                required={adRequired}
+                                autoComplete="off"
+                              />
+                            </FormControl>
+                            <FormControl fullWidth margin="dense">
+                              <InputLabel className="required">{commonStrings.EMAIL}</InputLabel>
+                              <OutlinedInput
+                                inputRef={additionalDriverEmailRef}
+                                value={additionalDriverEmail}
+                                type="text"
+                                label={commonStrings.EMAIL}
+                                error={!!errors.additionalDriverEmail}
+                                required={adRequired}
+                                autoComplete="off"
+                                onChange={(e) => {
+                                  if (errors.additionalDriverEmail) {
+                                    clearErrors('additionalDriverEmail')
+                                  }
+                                  setValue('additionalDriverEmail', e.target.value)
+                                }}
+                                onBlur={() => {
+                                  trigger('additionalDriverEmail')
+                                }}
+                              />
+                              <FormHelperText error={!!errors.additionalDriverEmail}>
+                                {(errors.additionalDriverEmail && errors.additionalDriverEmail.message) || ''}
+                              </FormHelperText>
+                            </FormControl>
+                          </div>
+                          <div className="driver-details-form-grid">
+                            <FormControl fullWidth margin="dense">
+                              <InputLabel className="required">{commonStrings.PHONE}</InputLabel>
+                              <OutlinedInput
+                                inputRef={additionalDriverPhoneRef}
+                                value={additionalDriverPhone}
+                                type="text"
+                                label={commonStrings.PHONE}
+                                error={!!errors.additionalDriverPhone}
+                                required={adRequired}
+                                autoComplete="off"
+                                onChange={(e) => {
+                                  if (errors.additionalDriverPhone) {
+                                    clearErrors('additionalDriverPhone')
+                                  }
+                                  setValue('additionalDriverPhone', e.target.value)
+                                }}
+                                onBlur={() => {
+                                  trigger('additionalDriverPhone')
+                                }}
+                              />
+                              <FormHelperText error={!!errors.additionalDriverPhone}>
+                                {(errors.additionalDriverPhone && errors.additionalDriverPhone.message) || ''}
+                              </FormHelperText>
+                            </FormControl>
+                            <FormControl fullWidth margin="dense">
+                              <DatePicker
+                                {...register('additionalDriverBirthDate')}
+                                ref={additionalDriverBirthDateRef}
+                                label={commonStrings.BIRTH_DATE}
+                                variant="outlined"
+                                required={adRequired}
+                                onChange={(_birthDate) => {
+                                  if (_birthDate) {
+                                    setValue('additionalDriverBirthDate', _birthDate, { shouldValidate: true })
+                                  } else {
+                                    setValue('additionalDriverBirthDate', undefined, { shouldValidate: true })
+                                  }
+                                }}
+                                language={language}
+                              />
+                              <FormHelperText error={!!errors.additionalDriverBirthDate}>
+                                {(errors.additionalDriverBirthDate && errors.additionalDriverBirthDate.message) || ''}
+                              </FormHelperText>
+                            </FormControl>
+                          </div>
                         </div>
                       </div>
                     )}
 
-                    {/* Payment options */}
-
+                    {/* ── Section F: Payment Method ── */}
                     <div className="payment-options-container">
-                      <div className="checkout-info">
-                        <PaymentOptionsIcon />
-                        <span>{strings.PAYMENT_OPTIONS}</span>
+                      <div className="checkout-section-header">
+                        <div className="checkout-section-number">{getSectionNumbers().payment}</div>
+                        <div className="checkout-section-title">{strings.PAYMENT_OPTIONS}</div>
                       </div>
-                      <div className="payment-options">
+                      <div className="payment-method-cards">
                         <FormControl>
                           <RadioGroup
                             defaultValue={depositPrice > 0 ? 'payOnline' : 'payInFull'}
@@ -995,57 +1000,53 @@ const Checkout = () => {
                                 value="payLater"
                                 control={<Radio />}
                                 disabled={!!clientSecret || payPalLoaded}
-                                className={clientSecret || payPalLoaded ? 'payment-radio-disabled' : ''}
+                                className={`payment-method-card${payLater ? ' selected' : ''}${clientSecret || payPalLoaded ? ' disabled' : ''}`}
                                 label={(
-                                  <span className="payment-button">
-                                    <span>{strings.PAY_LATER}</span>
-                                    <span className="payment-info">{strings.PAY_LATER_INFO}</span>
-                                  </span>
+                                  <div className="payment-method-card-body">
+                                    <div className="payment-method-card-name">{strings.PAY_LATER}</div>
+                                    <div className="payment-method-card-desc">{strings.PAY_LATER_INFO}</div>
+                                  </div>
                                 )}
                               />
                             )}
-                            {
-                              car.deposit > 0 && (
-                                <FormControlLabel
-                                  value="payDeposit"
-                                  control={<Radio />}
-                                  disabled={!!clientSecret || payPalLoaded}
-                                  className={clientSecret || payPalLoaded ? 'payment-radio-disabled' : ''}
-                                  label={(
-                                    <span className="payment-button">
-                                      <span>{strings.PAY_DEPOSIT}</span>
-                                      <span className="payment-info">{strings.PAY_DEPOSIT_INFO}</span>
-                                    </span>
-                                  )}
-                                />
-                              )
-                            }
-                            {
-                              depositPrice > 0 && (
-                                <FormControlLabel
-                                  value="payOnline"
-                                  control={<Radio />}
-                                  disabled={!!clientSecret || payPalLoaded}
-                                  className={clientSecret || payPalLoaded ? 'payment-radio-disabled' : ''}
-                                  label={(
-                                    <span className="payment-button">
-                                      <span>{strings.PAY_ONLINE}</span>
-                                      <span className="payment-info">{strings.PAY_ONLINE_INFO}</span>
-                                    </span>
-                                  )}
-                                />
-                              )
-                            }
+                            {car.deposit > 0 && (
+                              <FormControlLabel
+                                value="payDeposit"
+                                control={<Radio />}
+                                disabled={!!clientSecret || payPalLoaded}
+                                className={`payment-method-card${payDeposit ? ' selected' : ''}${clientSecret || payPalLoaded ? ' disabled' : ''}`}
+                                label={(
+                                  <div className="payment-method-card-body">
+                                    <div className="payment-method-card-name">{strings.PAY_DEPOSIT}</div>
+                                    <div className="payment-method-card-desc">{strings.PAY_DEPOSIT_INFO}</div>
+                                  </div>
+                                )}
+                              />
+                            )}
+                            {depositPrice > 0 && (
+                              <FormControlLabel
+                                value="payOnline"
+                                control={<Radio />}
+                                disabled={!!clientSecret || payPalLoaded}
+                                className={`payment-method-card${!payLater && !payDeposit && !payInFull ? ' selected' : ''}${clientSecret || payPalLoaded ? ' disabled' : ''}`}
+                                label={(
+                                  <div className="payment-method-card-body">
+                                    <div className="payment-method-card-name">{strings.PAY_ONLINE}</div>
+                                    <div className="payment-method-card-desc">{strings.PAY_ONLINE_INFO}</div>
+                                  </div>
+                                )}
+                              />
+                            )}
                             <FormControlLabel
                               value="payInFull"
                               control={<Radio />}
                               disabled={!!clientSecret || payPalLoaded}
-                              className={clientSecret || payPalLoaded ? 'payment-radio-disabled' : ''}
+                              className={`payment-method-card${payInFull ? ' selected' : ''}${clientSecret || payPalLoaded ? ' disabled' : ''}`}
                               label={(
-                                <span className="payment-button">
-                                  <span>{strings.PAY_IN_FULL}</span>
-                                  <span className="payment-info">{strings.PAY_IN_FULL_INFO}</span>
-                                </span>
+                                <div className="payment-method-card-body">
+                                  <div className="payment-method-card-name">{strings.PAY_IN_FULL}</div>
+                                  <div className="payment-method-card-desc">{strings.PAY_IN_FULL_INFO}</div>
+                                </div>
                               )}
                             />
                           </RadioGroup>
@@ -1053,57 +1054,55 @@ const Checkout = () => {
                       </div>
                     </div>
 
-                    {/* Checkout checklist */}
-
-                    <div className="checkout-details-container">
-                      <div className="checkout-info">
-                        <ChecklistIcon />
-                        <span>{strings.PICK_UP_CHECKLIST_TITLE}</span>
+                    {/* ── Section G: Pickup Checklist (Collapsible) ── */}
+                    <div className="checkout-section">
+                      <div
+                        className="checklist-toggle"
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => setChecklistOpen(!checklistOpen)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            setChecklistOpen(!checklistOpen)
+                          }
+                        }}
+                      >
+                        <div className="checkout-section-header" style={{ marginBottom: 0 }}>
+                          <div className="checkout-section-number">{getSectionNumbers().checklist}</div>
+                          <div className="checkout-section-title">{strings.PICK_UP_CHECKLIST_TITLE}</div>
+                        </div>
+                        <ExpandMoreIcon className={`checklist-toggle-icon${checklistOpen ? ' open' : ''}`} />
                       </div>
-                      <div className="checkout-details">
-                        <div className="checkout-detail" style={{ height: bookingDetailHeight }}>
-                          <span className="checkout-detail-title">{strings.PICK_UP_CHECKLIST_ARRIVE_ON_TIME_TITLE}</span>
-                          <div className="checkout-detail-value checklist-content">
-                            {strings.PICK_UP_CHECKLIST_ARRIVE_ON_TIME_CONTENT}
+                      {checklistOpen && (
+                        <div className="checklist-items">
+                          <div className="checklist-item">
+                            <div className="checklist-item-icon">
+                              <CheckIcon sx={{ fontSize: 14 }} />
+                            </div>
+                            <div className="checklist-item-content">
+                              <div className="checklist-item-title">{strings.PICK_UP_CHECKLIST_ARRIVE_ON_TIME_TITLE}</div>
+                              <div className="checklist-item-desc">{strings.PICK_UP_CHECKLIST_ARRIVE_ON_TIME_CONTENT}</div>
+                            </div>
+                          </div>
+                          <div className="checklist-item">
+                            <div className="checklist-item-icon">
+                              <CheckIcon sx={{ fontSize: 14 }} />
+                            </div>
+                            <div className="checklist-item-content">
+                              <div className="checklist-item-title">{strings.PICK_UP_CHECKLIST_DOCUMENTS_TITLE}</div>
+                              <div className="checklist-item-desc">{strings.PICK_UP_CHECKLIST_DOCUMENTS_CONTENT}</div>
+                            </div>
                           </div>
                         </div>
-                        <div className="checkout-detail" style={{ height: bookingDetailHeight }}>
-                          <span className="checkout-detail-title">{strings.PICK_UP_CHECKLIST_DOCUMENTS_TITLE}</span>
-                          <div className="checkout-detail-value checklist-content">
-                            {strings.PICK_UP_CHECKLIST_DOCUMENTS_CONTENT}
-                          </div>
-                        </div>
-                      </div>
+                      )}
                     </div>
 
-                    {/* Total price */}
-
-                    <div className="payment-info">
-                      <div className="payment-info-title">
-                        {
-                          payDeposit ? strings.DEPOSIT : `${strings.PRICE_FOR} ${days} ${days > 1 ? strings.DAYS : strings.DAY}`
-                        }
-                        {deliveryInfo && deliveryInfo.deliveryFee > 0 && (
-                          <span className="payment-info-delivery"> + ${deliveryInfo.deliveryFee} delivery</span>
-                        )}
-                      </div>
-                      <div className="payment-info-price">
-                        {
-                          bookcarsHelper.formatPrice(
-                            (payDeposit ? depositPrice
-                              : payInFull ? (price + depositPrice)
-                                : price)
-                            + (deliveryInfo?.deliveryFee || 0)
-                            , commonStrings.CURRENCY, language)
-                        }
-                      </div>
-                    </div>
-
+                    {/* ── Payment Gateway Embeds ── */}
                     {(!car.supplier.payLater || !payLater) && (
                       env.PAYMENT_GATEWAY === bookcarsTypes.PaymentGateway.Stripe
                         ? (
                           clientSecret && (
-                            <div className="payment-options-container">
+                            <div className="payment-gateway-container">
                               <EmbeddedCheckoutProvider
                                 stripe={stripePromise}
                                 options={{ clientSecret }}
@@ -1114,7 +1113,7 @@ const Checkout = () => {
                           )
                         )
                         : payPalLoaded ? (
-                          <div className="payment-options-container">
+                          <div className="payment-gateway-container">
                             <PayPalButtons
                               createOrder={async () => {
                                 const name = bookcarsHelper.truncateString(car.name, PayPalService.ORDER_NAME_MAX_LENGTH)
@@ -1161,6 +1160,8 @@ const Checkout = () => {
                           </div>
                         ) : null
                     )}
+
+                    {/* ── Buttons (visible on desktop below sections) ── */}
                     <div className="checkout-buttons">
                       {(
                         (env.PAYMENT_GATEWAY === bookcarsTypes.PaymentGateway.Stripe && !clientSecret)
@@ -1189,11 +1190,6 @@ const Checkout = () => {
                         onClick={async () => {
                           try {
                             if (bookingId && sessionId) {
-                              //
-                              // Delete temporary booking on cancel.
-                              // Otherwise, temporary bookings are
-                              // automatically deleted through a TTL index.
-                              //
                               await BookingService.deleteTempBooking(bookingId, sessionId)
                             }
                             if (!authenticated && license) {
@@ -1209,14 +1205,147 @@ const Checkout = () => {
                         {commonStrings.CANCEL}
                       </Button>
                     </div>
+
+                    <div className="form-error">
+                      {paymentFailed && <Error message={strings.PAYMENT_FAILED} />}
+                      {recaptchaError && <Error message={commonStrings.RECAPTCHA_ERROR} />}
+                      {licenseRequired && <Error message={strings.LICENSE_REQUIRED} />}
+                    </div>
                   </div>
-                  <div className="form-error">
-                    {paymentFailed && <Error message={strings.PAYMENT_FAILED} />}
-                    {recaptchaError && <Error message={commonStrings.RECAPTCHA_ERROR} />}
-                    {licenseRequired && <Error message={strings.LICENSE_REQUIRED} />}
+
+                  {/* ═══════════════════════════════════════════════
+                      RIGHT COLUMN - Order Summary Sidebar
+                      ═══════════════════════════════════════════════ */}
+                  <div className="checkout-sidebar">
+                    <div className="order-summary">
+                      {/* Header */}
+                      <div className="order-summary-header">
+                        <div className="order-summary-title">{strings.BOOKING_DETAILS}</div>
+                      </div>
+
+                      {/* Car Thumbnail */}
+                      <div className="order-summary-car">
+                        <div className="order-summary-car-image">
+                          <img src={helper.carImageURL(car.image)} alt={car.name} />
+                        </div>
+                        <div className="order-summary-car-info">
+                          <div className="order-summary-car-name">{car.name}</div>
+                          {!env.HIDE_SUPPLIERS && (
+                            <div className="order-summary-car-supplier">
+                              <img src={helper.supplierImageURL(car.supplier.avatar)} alt={car.supplier.fullName} />
+                              <span>{car.supplier.fullName}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Date & Location Info */}
+                      <div className="order-summary-info">
+                        <div className="order-summary-row">
+                          <CalendarIcon className="order-summary-row-icon" sx={{ fontSize: 18 }} />
+                          <span className="order-summary-row-text">{daysLabel}</span>
+                        </div>
+                        <div className="order-summary-row">
+                          <LocationOnIcon className="order-summary-row-icon" sx={{ fontSize: 18 }} />
+                          <span className="order-summary-row-text">
+                            {pickupLocation._id === dropOffLocation._id
+                              ? pickupLocation.name
+                              : `${pickupLocation.name} → ${dropOffLocation.name}`}
+                          </span>
+                        </div>
+                        {deliveryInfo && (
+                          <div className="order-summary-row">
+                            <DeliveryIcon className="order-summary-row-icon" sx={{ fontSize: 18 }} />
+                            <span className="order-summary-row-text" style={{ fontSize: 12 }}>
+                              {deliveryInfo.address}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Price Breakdown */}
+                      <div className="order-summary-breakdown">
+                        <div className="order-summary-line">
+                          <span className="order-summary-line-label">
+                            {`${csStrings.PRICE_DAYS_PART_1} ${days} ${days > 1 ? csStrings.PRICE_DAYS_PART_2 + 's' : csStrings.PRICE_DAYS_PART_2}`}
+                          </span>
+                          <span className="order-summary-line-value">
+                            {bookcarsHelper.formatPrice(price, commonStrings.CURRENCY, language)}
+                          </span>
+                        </div>
+                        {deliveryInfo && (
+                          <div className="order-summary-line">
+                            <span className="order-summary-line-label">
+                              Delivery
+                              {' '}
+                              (
+                              {deliveryInfo.distanceKm.toFixed(1)}
+                              {' '}
+                              km)
+                            </span>
+                            <span className={`order-summary-line-value${deliveryInfo.deliveryFee === 0 ? ' free' : ''}`}>
+                              {deliveryInfo.deliveryFee === 0
+                                ? 'Free'
+                                : `$${deliveryInfo.deliveryFee}`}
+                            </span>
+                          </div>
+                        )}
+                        {depositPrice > 0 && payDeposit && (
+                          <div className="order-summary-line">
+                            <span className="order-summary-line-label">{strings.DEPOSIT}</span>
+                            <span className="order-summary-line-value">
+                              {bookcarsHelper.formatPrice(depositPrice, commonStrings.CURRENCY, language)}
+                            </span>
+                          </div>
+                        )}
+                        {depositPrice > 0 && payInFull && (
+                          <div className="order-summary-line">
+                            <span className="order-summary-line-label">{strings.DEPOSIT}</span>
+                            <span className="order-summary-line-value">
+                              {bookcarsHelper.formatPrice(depositPrice, commonStrings.CURRENCY, language)}
+                            </span>
+                          </div>
+                        )}
+                        <hr className="order-summary-divider" />
+                      </div>
+
+                      {/* Total */}
+                      <div className="order-summary-total">
+                        <span className="order-summary-total-label">
+                          {payDeposit ? strings.DEPOSIT : 'Total'}
+                        </span>
+                        <span className="order-summary-total-value">
+                          {bookcarsHelper.formatPrice(computeTotal(), commonStrings.CURRENCY, language)}
+                        </span>
+                      </div>
+
+                      {/* CTA Button */}
+                      <div className="order-summary-cta">
+                        {(
+                          (env.PAYMENT_GATEWAY === bookcarsTypes.PaymentGateway.Stripe && !clientSecret)
+                          || (env.PAYMENT_GATEWAY === bookcarsTypes.PaymentGateway.PayPal && !payPalInit)
+                          || env.PAYMENT_GATEWAY === bookcarsTypes.PaymentGateway.Areeba
+                          || payLater) && (
+                            <button
+                              type="submit"
+                              disabled={isSubmitting || (payPalLoaded && !payPalInit)}
+                            >
+                              {(isSubmitting || (payPalLoaded && !payPalInit))
+                                ? <CircularProgress color="inherit" size={24} />
+                                : strings.BOOK}
+                            </button>
+                          )}
+                      </div>
+
+                      {/* Security Badge */}
+                      <div className="order-summary-secure">
+                        <LockIcon sx={{ fontSize: 13 }} />
+                        <span>{strings.SECURE_PAYMENT_INFO}</span>
+                      </div>
+                    </div>
                   </div>
-                </form>
-              </Paper>
+                </div>
+              </form>
             </div>
 
             <Footer />

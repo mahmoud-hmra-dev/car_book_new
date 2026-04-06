@@ -1,5 +1,5 @@
 /* ============================================
-   CHECKOUT - Modern Step-based Layout
+   CHECKOUT - Two-Column Layout Redesign
    ============================================ */
 
 div.checkout {
@@ -9,331 +9,179 @@ div.checkout {
   justify-content: center;
   transform: translate3d(0, 0, 0);
   min-height: 100vh;
-  margin: 40px 0 100px 0;
+  margin: 40px 0 100px;
   background: #F8FAFB;
 }
 
-div.checkout .map {
-  min-height: 0;
-  height: 340px;
-  border-radius: var(--bc-radius-md, 12px);
-  overflow: hidden;
+/* ── Two-Column Container ─────────────────── */
+
+div.checkout .checkout-layout {
+  display: flex;
+  gap: 28px;
+  max-width: 1200px;
+  width: 100%;
+  padding: 0 24px;
+  align-items: flex-start;
 }
 
-div.checkout .payment-radio-disabled > *,
-div.checkout .payment-radio-disabled span.payment-info {
-  color: #919191 !important;
+div.checkout .checkout-main {
+  flex: 3;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-div.checkout .checkout-form-title {
-  text-align: center;
-  color: var(--bc-dark, #0F1419);
-  margin-bottom: 32px;
-  font-size: 28px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
+div.checkout .checkout-sidebar {
+  flex: 2;
+  position: sticky;
+  top: 24px;
+  min-width: 320px;
+  max-width: 420px;
 }
 
-/* checkout-info is defined inside the Section Cards block below */
+/* ── Section Cards (shared) ───────────────── */
 
-/* Section Cards */
-div.checkout div.checkout-details-container,
-div.checkout div.payment-options-container {
-  background: #FFFFFF;
-  border: 1px solid rgba(0, 0, 0, 0.07);
-  border-radius: var(--bc-radius-lg, 16px);
-  padding: 20px 24px 24px;
-  margin-bottom: 16px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+div.checkout .checkout-section {
+  background: #fff;
+  border: 1px solid rgb(0 0 0 / 6%);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 2px 12px rgb(0 0 0 / 6%);
 }
 
-/* Section header pill */
-div.checkout div.checkout-info {
+div.checkout .checkout-section-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 14px;
-  border-radius: 100px;
-  background: rgba(107, 60, 230, 0.07);
-  color: var(--bc-primary, #6B3CE6);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+div.checkout .checkout-section-number {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--bc-primary, #6B3CE6);
+  color: #fff;
   font-size: 13px;
   font-weight: 700;
-  width: fit-content;
-  margin-bottom: 16px;
-  letter-spacing: 0.01em;
-}
-
-/* Payment Options */
-div.checkout div.payment-options {
-  color: #333;
-  user-select: none;
-}
-
-div.checkout div.payment-options span.payment-info {
-  margin-left: 10px;
-  color: var(--bc-gray-500, #64748B);
-  font-size: 13px;
-}
-
-/* Checkout Details — modern row layout */
-div.checkout div.checkout-details {
   display: flex;
-  flex-direction: column;
-  gap: 0;
-  color: #333;
-  font-size: 15px;
-}
-
-div.checkout div.checkout-details div.checkout-detail {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  padding: 12px 0;
-  border-bottom: 1px solid rgba(0,0,0,0.05);
-  gap: 16px;
-}
-
-div.checkout div.checkout-details div.checkout-detail:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
-div.checkout div.checkout-details div.checkout-detail span.checkout-detail-title {
-  font-weight: 600;
-  color: var(--bc-dark, #0F1419);
-  font-size: 13px;
-  min-width: 140px;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding-top: 2px;
 }
 
-div.checkout div.checkout-details div.checkout-detail div.checkout-detail-value {
-  color: var(--bc-gray-500, #64748B);
-  word-break: break-word;
-  text-align: right;
-  font-size: 14px;
+div.checkout .checkout-section-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0F1419;
+  line-height: 1.3;
 }
 
-div.checkout div.checkout-details div.checkout-detail div.checkout-detail-value div.car-supplier {
+/* ── Section A: Car Summary Card ──────────── */
+
+div.checkout .car-summary-card {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  gap: 20px;
+}
+
+div.checkout .car-summary-image {
+  width: 160px;
+  height: 100px;
+  border-radius: 12px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+div.checkout .car-summary-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+div.checkout .car-summary-details {
+  flex: 1;
+  min-width: 0;
+}
+
+div.checkout .car-summary-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0F1419;
+  margin-bottom: 4px;
+}
+
+div.checkout .car-summary-supplier {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+div.checkout .car-summary-supplier img {
+  height: 20px;
+}
+
+div.checkout .car-summary-supplier-name {
+  font-size: 13px;
+  color: #64748b;
+}
+
+div.checkout .car-summary-pricing {
+  display: flex;
+  align-items: baseline;
   gap: 8px;
 }
 
-div.checkout div.checkout-details div.checkout-detail div.checkout-detail-value span.car-supplier-name {
-  color: var(--bc-gray-500, #64748B);
-  font-size: 13px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 200px;
-}
-
-div.checkout div.checkout-details div.checkout-detail div.checkout-price,
-div.checkout div.checkout-details div.checkout-detail div.booking-price {
-  font-size: 17px;
+div.checkout .car-summary-daily-price {
+  font-size: 20px;
   font-weight: 800;
   color: var(--bc-primary, #6B3CE6);
 }
 
-div.checkout div.checkout-details div.checkout-detail .checklist-content {
-  color: #475569 !important;
+div.checkout .car-summary-days {
   font-size: 13px;
-  line-height: 1.6;
-  text-align: left;
+  color: #64748b;
+  font-weight: 500;
 }
 
-@media (max-width: 480px) {
-  div.checkout div.checkout-details div.checkout-detail {
-    flex-direction: column;
-    gap: 4px;
-  }
-  div.checkout div.checkout-details div.checkout-detail div.checkout-detail-value {
-    text-align: left;
-  }
-  div.checkout div.checkout-details div.checkout-detail div.checkout-detail-value div.car-supplier {
-    justify-content: flex-start;
-  }
-}
+/* ── Map Section ──────────────────────────── */
 
-/* Driver Details */
-div.checkout div.driver-details {
-  background: #FFFFFF;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  border-radius: var(--bc-radius-lg, 16px);
-  padding: 28px;
-  margin-bottom: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  box-shadow: var(--bc-shadow-sm, 0 1px 3px rgba(0,0,0,0.06));
-}
-
-div.checkout div.checkout-tos {
-  margin-top: 12px;
-}
-
-/* Buttons */
-div.checkout div.checkout-buttons {
-  display: inline-block;
-  width: 100%;
-}
-
-div.checkout div.checkout-buttons button,
-div.checkout div.checkout-buttons a {
-  float: right;
-}
-
-div.checkout .btn-checkout {
-  font-size: 16px;
-  line-height: 24px;
-  border: 0;
-  border-radius: var(--bc-radius-md, 12px);
-  color: #fff;
-  height: 48px;
-  min-width: 180px;
-  margin: 0;
-  white-space: nowrap;
-  padding: 5px 32px;
-  margin-left: 8px;
-  font-weight: 600;
-  background: var(--bc-gradient-primary, linear-gradient(135deg, #6B3CE6 0%, #8B6AEF 100%)) !important;
-  box-shadow: 0 4px 14px rgba(107, 60, 230, 0.25);
-  transition: all 0.25s ease;
-}
-
-div.checkout .btn-checkout:hover {
-  box-shadow: 0 6px 24px rgba(107, 60, 230, 0.35);
-  transform: translateY(-1px);
-}
-
-div.checkout .btn-cancel {
-  height: 48px;
-  min-width: 160px;
-  font-size: 16px;
-  line-height: 24px;
-  font-weight: 600;
-  border-radius: var(--bc-radius-md, 12px);
-}
-
-/* Payment Info Bar */
-div.checkout div.payment-info {
-  background: linear-gradient(135deg, #6B3CE6 0%, #8B6AEF 100%);
-  padding: 20px 24px;
+div.checkout .map {
+  min-height: 0;
+  height: 200px;
+  border-radius: 12px;
+  overflow: hidden;
   margin-bottom: 16px;
-  border-radius: var(--bc-radius-lg, 16px);
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  color: #fff;
-  box-shadow: 0 4px 16px rgba(107, 60, 230, 0.25);
 }
 
-div.checkout div.payment-info div.payment-info-title {
-  font-size: 15px;
-  font-weight: 600;
-  opacity: 0.9;
-}
-
-div.checkout div.payment-info div.payment-info-price {
-  font-size: 26px;
-  font-weight: 800;
-  color: #fff;
-  letter-spacing: -0.02em;
-}
-
-.status {
-  margin: 40px 0 0 30px;
-}
-
-@media (max-width: 960px) {
-  div.checkout {
-    flex: 0 1 auto;
-    margin: 20px 0 60px 0;
-  }
-
-  div.checkout .checkout-form {
-    padding: 8px;
-    margin: 8px;
-    max-width: 720px;
-  }
-
-  div.checkout .btn-checkout,
-  div.checkout .btn-cancel {
-    width: 100%;
-    margin: 4px 0;
-  }
-
-  div.checkout div.checkout-details div.checkout-detail span.checkout-detail-title,
-  div.checkout div.checkout-details div.checkout-detail div.checkout-detail-value {
-    display: table-row;
-  }
-
-  div.checkout div.checkout-details div.checkout-detail div.checkout-detail-value {
-    line-height: 25px;
-  }
-
-  div.checkout div.payment-options span.payment-button {
-    display: flex;
-    flex-direction: column;
-  }
-
-  div.checkout div.payment-options span.payment-info {
-    margin-left: 0;
-  }
-
-  .status {
-    margin: 40px 10px 0 10px;
-  }
-}
-
-@media (min-width: 961px) {
-  div.checkout .checkout-form {
-    width: 860px;
-    padding: 32px;
-  }
-
-  div.checkout form,
-  div.checkout div.checkout-details-container,
-  div.checkout div.payment-options-container {
-    width: 800px;
-  }
-
-  div.checkout div.driver-details-form {
-    width: 390px;
-  }
-}
-
-/* ══════════════════════════════════════════════════════════════
-   SUPPLIER OFFICE INFO CARD
-   Compact card replacing the extra map to avoid Google Maps race condition
-   ══════════════════════════════════════════════════════════════ */
+/* ── Supplier Office Info Card ────────────── */
 
 .supplier-office-info-card {
   display: flex;
   align-items: center;
   gap: 14px;
   background: linear-gradient(135deg, #6B3CE6 0%, #8B6AEF 100%);
-  border-radius: var(--bc-radius-lg, 16px);
-  padding: 16px 20px;
-  margin-bottom: 20px;
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-bottom: 0;
   color: #fff;
 }
 
 .supplier-office-info-icon {
-  width: 42px;
-  height: 42px;
+  width: 38px;
+  height: 38px;
   border-radius: 10px;
-  background: rgba(255,255,255,0.15);
+  background: rgb(255 255 255 / 15%);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px !important;
+  font-size: 20px !important;
   flex-shrink: 0;
 }
 
@@ -343,7 +191,7 @@ div.checkout div.payment-info div.payment-info-price {
 }
 
 .supplier-office-info-title {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   opacity: 0.8;
   letter-spacing: 0.04em;
@@ -351,7 +199,7 @@ div.checkout div.payment-info div.payment-info-price {
 }
 
 .supplier-office-info-name {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
@@ -362,10 +210,10 @@ div.checkout div.payment-info div.payment-info-price {
   display: flex;
   align-items: center;
   gap: 5px;
-  padding: 7px 14px;
-  background: rgba(255,255,255,0.2);
+  padding: 6px 12px;
+  background: rgb(255 255 255 / 20%);
   border-radius: 100px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   color: #fff !important;
   text-decoration: none !important;
@@ -375,21 +223,17 @@ div.checkout div.payment-info div.payment-info-price {
 }
 
 .supplier-office-info-link:hover {
-  background: rgba(255,255,255,0.3);
+  background: rgb(255 255 255 / 30%);
 }
 
-/* ══════════════════════════════════════════════════════════════
-   DELIVERY OPTION SECTION
-   Toggle + conditional delivery map picker
-   ══════════════════════════════════════════════════════════════ */
+/* ── Section C: Delivery Option ───────────── */
 
 .delivery-option-section {
-  background: #FFFFFF;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  border-radius: var(--bc-radius-lg, 16px);
+  background: #fff;
+  border: 1px solid rgb(0 0 0 / 6%);
+  border-radius: 16px;
   overflow: hidden;
-  margin-bottom: 20px;
-  box-shadow: var(--bc-shadow-sm, 0 1px 3px rgba(0,0,0,0.06));
+  box-shadow: 0 2px 12px rgb(0 0 0 / 6%);
 }
 
 .delivery-option-toggle {
@@ -444,7 +288,7 @@ div.checkout div.payment-info div.payment-info-price {
 
 .delivery-option-divider {
   border: none;
-  border-top: 1px solid rgba(0,0,0,0.06);
+  border-top: 1px solid rgb(0 0 0 / 6%);
   margin: 0;
 }
 
@@ -453,7 +297,17 @@ div.checkout div.payment-info div.payment-info-price {
   background: #f8fafb;
 }
 
-/* ── Delivery fee display in details ─────────────────────────── */
+.delivery-self-pickup-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  font-size: 13px;
+  color: #64748b;
+  background: #f8fafb;
+}
+
+/* ── Delivery fee display in details ──────── */
 
 .delivery-fee-row .checkout-detail-title {
   display: flex;
@@ -465,7 +319,7 @@ div.checkout div.payment-info div.payment-info-price {
   font-size: 11px;
   font-weight: 600;
   padding: 2px 8px;
-  background: rgba(107, 60, 230, 0.1);
+  background: rgb(107 60 230 / 10%);
   color: #6B3CE6;
   border-radius: 100px;
 }
@@ -483,21 +337,566 @@ div.checkout div.payment-info div.payment-info-price {
 .payment-info-delivery {
   font-size: 12px;
   font-weight: 600;
-  color: rgba(255,255,255,0.8);
+  color: rgb(255 255 255 / 80%);
   margin-left: 6px;
-  background: rgba(255,255,255,0.15);
+  background: rgb(255 255 255 / 15%);
   padding: 2px 8px;
   border-radius: 100px;
 }
 
-/* ── Delivery self-pickup notice ─────────────────────────────── */
+/* ── Section D: Driver Details ────────────── */
 
-.delivery-self-pickup-notice {
+div.checkout div.driver-details {
+  background: #fff;
+  border: 1px solid rgb(0 0 0 / 6%);
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 2px 12px rgb(0 0 0 / 6%);
+}
+
+div.checkout div.driver-details-form {
+  width: 100%;
+}
+
+div.checkout div.driver-details-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 16px;
+}
+
+div.checkout div.checkout-tos {
+  margin-top: 12px;
+}
+
+div.checkout .checkout-signin-alt {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 16px;
+  gap: 12px;
+  padding: 14px 16px;
+  margin-top: 16px;
+  background: rgb(107 60 230 / 4%);
+  border: 1px solid rgb(107 60 230 / 15%);
+  border-radius: 12px;
   font-size: 13px;
   color: #64748b;
-  background: #f8fafb;
+}
+
+div.checkout .checkout-signin-alt a {
+  color: var(--bc-primary, #6B3CE6);
+  font-weight: 600;
+}
+
+/* ── Section F: Payment Method Cards ──────── */
+
+div.checkout .payment-options-container {
+  background: #fff;
+  border: 1px solid rgb(0 0 0 / 6%);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 2px 12px rgb(0 0 0 / 6%);
+}
+
+div.checkout div.payment-method-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+div.checkout .payment-method-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border: 1.5px solid rgb(0 0 0 / 8%);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+  min-height: 72px;
+}
+
+div.checkout .payment-method-card:hover {
+  border-color: rgb(107 60 230 / 25%);
+  box-shadow: 0 2px 8px rgb(107 60 230 / 8%);
+}
+
+div.checkout .payment-method-card.selected {
+  border-color: var(--bc-primary, #6B3CE6);
+  border-left-width: 4px;
+  background: rgb(107 60 230 / 4%);
+}
+
+div.checkout .payment-method-card.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+div.checkout .payment-method-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+div.checkout .payment-method-card-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0F1419;
+}
+
+div.checkout .payment-method-card-desc {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+/* ── Section G: Pickup Checklist (Collapsible) ── */
+
+div.checkout .checklist-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+}
+
+div.checkout .checklist-toggle-icon {
+  transition: transform 0.2s ease;
+  color: #94a3b8;
+}
+
+div.checkout .checklist-toggle-icon.open {
+  transform: rotate(180deg);
+}
+
+div.checkout .checklist-items {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+div.checkout .checklist-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+div.checkout .checklist-item-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgb(107 60 230 / 8%);
+  color: var(--bc-primary, #6B3CE6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+div.checkout .checklist-item-content {
+  flex: 1;
+}
+
+div.checkout .checklist-item-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0F1419;
+  margin-bottom: 2px;
+}
+
+div.checkout .checklist-item-desc {
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+/* ── Payment Gateway Embeds ───────────────── */
+
+div.checkout .payment-gateway-container {
+  background: #fff;
+  border: 1px solid rgb(0 0 0 / 6%);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 2px 12px rgb(0 0 0 / 6%);
+}
+
+/* ── Buttons ──────────────────────────────── */
+
+div.checkout div.checkout-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+div.checkout .btn-checkout {
+  font-size: 16px;
+  line-height: 24px;
+  border: 0;
+  border-radius: 12px;
+  color: #fff;
+  height: 48px;
+  min-width: 180px;
+  margin: 0;
+  white-space: nowrap;
+  padding: 5px 32px;
+  font-weight: 600;
+  background: var(--bc-gradient-primary, linear-gradient(135deg, #6B3CE6 0%, #8B6AEF 100%)) !important;
+  box-shadow: 0 4px 14px rgb(107 60 230 / 25%);
+  transition: all 0.25s ease;
+}
+
+div.checkout .btn-checkout:hover {
+  box-shadow: 0 6px 24px rgb(107 60 230 / 35%);
+  transform: translateY(-1px);
+}
+
+div.checkout .btn-cancel {
+  height: 48px;
+  min-width: 160px;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  border-radius: 12px;
+}
+
+/* ── Error Messages ───────────────────────── */
+
+div.checkout .form-error {
+  margin-top: 12px;
+}
+
+/* ── Order Summary Sidebar ────────────────── */
+
+div.checkout .order-summary {
+  background: #fff;
+  border: 1px solid rgb(0 0 0 / 6%);
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgb(0 0 0 / 6%);
+  overflow: hidden;
+}
+
+div.checkout .order-summary-header {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid rgb(0 0 0 / 6%);
+}
+
+div.checkout .order-summary-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #0F1419;
+}
+
+div.checkout .order-summary-car {
+  display: flex;
+  gap: 14px;
+  padding: 18px 24px;
+  border-bottom: 1px solid rgb(0 0 0 / 6%);
+}
+
+div.checkout .order-summary-car-image {
+  width: 90px;
+  height: 60px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #f1f5f9;
+}
+
+div.checkout .order-summary-car-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+div.checkout .order-summary-car-info {
+  flex: 1;
+  min-width: 0;
+}
+
+div.checkout .order-summary-car-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0F1419;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+div.checkout .order-summary-car-supplier {
+  font-size: 12px;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+div.checkout .order-summary-car-supplier img {
+  height: 16px;
+}
+
+div.checkout .order-summary-info {
+  padding: 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-bottom: 1px solid rgb(0 0 0 / 6%);
+}
+
+div.checkout .order-summary-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+}
+
+div.checkout .order-summary-row-icon {
+  color: var(--bc-primary, #6B3CE6);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+div.checkout .order-summary-row-text {
+  color: #475569;
+  line-height: 1.4;
+}
+
+div.checkout .order-summary-breakdown {
+  padding: 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+div.checkout .order-summary-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+
+div.checkout .order-summary-line-label {
+  color: #64748b;
+}
+
+div.checkout .order-summary-line-value {
+  color: #0F1419;
+  font-weight: 600;
+}
+
+div.checkout .order-summary-line-value.free {
+  color: var(--bc-primary, #6B3CE6);
+}
+
+div.checkout .order-summary-divider {
+  border: none;
+  border-top: 1px solid rgb(0 0 0 / 6%);
+  margin: 4px 0;
+}
+
+div.checkout .order-summary-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px 20px;
+  border-top: 1px solid rgb(0 0 0 / 6%);
+}
+
+div.checkout .order-summary-total-label {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0F1419;
+}
+
+div.checkout .order-summary-total-value {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--bc-primary, #6B3CE6);
+  letter-spacing: -0.02em;
+}
+
+div.checkout .order-summary-cta {
+  padding: 0 24px 20px;
+}
+
+div.checkout .order-summary-cta button {
+  width: 100%;
+  height: 52px;
+  font-size: 16px;
+  font-weight: 700;
+  border: 0;
+  border-radius: 12px;
+  color: #fff;
+  background: linear-gradient(135deg, #6B3CE6 0%, #8B6AEF 100%) !important;
+  box-shadow: 0 4px 14px rgb(107 60 230 / 25%);
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+
+div.checkout .order-summary-cta button:hover {
+  box-shadow: 0 6px 24px rgb(107 60 230 / 35%);
+  transform: translateY(-1px);
+}
+
+div.checkout .order-summary-cta button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+div.checkout .order-summary-secure {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 24px 16px;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+/* ── Checkout Status ──────────────────────── */
+
+.status {
+  margin: 40px 0 0 30px;
+}
+
+/* ── Payment disabled class ───────────────── */
+
+div.checkout .payment-radio-disabled > *,
+div.checkout .payment-radio-disabled span.payment-info {
+  color: #919191 !important;
+}
+
+/* ============================================
+   RESPONSIVE: Mobile (<960px)
+   ============================================ */
+
+@media (width <= 960px) {
+  div.checkout {
+    flex: 0 1 auto;
+    margin: 16px 0 40px;
+  }
+
+  div.checkout .checkout-layout {
+    flex-direction: column;
+    padding: 0 12px;
+    gap: 16px;
+  }
+
+  div.checkout .checkout-main {
+    gap: 16px;
+  }
+
+  div.checkout .checkout-sidebar {
+    position: static;
+    min-width: 0;
+    max-width: none;
+    width: 100%;
+  }
+
+  div.checkout .checkout-section {
+    padding: 18px;
+  }
+
+  /* Car summary: stack vertically on small */
+  div.checkout .car-summary-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  div.checkout .car-summary-image {
+    width: 100%;
+    height: 140px;
+  }
+
+  div.checkout .map {
+    height: 160px;
+  }
+
+  /* Driver details grid to single column */
+  div.checkout div.driver-details-form-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  /* Buttons stack */
+  div.checkout div.checkout-buttons {
+    flex-direction: column-reverse;
+  }
+
+  div.checkout .btn-checkout,
+  div.checkout .btn-cancel {
+    width: 100%;
+    margin: 0;
+  }
+
+  .status {
+    margin: 40px 10px 0;
+  }
+
+  /* Mobile sticky bottom bar */
+  div.checkout .mobile-bottom-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border-top: 1px solid rgb(0 0 0 / 8%);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 100;
+    box-shadow: 0 -4px 20px rgb(0 0 0 / 8%);
+  }
+
+  div.checkout .mobile-bottom-bar-price {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--bc-primary, #6B3CE6);
+  }
+
+  div.checkout .mobile-bottom-bar-label {
+    font-size: 11px;
+    color: #64748b;
+  }
+}
+
+@media (width >= 961px) {
+  div.checkout .mobile-bottom-bar {
+    display: none;
+  }
+}
+
+/* ============================================
+   RESPONSIVE: Small mobile (<480px)
+   ============================================ */
+
+@media (width <= 480px) {
+  div.checkout .checkout-layout {
+    padding: 0 8px;
+  }
+
+  div.checkout .checkout-section {
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  div.checkout .order-summary-total-value {
+    font-size: 20px;
+  }
+
+  .supplier-office-info-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .supplier-office-info-link {
+    align-self: flex-end;
+  }
 }
