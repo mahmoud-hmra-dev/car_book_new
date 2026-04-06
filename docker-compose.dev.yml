@@ -78,9 +78,6 @@ services:
     volumes:
       - ./admin:/bookcars/admin
       - /bookcars/admin/node_modules
-    environment:
-      - CHOKIDAR_USEPOLLING=true
-      - WATCHPACK_POLLING=true
 
   bc-dev-frontend:
     build:
@@ -96,9 +93,6 @@ services:
     volumes:
       - ./frontend:/bookcars/frontend
       - /bookcars/frontend/node_modules
-    environment:
-      - CHOKIDAR_USEPOLLING=true
-      - WATCHPACK_POLLING=true
 
 volumes:
   cdn:

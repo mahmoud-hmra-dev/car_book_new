@@ -19,7 +19,8 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512M
+          cpus: '1.00'
+          memory: 2G
 
   mongo-express:
     image: mongo-express:latest
@@ -36,6 +37,7 @@ services:
     deploy:
       resources:
         limits:
+          cpus: '0.25'
           memory: 256M
 
   traccar-db:
@@ -52,6 +54,7 @@ services:
     deploy:
       resources:
         limits:
+          cpus: '0.50'
           memory: 512M
 
   traccar:
@@ -69,12 +72,16 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512M
+          cpus: '0.50'
+          memory: 1G
 
   bc-backend:
     build:
       context: .
       dockerfile: ./backend/Dockerfile
+      shm_size: '1g'
+      args:
+        NODE_OPTIONS: '--max-old-space-size=4096'
     env_file: ./backend/.env.docker
     restart: always
     ports:
@@ -88,12 +95,16 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512M
+          cpus: '1.00'
+          memory: 2G
 
   bc-admin:
     build:
       context: .
       dockerfile: ./admin/Dockerfile
+      shm_size: '1g'
+      args:
+        NODE_OPTIONS: '--max-old-space-size=4096'
     depends_on:
       - bc-backend
     ports:
@@ -101,12 +112,16 @@ services:
     deploy:
       resources:
         limits:
+          cpus: '0.25'
           memory: 512M
 
   bc-frontend:
     build:
       context: .
       dockerfile: ./frontend/Dockerfile
+      shm_size: '1g'
+      args:
+        NODE_OPTIONS: '--max-old-space-size=4096'
     depends_on:
       - bc-backend
     ports:
@@ -116,6 +131,7 @@ services:
     deploy:
       resources:
         limits:
+          cpus: '0.25'
           memory: 512M
 
   mysql_payment:
@@ -139,7 +155,8 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512M
+          cpus: '0.50'
+          memory: 1G
 
   payment:
     build:
@@ -168,7 +185,8 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512M
+          cpus: '0.50'
+          memory: 1G
 
   bc-mcp:
     build:
@@ -189,6 +207,7 @@ services:
     deploy:
       resources:
         limits:
+          cpus: '0.25'
           memory: 256M
 
 volumes:

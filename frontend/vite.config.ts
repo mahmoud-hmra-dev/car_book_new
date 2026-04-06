@@ -42,12 +42,16 @@ export default ({ mode }: { mode: string }) => {
       },
     },
 
+    esbuild: {
+      drop: ['console', 'debugger'],
+    },
+
     server: {
       host: '0.0.0.0',
       port: Number.parseInt(process.env.VITE_PORT || '3002', 10),
       watch: {
         usePolling: true,
-        interval: 500,
+        interval: 2000,
       },
       hmr: {
         protocol: 'ws',
@@ -64,29 +68,8 @@ export default ({ mode }: { mode: string }) => {
       sourcemap: false, // Disable sourcemaps in production
       cssCodeSplit: true, // Enable CSS code splitting
 
-      // Minification settings (Use terser for minification with aggressive settings)
-      minify: 'terser', // Can also use 'esbuild' which is faster but less optimized
-      terserOptions: {
-        compress: {
-          drop_console: true, // Remove console.* calls in production
-          drop_debugger: true, // Removes debugger statements
-          dead_code: true, // Removes unreachable code
-          passes: 3, // Number of compression passes
-          unsafe_math: true, // Optimize math expressions
-          conditionals: true, // Optimize if-s and conditional expressions
-          sequences: true, // Join consecutive simple statements using the comma operator
-          booleans: true, // various optimizations for boolean context
-          unused: true, // Drop unreferenced functions and variables
-          if_return: true, // Optimizations for if/return and if/continue
-          join_vars: true, // Join consecutive var statements
-        },
-        format: {
-          comments: false, // Remove comments
-        },
-        mangle: {
-          properties: false, // Don't rename properties (safer)
-        },
-      },
+      // Minification settings (esbuild is 10-100x faster than terser with similar output)
+      minify: 'esbuild',
 
       // Control chunk size
       chunkSizeWarningLimit: 1000, // Warn if a chunk exceeds 1000kb

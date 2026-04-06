@@ -3,6 +3,9 @@
 FROM node:lts-alpine AS build
 WORKDIR /bookcars/admin
 
+ARG NODE_OPTIONS='--max-old-space-size=4096'
+ENV NODE_OPTIONS=${NODE_OPTIONS}
+
 # 1) Copy only dependency files first (cached layer)
 COPY ./packages/bookcars-types/package.json /bookcars/packages/bookcars-types/package.json
 COPY ./packages/bookcars-helper/package.json /bookcars/packages/bookcars-helper/package.json
@@ -11,7 +14,7 @@ COPY ./packages/disable-react-devtools/package.json /bookcars/packages/disable-r
 COPY ./packages/reactjs-social-login/package.json /bookcars/packages/reactjs-social-login/package.json
 COPY ./admin/package.json ./admin/package-lock.json ./
 
-RUN npm install --force
+RUN npm install
 
 # 2) Copy source code + build (only this layer rebuilds on code changes)
 COPY ./packages /bookcars/packages

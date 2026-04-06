@@ -3,6 +3,9 @@
 FROM node:lts-alpine
 WORKDIR /bookcars/backend
 
+ARG NODE_OPTIONS='--max-old-space-size=4096'
+ENV NODE_OPTIONS=${NODE_OPTIONS}
+
 # 1) Copy only dependency files first (cached layer)
 COPY ./packages/bookcars-types/package.json /bookcars/packages/bookcars-types/package.json
 COPY ./packages/bookcars-helper/package.json /bookcars/packages/bookcars-helper/package.json
