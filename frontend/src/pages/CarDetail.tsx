@@ -19,6 +19,7 @@ import * as helper from '@/utils/helper'
 import * as CarService from '@/services/CarService'
 import * as UserService from '@/services/UserService'
 import * as PaymentService from '@/services/PaymentService'
+import * as SupplierService from '@/services/SupplierService'
 import { strings as commonStrings } from '@/lang/common'
 import { strings as carStrings } from '@/lang/cars'
 import { strings } from '@/lang/car-detail'
@@ -97,7 +98,11 @@ const CarDetail = () => {
       }
 
       // Fetch other cars from same location
+      const allSuppliers = await SupplierService.getAllSuppliers()
+      const supplierIds = bookcarsHelper.flattenSuppliers(allSuppliers)
+
       const payload: bookcarsTypes.GetCarsPayload = {
+        suppliers: supplierIds,
         pickupLocation: _pickupLocationId,
         carType: bookcarsHelper.getAllCarTypes(),
         gearbox: [bookcarsTypes.GearboxType.Automatic, bookcarsTypes.GearboxType.Manual],
