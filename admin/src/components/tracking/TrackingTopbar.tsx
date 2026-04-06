@@ -1,99 +1,85 @@
 import React from 'react'
+import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded'
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded'
-import RadarRoundedIcon from '@mui/icons-material/RadarRounded'
+import NotificationsNoneRoundedIcon from '@mui/icons-material/NotificationsNoneRounded'
 import { strings } from '@/lang/tracking'
-import type { FleetCounts } from './types'
-
-type TopbarStatus = 'all' | 'moving' | 'idle' | 'stopped' | 'offline'
 
 type TrackingTopbarProps = {
-  brandTitle: string
+  vehicleCount: number
   searchValue: string
   refreshing: boolean
   integrationEnabled: boolean
-  activeStatus: TopbarStatus | null
-  counts: Pick<FleetCounts, 'total' | 'moving' | 'idle' | 'stopped' | 'offline'>
+  alertCount?: number
   onSearchChange: (value: string) => void
-  onStatusChange: (status: TopbarStatus) => void
   onRefresh: () => void
+  onBack: () => void
 }
 
 const TrackingTopbar = ({
-  brandTitle,
+  vehicleCount,
   searchValue,
   refreshing,
   integrationEnabled,
-  activeStatus,
-  counts,
+  alertCount = 0,
   onSearchChange,
-  onStatusChange,
   onRefresh,
-}: TrackingTopbarProps) => {
-  const items: Array<{
-    id: TopbarStatus
-    label: string
-    value: number
-    dotClass: string
-  }> = [
-    { id: 'all', label: 'Total', value: counts.total, dotClass: 'moving' },
-    { id: 'moving', label: strings.STATUS_MOVING, value: counts.moving, dotClass: 'moving' },
-    { id: 'idle', label: strings.STATUS_IDLE, value: counts.idle, dotClass: 'idle' },
-    { id: 'stopped', label: strings.STATUS_STOPPED, value: counts.stopped, dotClass: 'stopped' },
-    { id: 'offline', label: strings.STATUS_OFFLINE, value: counts.offline, dotClass: 'offline' },
-  ]
-
-  return (
-    <header id="topbar">
-      <div className="tb-logo">
-        <div className="tb-logo-icon">
-          <RadarRoundedIcon fontSize="small" />
-        </div>
-        <div className="tb-logo-text">
-          <strong>{brandTitle}</strong>
-          <span>Command Center</span>
-        </div>
+  onBack,
+}: TrackingTopbarProps) => (
+  <header id="topbar">
+    <div className="tb-left">
+      <button type="button" className="tb-back-btn" onClick={onBack} title="Back to dashboard">
+        <ArrowBackRoundedIcon fontSize="small" />
+      </button>
+      <div className="tb-title-group">
+        <strong className="tb-title">{strings.TRACKING_WORKSPACE}</strong>
+        <span className="tb-subtitle">
+          (
+          {vehicleCount}
+          {' '}
+          {vehicleCount === 1 ? 'vehicle' : 'vehicles'}
+          )
+        </span>
       </div>
+    </div>
 
-      <div className="tb-search">
+    <div className="tb-center">
+      <div className="tb-search-pill">
         <SearchRoundedIcon fontSize="small" />
         <input
           id="global-search"
           type="text"
-          placeholder="Search vehicle, plate, supplier..."
+          placeholder={strings.SEARCH_CARS}
           value={searchValue}
           onChange={(event) => onSearchChange(event.target.value)}
         />
       </div>
+    </div>
 
-      <div className="tb-stats" id="tb-stats">
-        {items.map((item) => (
-          <button
-            type="button"
-            key={item.id}
-            className={`tb-stat${activeStatus === item.id ? ' active' : ''}`}
-            onClick={() => onStatusChange(item.id)}
-          >
-            <span className={`tb-stat-dot ${item.dotClass}`} />
-            <span className="tb-stat-val">{item.value}</span>
-            <span className="tb-stat-lbl">{item.label}</span>
-          </button>
-        ))}
+    <div className="tb-right">
+      <div className={`tb-integration-dot ${integrationEnabled ? 'online' : 'offline'}`}>
+        <span className="tb-int-dot" />
+        <span>{integrationEnabled ? strings.SYSTEM_ONLINE : strings.SYSTEM_OFFLINE}</span>
       </div>
 
-      <div className="tb-right">
-        <button type="button" className="tb-refresh-btn" onClick={onRefresh} disabled={refreshing}>
-          <RefreshRoundedIcon fontSize="small" />
-          <span>{refreshing ? 'Refreshing...' : strings.REFRESH_FLEET}</span>
+      {alertCount > 0 && (
+        <button type="button" className="tb-icon-btn" title="Alerts">
+          <NotificationsNoneRoundedIcon fontSize="small" />
+          <span className="tb-alert-badge">{alertCount}</span>
         </button>
+      )}
 
-        <div className={`sys-badge ${integrationEnabled ? 'online' : 'offline'}`} id="sys-badge">
-          <span className="sys-badge-dot" />
-          <span>{integrationEnabled ? strings.SYSTEM_ONLINE : strings.SYSTEM_OFFLINE}</span>
-        </div>
-      </div>
-    </header>
-  )
-}
+      <button
+        type="button"
+        className={`tb-icon-btn${refreshing ? ' spinning' : ''}`}
+        onClick={onRefresh}
+        disabled={refreshing}
+        title={refreshing ? 'Refreshing...' : strings.REFRESH_FLEET}
+      >
+        <RefreshRoundedIcon fontSize="small" />
+      </button>
+    </div>
+  </header>
+)
 
 export default TrackingTopbar

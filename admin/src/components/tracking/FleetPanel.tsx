@@ -38,12 +38,31 @@ const getStatusLabel = (status: bookcarsTypes.TraccarFleetStatus) => {
   }
 }
 
-const getInitials = (value: string) => value
-  .split(' ')
-  .map((part) => part[0] || '')
-  .join('')
-  .slice(0, 2)
-  .toUpperCase()
+const getFilterCount = (
+  counts: FleetCounts,
+  filterId: 'all' | bookcarsTypes.TraccarFleetStatus,
+): number => {
+  switch (filterId) {
+    case 'all':
+      return counts.total
+    case 'moving':
+      return counts.moving
+    case 'idle':
+      return counts.idle
+    case 'stopped':
+      return counts.stopped
+    case 'stale':
+      return counts.stale
+    case 'noGps':
+      return counts.noGps
+    case 'offline':
+      return counts.offline
+    case 'unlinked':
+      return counts.unlinked
+    default:
+      return 0
+  }
+}
 
 const FleetPanel = ({
   vehicles,
@@ -55,28 +74,44 @@ const FleetPanel = ({
   onExport,
   onOpenGeofenceManager,
 }: FleetPanelProps) => {
+  const activeCars = counts.moving + counts.idle
+  const alertCars = counts.stale + counts.noGps
+
   const chips: Array<{ id: 'all' | bookcarsTypes.TraccarFleetStatus, label: string }> = [
-    { id: 'all', label: 'All' },
+    { id: 'all', label: strings.ALL_STATUSES },
     { id: 'moving', label: strings.STATUS_MOVING },
     { id: 'idle', label: strings.STATUS_IDLE },
     { id: 'stopped', label: strings.STATUS_STOPPED },
+    { id: 'offline', label: strings.STATUS_OFFLINE },
     { id: 'stale', label: strings.STATUS_STALE },
     { id: 'noGps', label: strings.STATUS_NO_GPS },
-    { id: 'offline', label: strings.STATUS_OFFLINE },
     { id: 'unlinked', label: strings.STATUS_UNLINKED },
   ]
 
   return (
     <div className="sb-view" id="fleet-view">
-      <div className="sb-toolbar">
-        <div className="sb-toolbar-top">
-          <span className="sb-title">{strings.LIVE_FLEET}</span>
-          <span className="sb-live-badge">
-            <span className="sb-live-dot" />
-            Live
-          </span>
+      {/* KPI Summary Cards */}
+      <div className="kpi-grid">
+        <div className="kpi-card">
+          <div className="kpi-card-val kpi-purple">{counts.total}</div>
+          <div className="kpi-card-label">vehicles</div>
         </div>
+        <div className="kpi-card">
+          <div className="kpi-card-val kpi-green">{activeCars}</div>
+          <div className="kpi-card-label">{strings.ONLINE_DEVICES.toLowerCase()}</div>
+        </div>
+        <div className="kpi-card">
+          <div className="kpi-card-val kpi-blue">{counts.moving}</div>
+          <div className="kpi-card-label">{strings.STATUS_MOVING.toLowerCase()}</div>
+        </div>
+        <div className="kpi-card">
+          <div className="kpi-card-val kpi-amber">{alertCars}</div>
+          <div className="kpi-card-label">alerts</div>
+        </div>
+      </div>
 
+      {/* Filter Chips */}
+      <div className="sb-filters">
         <div className="filter-chips" id="filter-chips">
           {chips.map((chip) => (
             <button
@@ -86,73 +121,75 @@ const FleetPanel = ({
               onClick={() => onFilterChange(chip.id)}
             >
               {chip.label}
+              <span className="chip-count">{getFilterCount(counts, chip.id)}</span>
             </button>
           ))}
         </div>
       </div>
 
+      {/* Vehicle List */}
       <div id="fleet-list">
         {vehicles.length === 0
           ? (
             <div className="empty-state">
-              <p>No vehicles match your current filter.</p>
+              <p>{strings.NO_DATA}</p>
             </div>
             )
           : vehicles.map((vehicle) => (
             <button
               type="button"
               key={vehicle.car._id}
-              className={`car-card ${vehicle.status}${selectedCarId === vehicle.car._id ? ' selected' : ''}`}
+              className={`car-card-v2${selectedCarId === vehicle.car._id ? ' selected' : ''}`}
               onClick={() => onSelectCar(vehicle.car._id)}
             >
-              <div
-                className={`car-avatar ${vehicle.status}`}
-                style={{
-                  background: `${getStatusColor(vehicle.status)}22`,
-                  color: getStatusColor(vehicle.status),
-                }}
-              >
-                {getInitials(vehicle.car.name)}
-              </div>
-
-              <div className="car-info">
-                <div className="car-name">{vehicle.car.name}</div>
-                <div className="car-plate">{vehicle.car.licensePlate || '---'}</div>
-                <div className="car-meta">
-                  <span className="car-speed">
+              <span
+                className="cc-status-dot"
+                style={{ background: getStatusColor(vehicle.status) }}
+              />
+              <div className="cc-body">
+                <div className="cc-top-row">
+                  <span className="cc-name">{vehicle.car.name}</span>
+                  <span
+                    className="cc-speed"
+                    style={{ color: vehicle.speedKmh > 0 ? getStatusColor(vehicle.status) : undefined }}
+                  >
                     {Math.round(vehicle.speedKmh)}
-                    <span>km/h</span>
+                    {' '}
+                    km/h
                   </span>
-                  <span className="car-seen">{vehicle.lastSeenLabel}</span>
+                </div>
+                <div className="cc-mid-row">
+                  <span className="cc-plate">{vehicle.car.licensePlate || '---'}</span>
+                  {vehicle.supplierName && (
+                    <>
+                      <span className="cc-sep">&bull;</span>
+                      <span className="cc-supplier">{vehicle.supplierName}</span>
+                    </>
+                  )}
+                </div>
+                <div className="cc-bottom-row">
+                  <span className="cc-badge" style={{ color: getStatusColor(vehicle.status) }}>
+                    {getStatusLabel(vehicle.status)}
+                  </span>
+                  <span className="cc-seen">
+                    {strings.LAST_SEEN}
+                    :
+                    {' '}
+                    {vehicle.lastSeenLabel}
+                  </span>
                 </div>
               </div>
-
-              <div className={`status-badge ${vehicle.status}`}>{getStatusLabel(vehicle.status)}</div>
             </button>
           ))}
       </div>
 
-      <div className="fleet-summary-strip">
-        <div className="fleet-summary-pill">
-          <strong>{counts.total}</strong>
-          <span>Total</span>
-        </div>
-        <div className="fleet-summary-pill">
-          <strong>{counts.moving + counts.idle}</strong>
-          <span>Active</span>
-        </div>
-        <div className="fleet-summary-pill">
-          <strong>{counts.stale}</strong>
-          <span>Stale</span>
-        </div>
-      </div>
-
+      {/* Footer */}
       <div className="sb-footer">
         <button type="button" className="sb-footer-btn" onClick={onExport}>
           <DownloadRoundedIcon fontSize="small" />
           <span>Export CSV</span>
         </button>
-        <button type="button" className="sb-footer-btn primary" onClick={onOpenGeofenceManager}>
+        <button type="button" className="sb-footer-btn" onClick={onOpenGeofenceManager}>
           <FmdGoodRoundedIcon fontSize="small" />
           <span>{strings.GEOFENCE_MANAGER}</span>
         </button>

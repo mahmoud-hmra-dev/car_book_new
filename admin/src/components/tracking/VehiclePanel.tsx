@@ -13,6 +13,21 @@ import SendRoundedIcon from '@mui/icons-material/SendRounded'
 import RouteRoundedIcon from '@mui/icons-material/RouteRounded'
 import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded'
 import FmdGoodRoundedIcon from '@mui/icons-material/FmdGoodRounded'
+import DashboardRoundedIcon from '@mui/icons-material/DashboardRounded'
+import FenceRoundedIcon from '@mui/icons-material/FenceRounded'
+import TimelineRoundedIcon from '@mui/icons-material/TimelineRounded'
+import DeviceHubRoundedIcon from '@mui/icons-material/DeviceHubRounded'
+import SpeedRoundedIcon from '@mui/icons-material/SpeedRounded'
+import BatteryChargingFullRoundedIcon from '@mui/icons-material/BatteryChargingFullRounded'
+import LocalFireDepartmentRoundedIcon from '@mui/icons-material/LocalFireDepartmentRounded'
+import ExploreRoundedIcon from '@mui/icons-material/ExploreRounded'
+import GpsFixedRoundedIcon from '@mui/icons-material/GpsFixedRounded'
+import MemoryRoundedIcon from '@mui/icons-material/MemoryRounded'
+import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded'
+import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded'
+import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded'
+import ExpandLessRoundedIcon from '@mui/icons-material/ExpandLessRounded'
+import DirectionsCarFilledRoundedIcon from '@mui/icons-material/DirectionsCarFilledRounded'
 import * as bookcarsTypes from ':bookcars-types'
 import { strings } from '@/lang/tracking'
 import type {
@@ -166,12 +181,51 @@ const getEventTypeLabel = (type?: string) => {
   }
 }
 
-const getInitials = (value: string) => value
-  .split(' ')
-  .map((part) => part[0] || '')
-  .join('')
-  .slice(0, 2)
-  .toUpperCase()
+const getEventDotColor = (type?: string) => {
+  switch (type) {
+    case 'geofenceEnter':
+    case 'deviceOnline':
+    case 'ignitionOn':
+    case 'deviceMoving':
+      return 'var(--tracking-green)'
+    case 'geofenceExit':
+    case 'deviceOffline':
+    case 'ignitionOff':
+    case 'deviceStopped':
+      return 'var(--tracking-red)'
+    case 'alarm':
+    case 'overspeed':
+      return 'var(--tracking-amber)'
+    case 'motion':
+      return 'var(--tracking-blue)'
+    default:
+      return 'var(--tracking-text3)'
+  }
+}
+
+const getBearingLabel = (degrees: number) => {
+  const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
+  const index = Math.round(degrees / 45) % 8
+  return `${directions[index]} ${Math.round(degrees)}`
+}
+
+const getBatteryColorClass = (level: number) => {
+  if (level > 50) {
+    return 'battery-green'
+  }
+  if (level >= 20) {
+    return 'battery-yellow'
+  }
+  return 'battery-red'
+}
+
+const TAB_CONFIG: { key: TrackingTab, label: string, Icon: React.ElementType }[] = [
+  { key: 'status', label: 'Status', Icon: DashboardRoundedIcon },
+  { key: 'route', label: 'Route', Icon: RouteRoundedIcon },
+  { key: 'geofences', label: 'Zones', Icon: FenceRoundedIcon },
+  { key: 'events', label: 'Events', Icon: TimelineRoundedIcon },
+  { key: 'device', label: 'Device', Icon: DeviceHubRoundedIcon },
+]
 
 const VehiclePanel = ({
   selectedVehicle,
@@ -253,68 +307,134 @@ const VehiclePanel = ({
   onCommandAttributesChange,
   onSendCommand,
 }: VehiclePanelProps) => {
+  const [telemetryOpen, setTelemetryOpen] = React.useState(false)
   const routeHasData = routeFrames.length > 0
-  const routePositionLabel = routeHasData ? `${playbackIndex + 1}/${routeFrames.length}` : '0/0'
   const canManageTracking = selectedVehicle.isLinked
   const draftReady = hasDraftGeofenceGeometry(zoneDraft)
   const coordinates = selectedVehicle.position
     ? `${formatCoordinate(selectedVehicle.position.latitude)}, ${formatCoordinate(selectedVehicle.position.longitude)}`
     : '-'
 
+  const bearing = selectedVehicle.position?.course
+  const bearingLabel = typeof bearing === 'number' && Number.isFinite(bearing)
+    ? getBearingLabel(bearing)
+    : '-'
+
+  const handleCopyAddress = () => {
+    if (selectedVehicle.address) {
+      navigator.clipboard.writeText(selectedVehicle.address)
+    }
+  }
+
+  const currentFrame = routeHasData ? routeFrames[Math.min(playbackIndex, routeFrames.length - 1)] : null
+  const currentTime = currentFrame ? new Date(currentFrame.timestampMs).toLocaleTimeString() : '--:--'
+
+  const snapStatusLabel = () => {
+    switch (routeSnapMode) {
+      case 'loading': return strings.ROUTE_SNAP_LOADING
+      case 'snapped': return strings.ROUTE_SNAP_READY
+      case 'raw': return strings.ROUTE_SNAP_FALLBACK
+      default: return null
+    }
+  }
+
+  /* ─── TAB: STATUS ─── */
   const renderStatusTab = () => (
-    <>
-      <div className="metrics-grid">
-        <div className="metric-card">
-          <div className="metric-label">{strings.SPEED}</div>
-          <div className="metric-val">
+    <div className="vp-tab-content">
+      <div className="vp-metrics-grid">
+        <div className="vp-metric-card">
+          <SpeedRoundedIcon className="vp-metric-icon" />
+          <div className="vp-metric-value">
             {Math.round(selectedVehicle.speedKmh)}
-            <span>km/h</span>
+            <span className="vp-metric-unit">km/h</span>
           </div>
-          <div className="metric-sub">{selectedVehicle.status === 'moving' ? 'In transit' : 'Stationary'}</div>
+          <div className="vp-metric-label">{strings.SPEED}</div>
         </div>
 
-        <div className="metric-card">
-          <div className="metric-label">{strings.BATTERY}</div>
-          <div className="metric-val">
+        <div className="vp-metric-card">
+          <BatteryChargingFullRoundedIcon className="vp-metric-icon" />
+          <div className="vp-metric-value">
             {typeof selectedVehicle.batteryLevel === 'number' ? Math.round(selectedVehicle.batteryLevel) : '-'}
-            <span>%</span>
+            <span className="vp-metric-unit">%</span>
           </div>
-          <div className="metric-sub">{typeof selectedVehicle.batteryLevel === 'number' ? 'Tracker telemetry' : strings.NO_DATA}</div>
+          {typeof selectedVehicle.batteryLevel === 'number' && (
+            <div className="vp-battery-bar">
+              <div
+                className={`vp-battery-fill ${getBatteryColorClass(selectedVehicle.batteryLevel)}`}
+                style={{ width: `${Math.min(100, Math.max(0, selectedVehicle.batteryLevel))}%` }}
+              />
+            </div>
+          )}
+          <div className="vp-metric-label">{strings.BATTERY}</div>
         </div>
 
-        <div className="metric-card">
-          <div className="metric-label">{strings.IGNITION}</div>
-          <div className="metric-val metric-val--label">{selectedVehicle.ignition ? strings.ON : strings.OFF}</div>
-          <div className="metric-sub">{selectedVehicle.ignition ? 'Engine active' : 'Engine off'}</div>
+        <div className="vp-metric-card">
+          <LocalFireDepartmentRoundedIcon className="vp-metric-icon" />
+          <div className={`vp-metric-value vp-metric-value--status ${selectedVehicle.ignition ? 'on' : 'off'}`}>
+            {selectedVehicle.ignition ? strings.ON : strings.OFF}
+          </div>
+          <div className="vp-metric-label">{strings.IGNITION}</div>
         </div>
 
-        <div className="metric-card">
-          <div className="metric-label">{strings.LAST_SEEN}</div>
-          <div className="metric-val metric-val--label">{selectedVehicle.lastSeenLabel}</div>
-          <div className="metric-sub">{formatTimestamp(selectedVehicle.snapshot?.lastPositionAt || selectedVehicle.snapshot?.lastSyncedAt)}</div>
+        <div className="vp-metric-card">
+          <ExploreRoundedIcon className="vp-metric-icon" />
+          <div className="vp-metric-value vp-metric-value--compact">{bearingLabel}&deg;</div>
+          <div className="vp-metric-label">Heading</div>
+        </div>
+
+        <div className="vp-metric-card">
+          <GpsFixedRoundedIcon className="vp-metric-icon" />
+          <div className="vp-metric-value vp-metric-value--compact">{coordinates !== '-' ? `${formatCoordinate(selectedVehicle.position?.latitude)?.slice(0, 5)},${formatCoordinate(selectedVehicle.position?.longitude)?.slice(0, 5)}` : '-'}</div>
+          <div className="vp-metric-label">Coords</div>
+        </div>
+
+        <div className="vp-metric-card">
+          <MemoryRoundedIcon className="vp-metric-icon" />
+          <div className="vp-metric-value vp-metric-value--compact">{selectedVehicle.deviceName || strings.NO_DATA}</div>
+          <div className="vp-metric-label">Device</div>
         </div>
       </div>
 
       {selectedVehicle.address && (
-        <div className="info-chip info-chip--address">
-          <FmdGoodRoundedIcon fontSize="small" />
-          <span>{selectedVehicle.address}</span>
+        <div className="vp-address-card">
+          <FmdGoodRoundedIcon className="vp-address-icon" />
+          <span className="vp-address-text">{selectedVehicle.address}</span>
+          <button type="button" className="vp-address-copy" onClick={handleCopyAddress} title="Copy address">
+            <ContentCopyRoundedIcon style={{ fontSize: 14 }} />
+          </button>
         </div>
       )}
 
-      <div className="section-card">
-        <div className="section-card-head">
-          <span className="section-card-title">Telemetry</span>
+      <button
+        type="button"
+        className="vp-collapsible-header"
+        onClick={() => setTelemetryOpen((previous) => !previous)}
+      >
+        <span>Telemetry Details</span>
+        {telemetryOpen ? <ExpandLessRoundedIcon fontSize="small" /> : <ExpandMoreRoundedIcon fontSize="small" />}
+      </button>
+      {telemetryOpen && (
+        <div className="vp-telemetry-card">
+          <div className="vp-telemetry-section">
+            <div className="vp-telemetry-heading">Car</div>
+            <div className="detail-row"><span className="detail-key">{strings.SELECTED_VEHICLE}</span><span className="detail-val">{selectedVehicle.car.name}</span></div>
+            <div className="detail-row"><span className="detail-key">Plate</span><span className="detail-val">{selectedVehicle.car.licensePlate || '---'}</span></div>
+            <div className="detail-row"><span className="detail-key">Supplier</span><span className="detail-val">{selectedVehicle.supplierName || '-'}</span></div>
+          </div>
+          <div className="vp-telemetry-section">
+            <div className="vp-telemetry-heading">Device</div>
+            <div className="detail-row"><span className="detail-key">ID</span><span className="detail-val">{selectedVehicle.car.tracking?.deviceId ?? strings.NO_DATA}</span></div>
+            <div className="detail-row"><span className="detail-key">Name</span><span className="detail-val">{selectedVehicle.deviceName || strings.NO_DATA}</span></div>
+            <div className="detail-row"><span className="detail-key">{strings.DEVICE_STATUS}</span><span className="detail-val">{selectedVehicle.deviceStatus || strings.NO_DATA}</span></div>
+          </div>
+          <div className="vp-telemetry-section">
+            <div className="vp-telemetry-heading">Position</div>
+            <div className="detail-row"><span className="detail-key">Lat, Lng</span><span className="detail-val">{coordinates}</span></div>
+            <div className="detail-row"><span className="detail-key">Altitude</span><span className="detail-val">{typeof selectedVehicle.position?.altitude === 'number' ? `${Math.round(selectedVehicle.position.altitude)}m` : '-'}</span></div>
+            <div className="detail-row"><span className="detail-key">Last update</span><span className="detail-val">{formatTimestamp(selectedVehicle.snapshot?.lastPositionAt || selectedVehicle.snapshot?.lastSyncedAt)}</span></div>
+          </div>
         </div>
-        <div className="section-card-body">
-          <div className="detail-row"><span className="detail-key">{strings.SELECTED_VEHICLE}</span><span className="detail-val">{selectedVehicle.car.name}</span></div>
-          <div className="detail-row"><span className="detail-key">Plate</span><span className="detail-val">{selectedVehicle.car.licensePlate || '---'}</span></div>
-          <div className="detail-row"><span className="detail-key">Supplier</span><span className="detail-val">{selectedVehicle.supplierName || '-'}</span></div>
-          <div className="detail-row"><span className="detail-key">Coordinates</span><span className="detail-val">{coordinates}</span></div>
-          <div className="detail-row"><span className="detail-key">Device</span><span className="detail-val">{selectedVehicle.deviceName || strings.NO_DATA}</span></div>
-          <div className="detail-row"><span className="detail-key">{strings.DEVICE_STATUS}</span><span className="detail-val">{selectedVehicle.deviceStatus || strings.NO_DATA}</span></div>
-        </div>
-      </div>
+      )}
 
       {!selectedVehicle.isLinked && (
         <div className="inline-warning">
@@ -323,24 +443,23 @@ const VehiclePanel = ({
         </div>
       )}
 
-      <button type="button" className="action-btn primary" onClick={onFocusVehicle}>
-        <CenterFocusStrongRoundedIcon fontSize="small" />
-        <span>Focus Vehicle On Map</span>
-      </button>
-
-      <button type="button" className="action-btn" onClick={onLoadSnapshot} disabled={snapshotLoading || !selectedVehicle.isLinked}>
+      <button type="button" className="action-btn vp-load-status-btn" onClick={onLoadSnapshot} disabled={snapshotLoading || !selectedVehicle.isLinked}>
         <RouteRoundedIcon fontSize="small" />
         <span>{snapshotLoading ? 'Loading snapshot...' : strings.LOAD_SNAPSHOT}</span>
       </button>
-    </>
+    </div>
   )
 
+  /* ─── TAB: ROUTE ─── */
   const renderRouteTab = () => (
-    <>
-      <div className="form-group">
-        <label className="form-label">Time Range</label>
-        <div className="date-range-row">
+    <div className="vp-tab-content">
+      <div className="vp-route-date-row">
+        <div className="form-group">
+          <label className="form-label">{strings.FROM}</label>
           <input className="form-input" type="datetime-local" value={from} onChange={(event) => onFromChange(event.target.value)} />
+        </div>
+        <div className="form-group">
+          <label className="form-label">{strings.TO}</label>
           <input className="form-input" type="datetime-local" value={to} onChange={(event) => onToChange(event.target.value)} />
         </div>
       </div>
@@ -350,69 +469,74 @@ const VehiclePanel = ({
         <span>{routeLoading ? 'Loading route...' : routeFrames.length > 0 ? 'Reload Route' : 'Load Route'}</span>
       </button>
 
-      {routeSnapMode === 'loading' && <div className="inline-note">Aligning route to nearby roads...</div>}
-      {routeSnapMode === 'snapped' && <div className="inline-note">Route playback uses Google Roads alignment for a cleaner path.</div>}
-      {routeSnapMode === 'raw' && <div className="inline-note">Showing raw GPS points because road alignment is not available for this route.</div>}
-
       {routeHasData ? (
         <>
-          <div className="timeline-bar">
-            <div className="timeline-head">
-              <span className="timeline-title">Playback</span>
-              <select className="speed-select" value={playbackSpeed} onChange={(event) => onPlaybackSpeedChange(Number.parseInt(event.target.value, 10))}>
+          <div className="vp-route-stats">
+            <div className="vp-route-stat-card">
+              <div className="vp-route-stat-value">{formatDistanceKm(routeDistanceMeters)}</div>
+              <div className="vp-route-stat-label">{strings.ROUTE_DISTANCE}</div>
+            </div>
+            <div className="vp-route-stat-card">
+              <div className="vp-route-stat-value">{formatDuration(routeDurationMs)}</div>
+              <div className="vp-route-stat-label">Duration</div>
+            </div>
+            <div className="vp-route-stat-card">
+              <div className="vp-route-stat-value">
+                {typeof routeAverageSpeed === 'number' ? Math.round(routeAverageSpeed) : '-'}
+                <span>km/h</span>
+              </div>
+              <div className="vp-route-stat-label">{strings.AVG_SPEED}</div>
+            </div>
+            <div className="vp-route-stat-card">
+              <div className="vp-route-stat-value">
+                {typeof routeMaxSpeed === 'number' ? Math.round(routeMaxSpeed) : '-'}
+                <span>km/h</span>
+              </div>
+              <div className="vp-route-stat-label">{strings.MAX_SPEED}</div>
+            </div>
+          </div>
+
+          <div className="vp-playback-card">
+            <div className="vp-playback-controls-row">
+              <button type="button" className="vp-playback-btn" onClick={onPlaybackRestart}>
+                <RestartAltRoundedIcon fontSize="small" />
+              </button>
+              <button type="button" className="vp-playback-btn vp-playback-btn--main" onClick={onPlaybackToggle}>
+                {playbackActive ? <PauseRoundedIcon /> : <PlayArrowRoundedIcon />}
+              </button>
+              <select className="vp-speed-select" value={playbackSpeed} onChange={(event) => onPlaybackSpeedChange(Number.parseInt(event.target.value, 10))}>
                 {PLAYBACK_SPEED_OPTIONS.map((value) => (
-                  <option key={value} value={value}>{value}x</option>
+                  <option key={value} value={value}>
+                    {value}
+                    x
+                  </option>
                 ))}
               </select>
             </div>
 
-            <input
-              className="timeline-range"
-              type="range"
-              min={0}
-              max={Math.max(routeFrames.length - 1, 0)}
-              value={Math.min(playbackIndex, Math.max(routeFrames.length - 1, 0))}
-              onChange={(event) => onPlaybackScrub(Number.parseInt(event.target.value, 10))}
-            />
-
-            <div className="timeline-stats">
-              <div className="tl-stat"><div className="tl-stat-val">{routePositionLabel}</div><div className="tl-stat-label">Position</div></div>
-              <div className="tl-stat"><div className="tl-stat-val">{Math.round(playbackSpeedKmh)} km/h</div><div className="tl-stat-label">{strings.SPEED}</div></div>
-              <div className="tl-stat"><div className="tl-stat-val">{playbackProgress}%</div><div className="tl-stat-label">Progress</div></div>
+            <div className="vp-playback-slider-row">
+              <input
+                className="vp-playback-range"
+                type="range"
+                min={0}
+                max={Math.max(routeFrames.length - 1, 0)}
+                value={Math.min(playbackIndex, Math.max(routeFrames.length - 1, 0))}
+                onChange={(event) => onPlaybackScrub(Number.parseInt(event.target.value, 10))}
+              />
+              <span className="vp-playback-time">{currentTime}</span>
             </div>
 
-            <div className="timeline-controls">
-              <button type="button" className="tl-btn" onClick={onPlaybackRestart}>
-                <RestartAltRoundedIcon fontSize="small" />
-              </button>
-              <button type="button" className="tl-btn primary" onClick={onPlaybackToggle}>
-                {playbackActive ? <PauseRoundedIcon fontSize="small" /> : <PlayArrowRoundedIcon fontSize="small" />}
-              </button>
-            </div>
-          </div>
-
-          <div className="metrics-grid">
-            <div className="metric-card">
-              <div className="metric-label">{strings.ROUTE_DISTANCE}</div>
-              <div className="metric-val metric-val--small">{formatDistanceKm(routeDistanceMeters)}</div>
-            </div>
-            <div className="metric-card">
-              <div className="metric-label">Duration</div>
-              <div className="metric-val metric-val--small">{formatDuration(routeDurationMs)}</div>
-            </div>
-            <div className="metric-card">
-              <div className="metric-label">{strings.AVG_SPEED}</div>
-              <div className="metric-val metric-val--small">
-                {typeof routeAverageSpeed === 'number' ? Math.round(routeAverageSpeed) : '-'}
-                <span>km/h</span>
-              </div>
-            </div>
-            <div className="metric-card">
-              <div className="metric-label">{strings.MAX_SPEED}</div>
-              <div className="metric-val metric-val--small">
-                {typeof routeMaxSpeed === 'number' ? Math.round(routeMaxSpeed) : '-'}
-                <span>km/h</span>
-              </div>
+            <div className="vp-playback-meta">
+              {snapStatusLabel() && <span className="vp-snap-badge">{snapStatusLabel()}</span>}
+              <span className="vp-playback-speed-label">
+                {Math.round(playbackSpeedKmh)}
+                {' '}
+                km/h
+              </span>
+              <span className="vp-playback-progress">
+                {playbackProgress}
+                %
+              </span>
             </div>
           </div>
         </>
@@ -421,19 +545,20 @@ const VehiclePanel = ({
           <p>Load a Traccar route to start playback.</p>
         </div>
       )}
-    </>
+    </div>
   )
 
+  /* ─── ZONE STUDIO (inline form) ─── */
   const renderZoneStudio = () => {
     if (!zoneStudioOpen) {
       return null
     }
 
     return (
-      <div className="zone-studio">
-        <div className="zone-studio-head">
-          <strong>{editingGeofenceId ? 'Edit Zone' : 'Create Zone'}</strong>
-          <button type="button" className="ghost-link" onClick={onCloseZoneStudio}>Close</button>
+      <div className="vp-zone-studio">
+        <div className="vp-zone-studio-head">
+          <strong>{editingGeofenceId ? 'Edit Zone' : 'Create New Zone'}</strong>
+          <button type="button" className="ghost-link" onClick={onCloseZoneStudio}>{strings.CANCEL_EDIT}</button>
         </div>
 
         <div className="form-group">
@@ -446,30 +571,32 @@ const VehiclePanel = ({
           <input className="form-input" type="text" value={zoneFormDescription} onChange={(event) => onZoneDescriptionChange(event.target.value)} />
         </div>
 
-        <div className="form-group">
-          <label className="form-label">{strings.GEOFENCE_TYPE}</label>
-          <select className="form-select" value={zoneFormType} onChange={(event) => onZoneTypeChange(event.target.value as GeofenceEditorType)}>
-            <option value="circle">{strings.GEOFENCE_TYPE_CIRCLE}</option>
-            <option value="polygon">{strings.GEOFENCE_TYPE_POLYGON}</option>
-            <option value="polyline">{strings.GEOFENCE_TYPE_POLYLINE}</option>
-          </select>
+        <div className="vp-zone-type-row">
+          <div className="form-group" style={{ flex: '1 1 0' }}>
+            <label className="form-label">{strings.GEOFENCE_TYPE}</label>
+            <select className="form-select" value={zoneFormType} onChange={(event) => onZoneTypeChange(event.target.value as GeofenceEditorType)}>
+              <option value="circle">{strings.GEOFENCE_TYPE_CIRCLE}</option>
+              <option value="polygon">{strings.GEOFENCE_TYPE_POLYGON}</option>
+              <option value="polyline">{strings.GEOFENCE_TYPE_POLYLINE}</option>
+            </select>
+          </div>
+
+          {zoneFormType === 'circle' && (
+            <div className="form-group" style={{ flex: '1 1 0' }}>
+              <label className="form-label">{strings.RADIUS_METERS}</label>
+              <input className="form-input" type="number" min="1" value={zoneFormRadius} onChange={(event) => onZoneRadiusChange(event.target.value)} />
+            </div>
+          )}
+
+          {zoneFormType === 'polyline' && (
+            <div className="form-group" style={{ flex: '1 1 0' }}>
+              <label className="form-label">{strings.POLYLINE_DISTANCE}</label>
+              <input className="form-input" type="number" min="1" value={zoneFormPolylineDistance} onChange={(event) => onZonePolylineDistanceChange(event.target.value)} />
+            </div>
+          )}
         </div>
 
-        {zoneFormType === 'circle' && (
-          <div className="form-group">
-            <label className="form-label">{strings.RADIUS_METERS}</label>
-            <input className="form-input" type="number" min="1" value={zoneFormRadius} onChange={(event) => onZoneRadiusChange(event.target.value)} />
-          </div>
-        )}
-
-        {zoneFormType === 'polyline' && (
-          <div className="form-group">
-            <label className="form-label">{strings.POLYLINE_DISTANCE}</label>
-            <input className="form-input" type="number" min="1" value={zoneFormPolylineDistance} onChange={(event) => onZonePolylineDistanceChange(event.target.value)} />
-          </div>
-        )}
-
-        <div className="zone-studio-actions">
+        <div className="vp-zone-draw-row">
           <button type="button" className="action-btn" onClick={onStartZoneDrawing}>
             <FmdGoodRoundedIcon fontSize="small" />
             <span>{draftReady ? 'Redraw on map' : strings.DRAW_ON_MAP}</span>
@@ -492,28 +619,29 @@ const VehiclePanel = ({
     )
   }
 
+  /* ─── TAB: ZONES ─── */
   const renderGeofencesTab = () => (
-    <>
-      <button type="button" className="action-btn primary" onClick={onOpenCreateZone}>
-        <AddRoundedIcon fontSize="small" />
-        <span>Create Zone</span>
-      </button>
+    <div className="vp-tab-content">
+      <div className="vp-zones-actions">
+        <button type="button" className="action-btn primary" onClick={onOpenCreateZone}>
+          <AddRoundedIcon fontSize="small" />
+          <span>Create Zone</span>
+        </button>
+        <button type="button" className="vp-icon-btn" onClick={onRefreshZones} disabled={zonesLoading} title="Refresh Zones">
+          <RefreshRoundedIcon fontSize="small" />
+        </button>
+      </div>
 
-      <button type="button" className="action-btn" onClick={onRefreshZones} disabled={zonesLoading}>
-        <RefreshRoundedIcon fontSize="small" />
-        <span>{zonesLoading ? 'Refreshing zones...' : 'Refresh Zones'}</span>
-      </button>
+      {renderZoneStudio()}
 
-      <div className="inline-note">
+      <div className="vp-zone-count">
         {linkedGeofences.length}
         {' '}
         linked zones for this vehicle.
       </div>
 
-      {renderZoneStudio()}
-
       {allGeofences.length > 0 ? (
-        <div className="geofence-list">
+        <div className="vp-zone-list">
           {allGeofences.map((geofence, index) => {
             const geofenceId = typeof geofence.id === 'number' ? geofence.id : null
             const linked = geofenceId !== null && linkedGeofenceIds.has(geofenceId)
@@ -521,27 +649,28 @@ const VehiclePanel = ({
               || (geofence.geojson ? 'geojson' : `zone ${index + 1}`)
 
             return (
-              <div key={geofence.id || `${geofence.name}-${index}`} className="geo-item">
-                <div className="geo-info">
-                  <div className="geo-name">{geofence.name || `Zone ${index + 1}`}</div>
-                  <div className="geo-type">{parsedType}</div>
+              <div key={geofence.id || `${geofence.name}-${index}`} className="vp-zone-card">
+                <div className="vp-zone-info">
+                  <div className="vp-zone-name">{geofence.name || `Zone ${index + 1}`}</div>
+                  <div className="vp-zone-type-label">{parsedType}</div>
+                  {linked && <span className="vp-zone-linked-badge">Linked</span>}
                 </div>
-                <div className="geo-actions">
+                <div className="vp-zone-actions">
                   <button
                     type="button"
-                    className={`geo-btn ${linked ? 'linked' : ''}`}
+                    className={`vp-zone-link-btn ${linked ? 'linked' : ''}`}
                     disabled={!selectedVehicle.isLinked || geofenceId === null}
                     onClick={() => geofenceId !== null && onToggleGeofenceLink(geofenceId, linked)}
+                    title={linked ? 'Unlink' : 'Link'}
                   >
-                    {linked ? 'Linked' : 'Link'}
+                    {linked ? <LinkRoundedIcon style={{ fontSize: 16 }} /> : <LinkOffRoundedIcon style={{ fontSize: 16 }} />}
                   </button>
-                  <button type="button" className="geo-btn" onClick={() => onOpenEditZone(geofence)}>
-                    <EditRoundedIcon fontSize="small" />
-                    <span>Edit</span>
+                  <button type="button" className="vp-zone-action-btn" onClick={() => onOpenEditZone(geofence)} title={strings.EDIT_GEOFENCE}>
+                    <EditRoundedIcon style={{ fontSize: 16 }} />
                   </button>
                   {geofenceId !== null && (
-                    <button type="button" className="geo-btn geo-btn--danger" onClick={() => onDeleteZone(geofenceId)}>
-                      Delete
+                    <button type="button" className="vp-zone-action-btn vp-zone-action-btn--danger" onClick={() => onDeleteZone(geofenceId)} title="Delete">
+                      <DeleteRoundedIcon style={{ fontSize: 16 }} />
                     </button>
                   )}
                 </div>
@@ -561,40 +690,50 @@ const VehiclePanel = ({
           <span>{strings.TRACKING_NOT_LINKED}</span>
         </div>
       )}
-    </>
+    </div>
   )
 
+  /* ─── TAB: EVENTS ─── */
   const renderEventsTab = () => (
-    <>
-      <div className="date-range-row" style={{ marginBottom: 10 }}>
-        <input className="form-input" type="datetime-local" value={from} onChange={(event) => onFromChange(event.target.value)} />
-        <input className="form-input" type="datetime-local" value={to} onChange={(event) => onToChange(event.target.value)} />
+    <div className="vp-tab-content">
+      <div className="vp-events-filters">
+        <div className="vp-events-date-row">
+          <input className="form-input" type="datetime-local" value={from} onChange={(event) => onFromChange(event.target.value)} />
+          <input className="form-input" type="datetime-local" value={to} onChange={(event) => onToChange(event.target.value)} />
+        </div>
+        <select className="form-select" value={eventTypeFilter} onChange={(event) => onEventTypeChange(event.target.value as (typeof EVENT_TYPE_OPTIONS)[number])}>
+          {EVENT_TYPE_OPTIONS.map((value) => (
+            <option key={value} value={value}>{getEventTypeLabel(value)}</option>
+          ))}
+        </select>
+        <button type="button" className="action-btn primary" onClick={onLoadEvents} disabled={eventsLoading || !selectedVehicle.isLinked}>
+          <RefreshRoundedIcon fontSize="small" />
+          <span>{eventsLoading ? 'Loading events...' : 'Load Events'}</span>
+        </button>
       </div>
 
-      <select className="form-select" value={eventTypeFilter} onChange={(event) => onEventTypeChange(event.target.value as (typeof EVENT_TYPE_OPTIONS)[number])}>
-        {EVENT_TYPE_OPTIONS.map((value) => (
-          <option key={value} value={value}>{getEventTypeLabel(value)}</option>
-        ))}
-      </select>
-
-      <button type="button" className="action-btn primary" onClick={onLoadEvents} disabled={eventsLoading || !selectedVehicle.isLinked}>
-        <RefreshRoundedIcon fontSize="small" />
-        <span>{eventsLoading ? 'Loading events...' : 'Load Events'}</span>
-      </button>
-
       {events.length > 0 ? (
-        <div className="events-list">
+        <div className="vp-event-timeline">
           {events.map((event, index) => (
-            <div key={event.id || `${event.deviceId}-${event.eventTime}-${index}`} className="event-item">
-              <div className="event-dot" style={{ background: getStatusColor(selectedVehicle.status) }} />
-              <div className="event-content">
-                <div className="event-type">{getEventTypeLabel(event.type)}</div>
-                <div className="event-meta">
+            <div key={event.id || `${event.deviceId}-${event.eventTime}-${index}`} className="vp-event-row">
+              <div className="vp-event-rail">
+                <div className="vp-event-dot" style={{ background: getEventDotColor(event.type) }} />
+                {index < events.length - 1 && <div className="vp-event-line" />}
+              </div>
+              <div className="vp-event-body">
+                <div className="vp-event-header">
+                  <span className="vp-event-time">{formatTimestamp(event.eventTime)}</span>
+                  <span className="vp-event-type-label">{getEventTypeLabel(event.type)}</span>
+                </div>
+                <div className="vp-event-detail">
                   <span>{event.geofenceName || event.address || event.deviceName || strings.NO_DATA}</span>
-                  {typeof event.speed === 'number' && <span>{`${strings.SPEED}: ${Math.round(event.speed)} km/h`}</span>}
+                  {typeof event.speed === 'number' && (
+                    <span>
+                      {`${strings.SPEED}: ${Math.round(event.speed)} km/h`}
+                    </span>
+                  )}
                 </div>
               </div>
-              <div className="event-time">{formatTimestamp(event.eventTime)}</div>
             </div>
           ))}
         </div>
@@ -603,43 +742,47 @@ const VehiclePanel = ({
           <p>No events loaded for this vehicle yet.</p>
         </div>
       )}
-    </>
+    </div>
   )
 
+  /* ─── TAB: DEVICE ─── */
   const renderDeviceTab = () => (
-    <>
-      <div className="section-card">
-        <div className="section-card-head">
-          <span className="section-card-title">Device Binding</span>
+    <div className="vp-tab-content">
+      <div className="vp-device-section">
+        <div className="vp-device-section-title">
+          <span>Device Connection</span>
+          <span className={`vp-device-status-dot ${selectedVehicle.isLinked ? 'linked' : 'unlinked'}`} />
+          <span className="vp-device-status-label">{selectedVehicle.isLinked ? 'Linked' : 'Unlinked'}</span>
         </div>
-        <div className="section-card-body">
-          <div className="form-group">
-            <label className="form-label">{strings.DEVICE_ID}</label>
-            <input
-              className="form-input"
-              list="tracking-device-list"
-              type="text"
-              value={deviceId}
-              placeholder="e.g. 142"
-              onChange={(event) => onDeviceIdChange(event.target.value)}
-            />
-            <datalist id="tracking-device-list">
-              {devices.map((device) => (
-                <option key={device.id} value={device.id}>{device.name}</option>
-              ))}
-            </datalist>
-          </div>
 
-          <div className="form-group">
-            <label className="form-label">{strings.DEVICE_NAME}</label>
-            <input className="form-input" type="text" value={deviceName} placeholder="e.g. Teltonika FMC130" onChange={(event) => onDeviceNameChange(event.target.value)} />
-          </div>
+        <div className="form-group">
+          <label className="form-label">{strings.DEVICE_ID}</label>
+          <input
+            className="form-input"
+            list="tracking-device-list"
+            type="text"
+            value={deviceId}
+            placeholder="e.g. 142"
+            onChange={(event) => onDeviceIdChange(event.target.value)}
+          />
+          <datalist id="tracking-device-list">
+            {devices.map((device) => (
+              <option key={device.id} value={device.id}>{device.name}</option>
+            ))}
+          </datalist>
+        </div>
 
-          <div className="form-group">
-            <label className="form-label">{strings.NOTES}</label>
-            <input className="form-input" type="text" value={notes} placeholder="Optional notes..." onChange={(event) => onNotesChange(event.target.value)} />
-          </div>
+        <div className="form-group">
+          <label className="form-label">{strings.DEVICE_NAME}</label>
+          <input className="form-input" type="text" value={deviceName} placeholder="e.g. Teltonika FMC130" onChange={(event) => onDeviceNameChange(event.target.value)} />
+        </div>
 
+        <div className="form-group">
+          <label className="form-label">{strings.NOTES}</label>
+          <input className="form-input" type="text" value={notes} placeholder="Optional notes..." onChange={(event) => onNotesChange(event.target.value)} />
+        </div>
+
+        <div className="vp-device-btn-row">
           <button type="button" className="action-btn primary" onClick={onLinkDevice} disabled={deviceSaving}>
             <LinkRoundedIcon fontSize="small" />
             <span>{deviceSaving ? 'Saving...' : strings.LINK_DEVICE}</span>
@@ -651,84 +794,101 @@ const VehiclePanel = ({
         </div>
       </div>
 
-      <div className="section-card">
-        <div className="section-card-head">
-          <span className="section-card-title">{strings.COMMAND_CENTER}</span>
+      <div className="vp-device-section">
+        <div className="vp-device-section-title">
+          <span>{strings.COMMAND_CENTER}</span>
         </div>
-        <div className="section-card-body">
-          <div className="form-group">
-            <label className="form-label">{strings.COMMAND_TYPE}</label>
-            <select className="form-select" value={selectedCommandType} onChange={(event) => onCommandTypeChange(event.target.value)}>
-              {commandTypes.length === 0
-                ? <option value="">No command types</option>
-                : commandTypes.map((commandType) => (
-                  <option key={commandType.type} value={commandType.type}>{commandType.type}</option>
-                ))}
-            </select>
-          </div>
 
-          <label className="checkbox-row">
-            <input type="checkbox" checked={commandTextChannel} onChange={(event) => onCommandTextChannelChange(event.target.checked)} />
-            <span>{strings.TEXT_CHANNEL}</span>
-          </label>
-
-          <div className="form-group">
-            <label className="form-label">{strings.COMMAND_ATTRIBUTES}</label>
-            <textarea className="form-textarea" rows={6} value={commandAttributes} onChange={(event) => onCommandAttributesChange(event.target.value)} />
-          </div>
-
-          <button type="button" className="action-btn" onClick={onSendCommand} disabled={commandSending || !selectedCommandType || !selectedVehicle.isLinked}>
-            <SendRoundedIcon fontSize="small" />
-            <span>{commandSending ? 'Sending...' : strings.SEND_COMMAND}</span>
-          </button>
+        <div className="form-group">
+          <label className="form-label">{strings.COMMAND_TYPE}</label>
+          <select className="form-select" value={selectedCommandType} onChange={(event) => onCommandTypeChange(event.target.value)}>
+            {commandTypes.length === 0
+              ? <option value="">No command types</option>
+              : commandTypes.map((commandType) => (
+                <option key={commandType.type} value={commandType.type}>{commandType.type}</option>
+              ))}
+          </select>
         </div>
+
+        <label className="checkbox-row">
+          <input type="checkbox" checked={commandTextChannel} onChange={(event) => onCommandTextChannelChange(event.target.checked)} />
+          <span>{strings.TEXT_CHANNEL}</span>
+        </label>
+
+        <div className="form-group">
+          <label className="form-label">{strings.COMMAND_ATTRIBUTES}</label>
+          <textarea className="form-textarea" rows={6} value={commandAttributes} onChange={(event) => onCommandAttributesChange(event.target.value)} />
+        </div>
+
+        <button type="button" className="action-btn" onClick={onSendCommand} disabled={commandSending || !selectedCommandType || !selectedVehicle.isLinked}>
+          <SendRoundedIcon fontSize="small" />
+          <span>{commandSending ? 'Sending...' : strings.SEND_COMMAND}</span>
+        </button>
       </div>
-    </>
+    </div>
   )
 
   return (
     <div className="sb-view active" id="car-view">
-      <div className="cv-header">
-        <button type="button" className="cv-back" onClick={onBack}>
-          <ArrowBackRoundedIcon fontSize="small" />
-          <span>Back to fleet</span>
-        </button>
+      {/* ─── HEADER ─── */}
+      <div className="vp-header">
+        <div className="vp-header-top">
+          <button type="button" className="vp-back-btn" onClick={onBack}>
+            <ArrowBackRoundedIcon fontSize="small" />
+          </button>
+          <button type="button" className="vp-focus-btn" onClick={onFocusVehicle} title="Focus on map">
+            <CenterFocusStrongRoundedIcon fontSize="small" />
+            <span>Focus</span>
+          </button>
+        </div>
 
-        <div className="cv-car-row">
-          <div
-            className="cv-car-icon"
-            style={{
-              background: `${getStatusColor(selectedVehicle.status)}22`,
-              color: getStatusColor(selectedVehicle.status),
-            }}
-          >
-            {getInitials(selectedVehicle.car.name)}
-          </div>
-          <div className="cv-car-info">
-            <div className="cv-car-name">{selectedVehicle.car.name}</div>
-            <div className="cv-car-plate">{selectedVehicle.car.licensePlate || '---'}</div>
-          </div>
+        <div className="vp-header-identity">
+          <DirectionsCarFilledRoundedIcon className="vp-header-car-icon" style={{ color: getStatusColor(selectedVehicle.status) }} />
+          <div className="vp-header-car-name">{selectedVehicle.car.name}</div>
+        </div>
+        <div className="vp-header-sub">
+          {selectedVehicle.car.licensePlate || '---'}
+          {selectedVehicle.supplierName && (
+            <>
+              {' \u2022 '}
+              {selectedVehicle.supplierName}
+            </>
+          )}
+        </div>
+        <div className="vp-header-status-row">
           <div className={`status-badge ${selectedVehicle.status}`}>{getStatusLabel(selectedVehicle.status)}</div>
+          {selectedVehicle.status === 'moving' && (
+            <span className="vp-header-speed">
+              {Math.round(selectedVehicle.speedKmh)}
+              {' '}
+              km/h
+            </span>
+          )}
+        </div>
+        <div className="vp-header-seen">
+          {strings.LAST_SEEN}
+          :
+          {' '}
+          {selectedVehicle.lastSeenLabel}
         </div>
       </div>
 
-      <div className="cv-tabs" id="cv-tabs">
-        {(['status', 'route', 'geofences', 'events', 'device'] as TrackingTab[]).map((tab) => (
+      {/* ─── TAB NAVIGATION ─── */}
+      <div className="vp-tabs" id="cv-tabs">
+        {TAB_CONFIG.map(({ key, label, Icon }) => (
           <button
             type="button"
-            key={tab}
-            className={`cv-tab${activeTab === tab ? ' active' : ''}`}
-            onClick={() => onTabChange(tab)}
+            key={key}
+            className={`vp-tab${activeTab === key ? ' active' : ''}`}
+            onClick={() => onTabChange(key)}
           >
-            {tab === 'status' && 'Status'}
-            {tab === 'route' && 'Route'}
-            {tab === 'geofences' && 'Zones'}
-            {tab === 'events' && 'Events'}
-            {tab === 'device' && 'Device'}
+            <Icon className="vp-tab-icon" />
+            <span>{label}</span>
           </button>
         ))}
       </div>
 
+      {/* ─── TAB BODY ─── */}
       <div className="cv-body">
         {activeTab === 'status' && renderStatusTab()}
         {activeTab === 'route' && renderRouteTab()}

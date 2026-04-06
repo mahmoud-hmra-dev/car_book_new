@@ -40,9 +40,6 @@ const getStatusLabel = (status: FleetVehicle['status']) => {
 const TrackingWorkspace = () => {
   const tracking = useTrackingWorkspace()
 
-  const linkedCars = tracking.fleetHealth?.linkedCars ?? Math.max(0, tracking.counts.total - tracking.counts.unlinked)
-  const activeCars = tracking.fleetHealth?.liveCars ?? (tracking.counts.moving + tracking.counts.idle)
-  const movingCars = tracking.fleetHealth?.movingCars ?? tracking.counts.moving
   const mapVehicles = tracking.selectedVehicle && !tracking.filteredVehicles.some((item) => item.car._id === tracking.selectedVehicle?.car._id)
     ? [tracking.selectedVehicle, ...tracking.filteredVehicles]
     : tracking.filteredVehicles
@@ -63,16 +60,17 @@ const TrackingWorkspace = () => {
     <Layout onLoad={tracking.onLoad} strict>
       <div className="tracking-screen">
         <TrackingTopbar
-          brandTitle="FleetOS"
+          vehicleCount={tracking.counts.total}
           searchValue={tracking.searchQuery}
           refreshing={tracking.refreshing}
           integrationEnabled={tracking.integrationEnabled}
-          activeStatus={tracking.topbarActiveStatus}
-          counts={tracking.counts}
+          alertCount={tracking.counts.stale + tracking.counts.noGps}
           onSearchChange={tracking.setSearchQuery}
-          onStatusChange={tracking.handleStatusFilter}
           onRefresh={() => {
             void tracking.refreshWorkspace({ withMetadata: true })
+          }}
+          onBack={() => {
+            window.history.back()
           }}
         />
 
@@ -224,6 +222,7 @@ const TrackingWorkspace = () => {
               }}
             />
 
+            {/* Map Toolbar - top-right vertical stack */}
             <div className="map-toolbar">
               <button
                 type="button"
@@ -253,30 +252,19 @@ const TrackingWorkspace = () => {
               </button>
             </div>
 
-            <div className="map-kpi-strip">
-              <div className="map-kpi-card">
-                <div className="kpi-label">Fleet Size</div>
-                <div className="kpi-val">{tracking.counts.total}</div>
-                <div className="kpi-sub">{linkedCars} linked devices</div>
+            {/* Legend - bottom-right, fleet view only */}
+            {!showVehiclePanel && (
+              <div className="map-legend">
+                <div className="legend-items">
+                  <div className="legend-item"><span className="legend-dot moving" />{strings.STATUS_MOVING}</div>
+                  <div className="legend-item"><span className="legend-dot idle" />{strings.STATUS_IDLE}</div>
+                  <div className="legend-item"><span className="legend-dot stopped" />{strings.STATUS_STOPPED}</div>
+                  <div className="legend-item"><span className="legend-dot offline" />{strings.STATUS_OFFLINE}</div>
+                </div>
               </div>
+            )}
 
-              <div className="map-kpi-card">
-                <div className="kpi-label">Active Now</div>
-                <div className="kpi-val active">{activeCars}</div>
-                <div className="kpi-sub">{movingCars} moving</div>
-              </div>
-            </div>
-
-            <div className="map-legend">
-              <div className="legend-title">{strings.FLEET_LEGEND}</div>
-              <div className="legend-items">
-                <div className="legend-item"><span className="legend-dot moving" />{strings.STATUS_MOVING}</div>
-                <div className="legend-item"><span className="legend-dot idle" />{strings.STATUS_IDLE}</div>
-                <div className="legend-item"><span className="legend-dot stopped" />{strings.STATUS_STOPPED}</div>
-                <div className="legend-item"><span className="legend-dot offline" />{strings.STATUS_OFFLINE}</div>
-              </div>
-            </div>
-
+            {/* Empty State */}
             {!tracking.hasMapData && (
               <div className="map-empty">
                 <div className="map-empty-icon">
@@ -287,14 +275,15 @@ const TrackingWorkspace = () => {
               </div>
             )}
 
+            {/* Focus Card - bottom-left, when vehicle selected */}
             <div id="focus-card" className={showFocusCard ? '' : 'hidden'}>
               <div className="fc-name">{tracking.selectedVehicle?.car.name || '-'}</div>
               <div className="fc-plate">{tracking.selectedVehicle?.car.licensePlate || '---'}</div>
-              <div className="fc-row">
-                <span className="fc-key">Status</span>
+              <div className="fc-status-row">
                 <span
-                  className="fc-val"
+                  className="fc-status-pill"
                   style={{
+                    background: tracking.selectedVehicle ? `${getStatusColor(tracking.selectedVehicle.status)}18` : undefined,
                     color: tracking.selectedVehicle ? getStatusColor(tracking.selectedVehicle.status) : undefined,
                   }}
                 >
