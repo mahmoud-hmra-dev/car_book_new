@@ -7,6 +7,7 @@ import {
   MenuItem,
   Menu,
   Button,
+  Tooltip,
 } from '@mui/material'
 import {
   Menu as MenuIcon,
@@ -31,6 +32,8 @@ import {
   MyLocation as TrackingIcon,
   MenuBook as ManualDocumentationIcon,
   IntegrationInstructions as TechnicalDocumentationIcon,
+  ChevronLeft as ChevronLeftIcon,
+  ChevronRight as ChevronRightIcon,
 } from '@mui/icons-material'
 import { useNavigate, useLocation } from 'react-router-dom'
 import * as bookcarsTypes from ':bookcars-types'
@@ -83,6 +86,7 @@ const Header = ({
   const [isLoaded, setIsLoaded] = useState(false)
   const [bankDetails, setBankDetails] = useState<bookcarsTypes.BankDetails | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem('admin-sidebar-collapsed') === 'true')
 
   const isMenuOpen = Boolean(anchorEl)
   const isMobileMenuOpen = Boolean(mobileMoreAnchorEl)
@@ -164,6 +168,14 @@ const Header = ({
   const handleSidebarClose = useCallback(() => {
     setSidebarOpen(false)
   }, [])
+
+  const handleSidebarToggle = () => {
+    setSidebarCollapsed((prev) => {
+      const next = !prev
+      localStorage.setItem('admin-sidebar-collapsed', String(next))
+      return next
+    })
+  }
 
   const handleNavClick = (path: string) => {
     navigate(path)
@@ -362,7 +374,19 @@ const Header = ({
 
       {/* Sidebar (only when signed in) */}
       {isLoaded && isSignedIn && (
-        <aside className={`admin-sidebar${sidebarOpen ? ' sidebar-open' : ''}`}>
+        <aside className={`admin-sidebar${sidebarOpen ? ' sidebar-open' : ''}${sidebarCollapsed ? ' collapsed' : ''}`}>
+          {/* Toggle button */}
+          <div className="sidebar-toggle-wrapper">
+            <button
+              type="button"
+              className="sidebar-toggle-btn"
+              onClick={handleSidebarToggle}
+              aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            >
+              {sidebarCollapsed ? <ChevronRightIcon fontSize="small" /> : <ChevronLeftIcon fontSize="small" />}
+            </button>
+          </div>
+
           {/* Brand */}
           <div className="sidebar-brand">
             <CarsIcon className="sidebar-brand-icon" />
@@ -377,21 +401,27 @@ const Header = ({
                   <div className="sidebar-group-label">{group.label}</div>
                 )}
                 {group.items.map((item) => (
-                  <div
+                  <Tooltip
                     key={item.path}
-                    className={`sidebar-nav-item${isActive(item.path, item.exact) ? ' active' : ''}`}
-                    onClick={() => handleNavClick(item.path)}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        handleNavClick(item.path)
-                      }
-                    }}
+                    title={sidebarCollapsed ? item.label : ''}
+                    placement="right"
+                    arrow
                   >
-                    <span className="sidebar-nav-icon">{item.icon}</span>
-                    <span className="sidebar-nav-label">{item.label}</span>
-                  </div>
+                    <div
+                      className={`sidebar-nav-item${isActive(item.path, item.exact) ? ' active' : ''}`}
+                      onClick={() => handleNavClick(item.path)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          handleNavClick(item.path)
+                        }
+                      }}
+                    >
+                      <span className="sidebar-nav-icon">{item.icon}</span>
+                      <span className="sidebar-nav-label">{item.label}</span>
+                    </div>
+                  </Tooltip>
                 ))}
               </div>
             ))}
@@ -399,48 +429,54 @@ const Header = ({
 
           {/* Footer links */}
           <div className="sidebar-footer">
-            <div
-              className={`sidebar-nav-item${isActive('/about') ? ' active' : ''}`}
-              onClick={() => handleNavClick('/about')}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  handleNavClick('/about')
-                }
-              }}
-            >
-              <span className="sidebar-nav-icon"><AboutIcon /></span>
-              <span className="sidebar-nav-label">{strings.ABOUT}</span>
-            </div>
-            <div
-              className={`sidebar-nav-item${isActive('/tos') ? ' active' : ''}`}
-              onClick={() => handleNavClick('/tos')}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  handleNavClick('/tos')
-                }
-              }}
-            >
-              <span className="sidebar-nav-icon"><TosIcon /></span>
-              <span className="sidebar-nav-label">{strings.TOS}</span>
-            </div>
-            <div
-              className={`sidebar-nav-item${isActive('/contact') ? ' active' : ''}`}
-              onClick={() => handleNavClick('/contact')}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  handleNavClick('/contact')
-                }
-              }}
-            >
-              <span className="sidebar-nav-icon"><MailIcon /></span>
-              <span className="sidebar-nav-label">{strings.CONTACT}</span>
-            </div>
+            <Tooltip title={sidebarCollapsed ? strings.ABOUT : ''} placement="right" arrow>
+              <div
+                className={`sidebar-nav-item${isActive('/about') ? ' active' : ''}`}
+                onClick={() => handleNavClick('/about')}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    handleNavClick('/about')
+                  }
+                }}
+              >
+                <span className="sidebar-nav-icon"><AboutIcon /></span>
+                <span className="sidebar-nav-label">{strings.ABOUT}</span>
+              </div>
+            </Tooltip>
+            <Tooltip title={sidebarCollapsed ? strings.TOS : ''} placement="right" arrow>
+              <div
+                className={`sidebar-nav-item${isActive('/tos') ? ' active' : ''}`}
+                onClick={() => handleNavClick('/tos')}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    handleNavClick('/tos')
+                  }
+                }}
+              >
+                <span className="sidebar-nav-icon"><TosIcon /></span>
+                <span className="sidebar-nav-label">{strings.TOS}</span>
+              </div>
+            </Tooltip>
+            <Tooltip title={sidebarCollapsed ? strings.CONTACT : ''} placement="right" arrow>
+              <div
+                className={`sidebar-nav-item${isActive('/contact') ? ' active' : ''}`}
+                onClick={() => handleNavClick('/contact')}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    handleNavClick('/contact')
+                  }
+                }}
+              >
+                <span className="sidebar-nav-icon"><MailIcon /></span>
+                <span className="sidebar-nav-label">{strings.CONTACT}</span>
+              </div>
+            </Tooltip>
           </div>
         </aside>
       )}

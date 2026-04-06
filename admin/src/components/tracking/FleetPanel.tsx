@@ -17,27 +17,6 @@ type FleetPanelProps = {
   onOpenGeofenceManager: () => void
 }
 
-const getStatusLabel = (status: bookcarsTypes.TraccarFleetStatus) => {
-  switch (status) {
-    case 'moving':
-      return strings.STATUS_MOVING
-    case 'idle':
-      return strings.STATUS_IDLE
-    case 'stopped':
-      return strings.STATUS_STOPPED
-    case 'stale':
-      return strings.STATUS_STALE
-    case 'noGps':
-      return strings.STATUS_NO_GPS
-    case 'offline':
-      return strings.STATUS_OFFLINE
-    case 'unlinked':
-      return strings.STATUS_UNLINKED
-    default:
-      return strings.NO_DATA
-  }
-}
-
 const getFilterCount = (
   counts: FleetCounts,
   filterId: 'all' | bookcarsTypes.TraccarFleetStatus,
@@ -74,109 +53,93 @@ const FleetPanel = ({
   onExport,
   onOpenGeofenceManager,
 }: FleetPanelProps) => {
-  const activeCars = counts.moving + counts.idle
-  const alertCars = counts.stale + counts.noGps
+  const onlineCount = counts.moving + counts.idle
+  const alertCount = counts.stale + counts.noGps
 
-  const chips: Array<{ id: 'all' | bookcarsTypes.TraccarFleetStatus, label: string }> = [
+  const pills: Array<{ id: 'all' | bookcarsTypes.TraccarFleetStatus, label: string }> = [
     { id: 'all', label: strings.ALL_STATUSES },
     { id: 'moving', label: strings.STATUS_MOVING },
     { id: 'idle', label: strings.STATUS_IDLE },
     { id: 'stopped', label: strings.STATUS_STOPPED },
     { id: 'offline', label: strings.STATUS_OFFLINE },
     { id: 'stale', label: strings.STATUS_STALE },
-    { id: 'noGps', label: strings.STATUS_NO_GPS },
-    { id: 'unlinked', label: strings.STATUS_UNLINKED },
   ]
 
   return (
-    <div className="sb-view" id="fleet-view">
-      {/* KPI Summary Cards */}
-      <div className="kpi-grid">
-        <div className="kpi-card">
-          <div className="kpi-card-val kpi-purple">{counts.total}</div>
-          <div className="kpi-card-label">vehicles</div>
+    <>
+      {/* Stats Strip */}
+      <div className="fp-stats-strip">
+        <div className="fp-stat">
+          <span className="fp-stat-num purple">{counts.total}</span>
+          <span className="fp-stat-label">Total</span>
         </div>
-        <div className="kpi-card">
-          <div className="kpi-card-val kpi-green">{activeCars}</div>
-          <div className="kpi-card-label">{strings.ONLINE_DEVICES.toLowerCase()}</div>
+        <div className="fp-stat">
+          <span className="fp-stat-num green">{onlineCount}</span>
+          <span className="fp-stat-label">{strings.ONLINE_DEVICES}</span>
         </div>
-        <div className="kpi-card">
-          <div className="kpi-card-val kpi-blue">{counts.moving}</div>
-          <div className="kpi-card-label">{strings.STATUS_MOVING.toLowerCase()}</div>
+        <div className="fp-stat">
+          <span className="fp-stat-num blue">{counts.moving}</span>
+          <span className="fp-stat-label">{strings.STATUS_MOVING}</span>
         </div>
-        <div className="kpi-card">
-          <div className="kpi-card-val kpi-amber">{alertCars}</div>
-          <div className="kpi-card-label">alerts</div>
+        <div className="fp-stat">
+          <span className="fp-stat-num amber">{alertCount}</span>
+          <span className="fp-stat-label">Alerts</span>
         </div>
       </div>
 
-      {/* Filter Chips */}
-      <div className="sb-filters">
-        <div className="filter-chips" id="filter-chips">
-          {chips.map((chip) => (
-            <button
-              type="button"
-              key={chip.id}
-              className={`chip${activeFilter === chip.id ? ' active' : ''}`}
-              onClick={() => onFilterChange(chip.id)}
-            >
-              {chip.label}
-              <span className="chip-count">{getFilterCount(counts, chip.id)}</span>
-            </button>
-          ))}
-        </div>
+      {/* Filter Pills */}
+      <div className="fp-filters">
+        {pills.map((pill) => (
+          <button
+            type="button"
+            key={pill.id}
+            className={`fp-pill${activeFilter === pill.id ? ' active' : ''}`}
+            onClick={() => onFilterChange(pill.id)}
+          >
+            {pill.label}
+            <span className="fp-pill-count">{getFilterCount(counts, pill.id)}</span>
+          </button>
+        ))}
       </div>
 
       {/* Vehicle List */}
-      <div id="fleet-list">
+      <div className="fp-vehicle-list">
         {vehicles.length === 0
-          ? (
-            <div className="empty-state">
-              <p>{strings.NO_DATA}</p>
-            </div>
-            )
+          ? <div className="fp-empty">{strings.NO_DATA}</div>
           : vehicles.map((vehicle) => (
             <button
               type="button"
               key={vehicle.car._id}
-              className={`car-card-v2${selectedCarId === vehicle.car._id ? ' selected' : ''}`}
+              className={`vehicle-card${selectedCarId === vehicle.car._id ? ' selected' : ''}`}
               onClick={() => onSelectCar(vehicle.car._id)}
             >
               <span
-                className="cc-status-dot"
+                className="vc-dot"
                 style={{ background: getStatusColor(vehicle.status) }}
               />
-              <div className="cc-body">
-                <div className="cc-top-row">
-                  <span className="cc-name">{vehicle.car.name}</span>
+              <div className="vc-body">
+                <div className="vc-row-top">
+                  <span className="vc-name">{vehicle.car.name}</span>
                   <span
-                    className="cc-speed"
-                    style={{ color: vehicle.speedKmh > 0 ? getStatusColor(vehicle.status) : undefined }}
+                    className="vc-speed"
+                    style={{ color: vehicle.speedKmh > 0 ? '#10b981' : undefined }}
                   >
                     {Math.round(vehicle.speedKmh)}
                     {' '}
                     km/h
                   </span>
                 </div>
-                <div className="cc-mid-row">
-                  <span className="cc-plate">{vehicle.car.licensePlate || '---'}</span>
-                  {vehicle.supplierName && (
-                    <>
-                      <span className="cc-sep">&bull;</span>
-                      <span className="cc-supplier">{vehicle.supplierName}</span>
-                    </>
-                  )}
-                </div>
-                <div className="cc-bottom-row">
-                  <span className="cc-badge" style={{ color: getStatusColor(vehicle.status) }}>
-                    {getStatusLabel(vehicle.status)}
+                <div className="vc-row-bottom">
+                  <span className="vc-meta">
+                    <span className="vc-plate">{vehicle.car.licensePlate || '---'}</span>
+                    {vehicle.supplierName && (
+                      <>
+                        <span className="vc-sep">&bull;</span>
+                        <span className="vc-supplier">{vehicle.supplierName}</span>
+                      </>
+                    )}
                   </span>
-                  <span className="cc-seen">
-                    {strings.LAST_SEEN}
-                    :
-                    {' '}
-                    {vehicle.lastSeenLabel}
-                  </span>
+                  <span className="vc-seen">{vehicle.lastSeenLabel}</span>
                 </div>
               </div>
             </button>
@@ -184,17 +147,17 @@ const FleetPanel = ({
       </div>
 
       {/* Footer */}
-      <div className="sb-footer">
-        <button type="button" className="sb-footer-btn" onClick={onExport}>
-          <DownloadRoundedIcon fontSize="small" />
-          <span>Export CSV</span>
+      <div className="fp-footer">
+        <button type="button" className="fp-footer-btn" onClick={onExport}>
+          <DownloadRoundedIcon sx={{ fontSize: 16 }} />
+          <span>Export</span>
         </button>
-        <button type="button" className="sb-footer-btn" onClick={onOpenGeofenceManager}>
-          <FmdGoodRoundedIcon fontSize="small" />
+        <button type="button" className="fp-footer-btn" onClick={onOpenGeofenceManager}>
+          <FmdGoodRoundedIcon sx={{ fontSize: 16 }} />
           <span>{strings.GEOFENCE_MANAGER}</span>
         </button>
       </div>
-    </div>
+    </>
   )
 }
 
