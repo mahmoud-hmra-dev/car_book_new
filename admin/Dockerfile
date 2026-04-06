@@ -20,7 +20,7 @@ RUN npm install
 COPY ./packages /bookcars/packages
 COPY ./admin ./
 COPY ./admin/.env.docker .env
-RUN npm run build
+RUN npm run build:docker
 
 FROM nginx:stable-alpine
 WORKDIR /usr/share/nginx/html
