@@ -179,30 +179,20 @@ const getEventBorderColor = (type?: string) => {
     case 'deviceOnline':
     case 'ignitionOn':
     case 'deviceMoving':
-      return 'var(--tracking-green)'
+      return '#22c55e'
     case 'geofenceExit':
     case 'deviceOffline':
     case 'ignitionOff':
     case 'deviceStopped':
-      return 'var(--tracking-red)'
+      return '#ef4444'
     case 'alarm':
     case 'overspeed':
-      return 'var(--tracking-amber)'
+      return '#f59e0b'
     case 'motion':
-      return 'var(--tracking-blue)'
+      return '#3b82f6'
     default:
-      return 'var(--tracking-text3)'
+      return '#94a3b8'
   }
-}
-
-const getBatteryColorClass = (level: number) => {
-  if (level > 50) {
-    return 'vp-battery-green'
-  }
-  if (level >= 20) {
-    return 'vp-battery-yellow'
-  }
-  return 'vp-battery-red'
 }
 
 // ---------------------------------------------------------------------------
@@ -291,6 +281,8 @@ const VehiclePanel = ({
 }: VehiclePanelProps) => {
   const routeHasData = routeFrames.length > 0
   const draftReady = hasDraftGeofenceGeometry(zoneDraft)
+  const battery = typeof selectedVehicle.batteryLevel === 'number' ? Math.round(selectedVehicle.batteryLevel) : null
+  const batteryPercent = battery !== null ? Math.min(100, Math.max(0, battery)) : 0
 
   const coordinates = selectedVehicle.position
     ? `${formatCoordinate(selectedVehicle.position.latitude)}, ${formatCoordinate(selectedVehicle.position.longitude)}`
@@ -316,66 +308,79 @@ const VehiclePanel = ({
   // Tab: STATUS
   // -----------------------------------------------------------------------
   const renderStatusTab = () => (
-    <div className="vp-tab-content">
-      <div className="vp-metrics-grid">
+    <div className="space-y-4">
+      {/* 2x3 metrics grid */}
+      <div className="grid grid-cols-2 gap-3">
         {/* Speed */}
-        <div className="vp-metric-card">
-          <SpeedRoundedIcon className="vp-metric-icon" />
-          <div className="vp-metric-label">{strings.SPEED}</div>
-          <div className="vp-metric-value">
+        <div className="bg-background rounded-lg p-3 border border-border">
+          <div className="flex items-center gap-1.5 text-text-muted mb-1">
+            <SpeedRoundedIcon style={{ fontSize: 14 }} />
+            <span className="text-[10px] uppercase font-semibold tracking-wide">{strings.SPEED}</span>
+          </div>
+          <div className="text-xl font-bold text-text">
             {Math.round(selectedVehicle.speedKmh)}
-            <span className="vp-metric-unit"> km/h</span>
+            <span className="text-xs font-normal text-text-muted ml-0.5">km/h</span>
           </div>
         </div>
 
         {/* Battery */}
-        <div className="vp-metric-card">
-          <BatteryChargingFullRoundedIcon className="vp-metric-icon" />
-          <div className="vp-metric-label">{strings.BATTERY}</div>
-          <div className="vp-metric-value">
-            {typeof selectedVehicle.batteryLevel === 'number' ? Math.round(selectedVehicle.batteryLevel) : '-'}
-            <span className="vp-metric-unit"> %</span>
+        <div className="bg-background rounded-lg p-3 border border-border">
+          <div className="flex items-center gap-1.5 text-text-muted mb-1">
+            <BatteryChargingFullRoundedIcon style={{ fontSize: 14 }} />
+            <span className="text-[10px] uppercase font-semibold tracking-wide">{strings.BATTERY}</span>
           </div>
-          {typeof selectedVehicle.batteryLevel === 'number' && (
-            <div className="vp-battery-bar">
+          <div className="text-xl font-bold text-text">
+            {battery !== null ? battery : '-'}
+            <span className="text-xs font-normal text-text-muted ml-0.5">%</span>
+          </div>
+          {battery !== null && (
+            <div className="w-full h-1.5 bg-border rounded-full mt-1.5">
               <div
-                className={`vp-battery-fill ${getBatteryColorClass(selectedVehicle.batteryLevel)}`}
-                style={{ width: `${Math.min(100, Math.max(0, selectedVehicle.batteryLevel))}%` }}
+                className={`h-full rounded-full ${battery > 50 ? 'bg-success' : battery > 20 ? 'bg-warning' : 'bg-danger'}`}
+                style={{ width: `${batteryPercent}%` }}
               />
             </div>
           )}
         </div>
 
         {/* Ignition */}
-        <div className="vp-metric-card">
-          <LocalFireDepartmentRoundedIcon className="vp-metric-icon" />
-          <div className="vp-metric-label">{strings.IGNITION}</div>
-          <div className={`vp-metric-value ${selectedVehicle.ignition ? 'vp-ignition-on' : 'vp-ignition-off'}`}>
+        <div className="bg-background rounded-lg p-3 border border-border">
+          <div className="flex items-center gap-1.5 text-text-muted mb-1">
+            <LocalFireDepartmentRoundedIcon style={{ fontSize: 14 }} />
+            <span className="text-[10px] uppercase font-semibold tracking-wide">{strings.IGNITION}</span>
+          </div>
+          <div className={`text-xl font-bold mt-1 ${selectedVehicle.ignition ? 'text-success' : 'text-danger'}`}>
             {selectedVehicle.ignition ? strings.ON : strings.OFF}
           </div>
         </div>
 
         {/* Device */}
-        <div className="vp-metric-card">
-          <MemoryRoundedIcon className="vp-metric-icon" />
-          <div className="vp-metric-label">{strings.DEVICE_NAME}</div>
-          <div className="vp-metric-value vp-metric-value--compact">
+        <div className="bg-background rounded-lg p-3 border border-border">
+          <div className="flex items-center gap-1.5 text-text-muted mb-1">
+            <MemoryRoundedIcon style={{ fontSize: 14 }} />
+            <span className="text-[10px] uppercase font-semibold tracking-wide">{strings.DEVICE_NAME}</span>
+          </div>
+          <div className="text-sm font-bold text-text truncate mt-1">
             {selectedVehicle.deviceName || strings.NO_DATA}
           </div>
         </div>
 
         {/* Coordinates */}
-        <div className="vp-metric-card">
-          <GpsFixedRoundedIcon className="vp-metric-icon" />
-          <div className="vp-metric-label">{strings.CURRENT_POSITION}</div>
-          <div className="vp-metric-value vp-metric-value--compact">{coordinates}</div>
+        <div className="bg-background rounded-lg p-3 border border-border">
+          <div className="flex items-center gap-1.5 text-text-muted mb-1">
+            <GpsFixedRoundedIcon style={{ fontSize: 14 }} />
+            <span className="text-[10px] uppercase font-semibold tracking-wide">{strings.CURRENT_POSITION}</span>
+          </div>
+          <div className="text-sm font-bold text-text truncate mt-1">{coordinates}</div>
         </div>
 
         {/* Last update */}
-        <div className="vp-metric-card">
-          <AccessTimeRoundedIcon className="vp-metric-icon" />
-          <div className="vp-metric-label">{strings.LAST_UPDATE}</div>
-          <div className="vp-metric-value vp-metric-value--compact">
+        <div className="bg-background rounded-lg p-3 border border-border">
+          <div className="flex items-center gap-1.5 text-text-muted mb-1">
+            <AccessTimeRoundedIcon style={{ fontSize: 14 }} />
+            <span className="text-[10px] uppercase font-semibold tracking-wide">{strings.LAST_UPDATE}</span>
+          </div>
+          <div className="text-sm font-bold text-text truncate mt-1">
             {formatTimestamp(selectedVehicle.snapshot?.lastPositionAt || selectedVehicle.snapshot?.lastSyncedAt)}
           </div>
         </div>
@@ -383,26 +388,25 @@ const VehiclePanel = ({
 
       {/* Address */}
       {selectedVehicle.address && (
-        <div className="vp-address-card">
-          <FmdGoodRoundedIcon className="vp-address-icon" />
-          <span className="vp-address-text">{selectedVehicle.address}</span>
+        <div className="bg-primary/5 rounded-lg px-3 py-2 flex items-start gap-2">
+          <FmdGoodRoundedIcon className="text-primary shrink-0 mt-0.5" style={{ fontSize: 16 }} />
+          <span className="text-sm text-text">{selectedVehicle.address}</span>
         </div>
       )}
 
       {/* Load Snapshot */}
       <button
         type="button"
-        className="vp-action-btn vp-action-btn--primary"
         onClick={onLoadSnapshot}
         disabled={snapshotLoading || !selectedVehicle.isLinked}
+        className="w-full py-2.5 rounded-lg border-2 border-dashed border-border text-sm font-medium text-text-secondary hover:border-primary hover:text-primary transition-colors disabled:opacity-50"
       >
-        <RouteRoundedIcon fontSize="small" />
-        <span>{snapshotLoading ? `${strings.LOAD_SNAPSHOT}...` : strings.LOAD_SNAPSHOT}</span>
+        {snapshotLoading ? `${strings.LOAD_SNAPSHOT}...` : strings.LOAD_SNAPSHOT}
       </button>
 
       {!selectedVehicle.isLinked && (
-        <div className="vp-warning">
-          <WarningAmberRoundedIcon fontSize="small" />
+        <div className="flex items-center gap-2 rounded-lg bg-warning/10 px-3 py-2 text-xs text-warning">
+          <WarningAmberRoundedIcon style={{ fontSize: 16 }} />
           <span>{strings.TRACKING_NOT_LINKED}</span>
         </div>
       )}
@@ -413,80 +417,88 @@ const VehiclePanel = ({
   // Tab: ROUTE
   // -----------------------------------------------------------------------
   const renderRouteTab = () => (
-    <div className="vp-tab-content">
+    <div className="space-y-4">
       {/* Date picker row */}
-      <div className="vp-date-row">
-        <div className="vp-field">
-          <label className="vp-field-label">{strings.FROM}</label>
+      <div className="flex gap-2">
+        <div className="flex-1">
+          <label className="text-[10px] uppercase font-semibold text-text-muted tracking-wide">{strings.FROM}</label>
           <input
-            className="vp-input"
             type="datetime-local"
             value={from}
             onChange={(e) => onFromChange(e.target.value)}
+            className="w-full mt-1 h-9 px-3 rounded-lg border border-border text-sm bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
           />
         </div>
-        <div className="vp-field">
-          <label className="vp-field-label">{strings.TO}</label>
+        <div className="flex-1">
+          <label className="text-[10px] uppercase font-semibold text-text-muted tracking-wide">{strings.TO}</label>
           <input
-            className="vp-input"
             type="datetime-local"
             value={to}
             onChange={(e) => onToChange(e.target.value)}
+            className="w-full mt-1 h-9 px-3 rounded-lg border border-border text-sm bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
           />
         </div>
       </div>
 
       <button
         type="button"
-        className="vp-action-btn vp-action-btn--primary"
         onClick={onLoadRoute}
         disabled={routeLoading || !selectedVehicle.isLinked}
+        className="w-full py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary-dark transition-colors disabled:opacity-50"
       >
-        <RouteRoundedIcon fontSize="small" />
-        <span>{routeLoading ? `${strings.ROUTE_HISTORY}...` : strings.ROUTE_HISTORY}</span>
+        {routeLoading ? `${strings.ROUTE_HISTORY}...` : strings.ROUTE_HISTORY}
       </button>
 
       {/* Route stats */}
       {routeHasData && (
         <>
-          <div className="vp-route-stats">
-            <div className="vp-route-stat">
-              <div className="vp-route-stat-value">{formatDistanceKm(routeDistanceMeters)}</div>
-              <div className="vp-route-stat-label">{strings.ROUTE_DISTANCE}</div>
+          <div className="grid grid-cols-4 gap-2">
+            <div className="text-center bg-background rounded-lg py-2 border border-border">
+              <div className="text-sm font-bold text-text">{formatDistanceKm(routeDistanceMeters)}</div>
+              <div className="text-[9px] text-text-muted uppercase">{strings.ROUTE_DISTANCE}</div>
             </div>
-            <div className="vp-route-stat">
-              <div className="vp-route-stat-value">{formatDuration(routeDurationMs)}</div>
-              <div className="vp-route-stat-label">{strings.TIME}</div>
+            <div className="text-center bg-background rounded-lg py-2 border border-border">
+              <div className="text-sm font-bold text-text">{formatDuration(routeDurationMs)}</div>
+              <div className="text-[9px] text-text-muted uppercase">{strings.TIME}</div>
             </div>
-            <div className="vp-route-stat">
-              <div className="vp-route-stat-value">
+            <div className="text-center bg-background rounded-lg py-2 border border-border">
+              <div className="text-sm font-bold text-text">
                 {typeof routeAverageSpeed === 'number' ? `${Math.round(routeAverageSpeed)}` : '-'}
-                <span className="vp-route-stat-unit"> km/h</span>
+                <span className="text-[9px] font-normal text-text-muted ml-0.5">km/h</span>
               </div>
-              <div className="vp-route-stat-label">{strings.AVG_SPEED}</div>
+              <div className="text-[9px] text-text-muted uppercase">{strings.AVG_SPEED}</div>
             </div>
-            <div className="vp-route-stat">
-              <div className="vp-route-stat-value">
+            <div className="text-center bg-background rounded-lg py-2 border border-border">
+              <div className="text-sm font-bold text-text">
                 {typeof routeMaxSpeed === 'number' ? `${Math.round(routeMaxSpeed)}` : '-'}
-                <span className="vp-route-stat-unit"> km/h</span>
+                <span className="text-[9px] font-normal text-text-muted ml-0.5">km/h</span>
               </div>
-              <div className="vp-route-stat-label">{strings.MAX_SPEED}</div>
+              <div className="text-[9px] text-text-muted uppercase">{strings.MAX_SPEED}</div>
             </div>
           </div>
 
           {/* Playback controls */}
-          <div className="vp-playback">
-            <div className="vp-playback-controls">
-              <button type="button" className="vp-playback-btn" onClick={onPlaybackRestart} title={strings.PLAYBACK_RESTART}>
+          <div className="bg-background rounded-xl p-3 border border-border space-y-3">
+            <div className="flex items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={onPlaybackRestart}
+                title={strings.PLAYBACK_RESTART}
+                className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-white transition-colors"
+              >
                 <RestartAltRoundedIcon fontSize="small" />
               </button>
-              <button type="button" className="vp-playback-btn vp-playback-btn--main" onClick={onPlaybackToggle}>
+              <button
+                type="button"
+                onClick={onPlaybackToggle}
+                className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center shadow-md hover:bg-primary-dark transition-colors"
+              >
                 {playbackActive ? <PauseRoundedIcon /> : <PlayArrowRoundedIcon />}
               </button>
               <select
-                className="vp-select vp-speed-select"
                 value={playbackSpeed}
                 onChange={(e) => onPlaybackSpeedChange(Number.parseInt(e.target.value, 10))}
+                className="h-8 px-2 rounded-lg border border-border text-xs bg-white"
               >
                 {PLAYBACK_SPEED_OPTIONS.map((v) => (
                   <option key={v} value={v}>{`${v}x`}</option>
@@ -494,35 +506,32 @@ const VehiclePanel = ({
               </select>
             </div>
 
-            <div className="vp-playback-slider">
-              <input
-                className="vp-range"
-                type="range"
-                min={0}
-                max={Math.max(routeFrames.length - 1, 0)}
-                value={Math.min(playbackIndex, Math.max(routeFrames.length - 1, 0))}
-                onChange={(e) => onPlaybackScrub(Number.parseInt(e.target.value, 10))}
-              />
-              <div className="vp-playback-times">
-                <span>{currentTime}</span>
-                <span>
-                  {`${playbackProgress}%`}
-                </span>
-              </div>
+            <input
+              type="range"
+              min={0}
+              max={Math.max(routeFrames.length - 1, 0)}
+              value={Math.min(playbackIndex, Math.max(routeFrames.length - 1, 0))}
+              onChange={(e) => onPlaybackScrub(Number.parseInt(e.target.value, 10))}
+              className="w-full accent-primary"
+            />
+
+            <div className="flex justify-between text-[10px] text-text-muted">
+              <span>{currentTime}</span>
+              <span>{`${playbackProgress}%`}</span>
             </div>
 
-            <div className="vp-playback-meta">
-              {snapLabel && <span className="vp-snap-badge">{snapLabel}</span>}
-              <span className="vp-playback-speed-label">
-                {`${Math.round(playbackSpeedKmh)} km/h`}
-              </span>
-            </div>
+            {(snapLabel || playbackSpeedKmh > 0) && (
+              <div className="flex items-center justify-between text-[10px] text-text-muted">
+                {snapLabel && <span className="italic">{snapLabel}</span>}
+                <span className="font-semibold">{`${Math.round(playbackSpeedKmh)} km/h`}</span>
+              </div>
+            )}
           </div>
         </>
       )}
 
       {!routeHasData && !routeLoading && (
-        <div className="vp-empty">{strings.MAP_EMPTY_HELP}</div>
+        <div className="text-center text-sm text-text-muted py-6">{strings.MAP_EMPTY_HELP}</div>
       )}
     </div>
   )
@@ -536,26 +545,40 @@ const VehiclePanel = ({
     }
 
     return (
-      <div className="vp-zone-studio">
-        <div className="vp-zone-studio-head">
-          <strong>{editingGeofenceId ? strings.UPDATE_GEOFENCE : strings.CREATE_GEOFENCE}</strong>
-          <button type="button" className="vp-link-btn" onClick={onCloseZoneStudio}>{strings.CANCEL_EDIT}</button>
+      <div className="bg-background rounded-xl p-4 border border-border space-y-3">
+        <div className="flex items-center justify-between">
+          <h4 className="text-sm font-semibold text-text">{editingGeofenceId ? strings.UPDATE_GEOFENCE : strings.CREATE_GEOFENCE}</h4>
+          <button type="button" onClick={onCloseZoneStudio} className="text-xs text-primary font-medium hover:underline">{strings.CANCEL_EDIT}</button>
         </div>
 
-        <div className="vp-field">
-          <label className="vp-field-label">{strings.GEOFENCE_NAME}</label>
-          <input className="vp-input" type="text" value={zoneFormName} onChange={(e) => onZoneNameChange(e.target.value)} />
+        <div>
+          <label className="text-[10px] uppercase font-semibold text-text-muted tracking-wide">{strings.GEOFENCE_NAME}</label>
+          <input
+            type="text"
+            value={zoneFormName}
+            onChange={(e) => onZoneNameChange(e.target.value)}
+            className="w-full mt-1 h-9 px-3 rounded-lg border border-border text-sm focus:border-primary outline-none"
+          />
         </div>
 
-        <div className="vp-field">
-          <label className="vp-field-label">{strings.DESCRIPTION}</label>
-          <input className="vp-input" type="text" value={zoneFormDescription} onChange={(e) => onZoneDescriptionChange(e.target.value)} />
+        <div>
+          <label className="text-[10px] uppercase font-semibold text-text-muted tracking-wide">{strings.DESCRIPTION}</label>
+          <input
+            type="text"
+            value={zoneFormDescription}
+            onChange={(e) => onZoneDescriptionChange(e.target.value)}
+            className="w-full mt-1 h-9 px-3 rounded-lg border border-border text-sm focus:border-primary outline-none"
+          />
         </div>
 
-        <div className="vp-zone-type-row">
-          <div className="vp-field vp-field--flex">
-            <label className="vp-field-label">{strings.GEOFENCE_TYPE}</label>
-            <select className="vp-select" value={zoneFormType} onChange={(e) => onZoneTypeChange(e.target.value as GeofenceEditorType)}>
+        <div className="flex gap-2">
+          <div className="flex-1">
+            <label className="text-[10px] uppercase font-semibold text-text-muted tracking-wide">{strings.GEOFENCE_TYPE}</label>
+            <select
+              value={zoneFormType}
+              onChange={(e) => onZoneTypeChange(e.target.value as GeofenceEditorType)}
+              className="w-full mt-1 h-9 px-3 rounded-lg border border-border text-sm bg-white focus:border-primary outline-none"
+            >
               <option value="circle">{strings.GEOFENCE_TYPE_CIRCLE}</option>
               <option value="polygon">{strings.GEOFENCE_TYPE_POLYGON}</option>
               <option value="polyline">{strings.GEOFENCE_TYPE_POLYLINE}</option>
@@ -563,38 +586,63 @@ const VehiclePanel = ({
           </div>
 
           {zoneFormType === 'circle' && (
-            <div className="vp-field vp-field--flex">
-              <label className="vp-field-label">{strings.RADIUS_METERS}</label>
-              <input className="vp-input" type="number" min="1" value={zoneFormRadius} onChange={(e) => onZoneRadiusChange(e.target.value)} />
+            <div className="flex-1">
+              <label className="text-[10px] uppercase font-semibold text-text-muted tracking-wide">{strings.RADIUS_METERS}</label>
+              <input
+                type="number"
+                min="1"
+                value={zoneFormRadius}
+                onChange={(e) => onZoneRadiusChange(e.target.value)}
+                className="w-full mt-1 h-9 px-3 rounded-lg border border-border text-sm focus:border-primary outline-none"
+              />
             </div>
           )}
 
           {zoneFormType === 'polyline' && (
-            <div className="vp-field vp-field--flex">
-              <label className="vp-field-label">{strings.POLYLINE_DISTANCE}</label>
-              <input className="vp-input" type="number" min="1" value={zoneFormPolylineDistance} onChange={(e) => onZonePolylineDistanceChange(e.target.value)} />
+            <div className="flex-1">
+              <label className="text-[10px] uppercase font-semibold text-text-muted tracking-wide">{strings.POLYLINE_DISTANCE}</label>
+              <input
+                type="number"
+                min="1"
+                value={zoneFormPolylineDistance}
+                onChange={(e) => onZonePolylineDistanceChange(e.target.value)}
+                className="w-full mt-1 h-9 px-3 rounded-lg border border-border text-sm focus:border-primary outline-none"
+              />
             </div>
           )}
         </div>
 
-        <div className="vp-zone-draw-row">
-          <button type="button" className="vp-action-btn" onClick={onStartZoneDrawing}>
-            <FmdGoodRoundedIcon fontSize="small" />
-            <span>{draftReady ? strings.GEOFENCE_READY : strings.DRAW_ON_MAP}</span>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={onStartZoneDrawing}
+            className="flex-1 py-2 rounded-lg border border-border text-xs font-medium text-text-secondary hover:border-primary hover:text-primary transition-colors flex items-center justify-center gap-1"
+          >
+            <FmdGoodRoundedIcon style={{ fontSize: 14 }} />
+            {draftReady ? strings.GEOFENCE_READY : strings.DRAW_ON_MAP}
           </button>
-          <button type="button" className="vp-action-btn" onClick={onClearZoneShape}>
-            <LinkOffRoundedIcon fontSize="small" />
-            <span>{strings.CLEAR_SHAPE}</span>
+          <button
+            type="button"
+            onClick={onClearZoneShape}
+            className="flex-1 py-2 rounded-lg border border-border text-xs font-medium text-text-secondary hover:border-danger hover:text-danger transition-colors flex items-center justify-center gap-1"
+          >
+            <LinkOffRoundedIcon style={{ fontSize: 14 }} />
+            {strings.CLEAR_SHAPE}
           </button>
         </div>
 
-        <div className="vp-note">
+        <p className="text-[10px] text-text-muted italic">
           {draftReady ? strings.GEOFENCE_READY : strings.DRAW_ON_MAP_HELP}
-        </div>
+        </p>
 
-        <button type="button" className="vp-action-btn vp-action-btn--primary" onClick={onSaveZone} disabled={!draftReady}>
-          <AddRoundedIcon fontSize="small" />
-          <span>{editingGeofenceId ? strings.UPDATE_GEOFENCE : strings.CREATE_GEOFENCE}</span>
+        <button
+          type="button"
+          onClick={onSaveZone}
+          disabled={!draftReady}
+          className="w-full py-2 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-primary-dark transition-colors disabled:opacity-50 flex items-center justify-center gap-1"
+        >
+          <AddRoundedIcon style={{ fontSize: 14 }} />
+          {editingGeofenceId ? strings.UPDATE_GEOFENCE : strings.CREATE_GEOFENCE}
         </button>
       </div>
     )
@@ -604,25 +652,35 @@ const VehiclePanel = ({
   // Tab: ZONES
   // -----------------------------------------------------------------------
   const renderZonesTab = () => (
-    <div className="vp-tab-content">
-      <div className="vp-zones-actions">
-        <button type="button" className="vp-action-btn vp-action-btn--primary" onClick={onOpenCreateZone}>
-          <AddRoundedIcon fontSize="small" />
-          <span>{strings.CREATE_GEOFENCE}</span>
+    <div className="space-y-3">
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={onOpenCreateZone}
+          className="flex-1 py-2 rounded-lg bg-primary text-white text-xs font-semibold flex items-center justify-center gap-1"
+        >
+          <AddRoundedIcon style={{ fontSize: 14 }} />
+          {strings.CREATE_GEOFENCE}
         </button>
-        <button type="button" className="vp-icon-btn" onClick={onRefreshZones} disabled={zonesLoading} title={strings.REFRESH_FLEET}>
+        <button
+          type="button"
+          onClick={onRefreshZones}
+          disabled={zonesLoading}
+          title={strings.REFRESH_FLEET}
+          className="w-9 h-9 rounded-lg border border-border flex items-center justify-center hover:bg-background transition-colors disabled:opacity-50"
+        >
           <RefreshRoundedIcon fontSize="small" />
         </button>
       </div>
 
       {renderZoneStudio()}
 
-      <div className="vp-zone-count">
+      <div className="text-xs text-text-muted px-1">
         {`${linkedGeofences.length} ${strings.LINKED_TO_SELECTED_CAR.toLowerCase()}`}
       </div>
 
       {allGeofences.length > 0 ? (
-        <div className="vp-zone-list">
+        <div className="space-y-2">
           {allGeofences.map((geofence, index) => {
             const geoId = typeof geofence.id === 'number' ? geofence.id : null
             const linked = geoId !== null && linkedGeofenceIds.has(geoId)
@@ -630,27 +688,41 @@ const VehiclePanel = ({
               || (geofence.geojson ? 'geojson' : `zone ${index + 1}`)
 
             return (
-              <div key={geofence.id || `${geofence.name}-${index}`} className="vp-zone-card">
-                <div className="vp-zone-info">
-                  <div className="vp-zone-name">{geofence.name || `Zone ${index + 1}`}</div>
-                  <div className="vp-zone-type">{shapeType}</div>
-                  {linked && <span className="vp-zone-linked-badge">{strings.LINKED_TO_SELECTED_CAR}</span>}
+              <div key={geofence.id || `${geofence.name}-${index}`} className="flex items-center justify-between bg-background rounded-lg p-3 border border-border">
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-semibold text-text truncate">{geofence.name || `Zone ${index + 1}`}</div>
+                  <div className="text-xs text-text-muted mt-0.5">{shapeType}</div>
+                  {linked && (
+                    <span className="inline-block mt-1 px-1.5 py-0.5 rounded text-[9px] font-semibold bg-success/10 text-success">
+                      {strings.LINKED_TO_SELECTED_CAR}
+                    </span>
+                  )}
                 </div>
-                <div className="vp-zone-btns">
+                <div className="flex items-center gap-1 shrink-0 ml-2">
                   <button
                     type="button"
-                    className={`vp-zone-toggle ${linked ? 'vp-zone-toggle--linked' : ''}`}
                     disabled={!selectedVehicle.isLinked || geoId === null}
                     onClick={() => geoId !== null && onToggleGeofenceLink(geoId, linked)}
                     title={linked ? strings.UNLINK_FROM_CAR : strings.LINK_TO_CAR}
+                    className={`w-7 h-7 rounded flex items-center justify-center transition-colors disabled:opacity-50 ${linked ? 'text-success hover:text-success/80' : 'text-text-muted hover:text-primary'}`}
                   >
                     {linked ? <LinkRoundedIcon style={{ fontSize: 16 }} /> : <LinkOffRoundedIcon style={{ fontSize: 16 }} />}
                   </button>
-                  <button type="button" className="vp-zone-btn" onClick={() => onOpenEditZone(geofence)} title={strings.EDIT_GEOFENCE}>
+                  <button
+                    type="button"
+                    onClick={() => onOpenEditZone(geofence)}
+                    title={strings.EDIT_GEOFENCE}
+                    className="w-7 h-7 rounded text-text-muted hover:text-primary flex items-center justify-center transition-colors"
+                  >
                     <EditRoundedIcon style={{ fontSize: 16 }} />
                   </button>
                   {geoId !== null && (
-                    <button type="button" className="vp-zone-btn vp-zone-btn--danger" onClick={() => onDeleteZone(geoId)} title={strings.DELETE_GEOFENCE_CONFIRM}>
+                    <button
+                      type="button"
+                      onClick={() => onDeleteZone(geoId)}
+                      title={strings.DELETE_GEOFENCE_CONFIRM}
+                      className="w-7 h-7 rounded text-text-muted hover:text-danger flex items-center justify-center transition-colors"
+                    >
                       <DeleteRoundedIcon style={{ fontSize: 16 }} />
                     </button>
                   )}
@@ -660,12 +732,12 @@ const VehiclePanel = ({
           })}
         </div>
       ) : (
-        <div className="vp-empty">{strings.NO_GEOFENCES}</div>
+        <div className="text-center text-sm text-text-muted py-6">{strings.NO_GEOFENCES}</div>
       )}
 
       {!selectedVehicle.isLinked && (
-        <div className="vp-warning">
-          <WarningAmberRoundedIcon fontSize="small" />
+        <div className="flex items-center gap-2 rounded-lg bg-warning/10 px-3 py-2 text-xs text-warning">
+          <WarningAmberRoundedIcon style={{ fontSize: 16 }} />
           <span>{strings.TRACKING_NOT_LINKED}</span>
         </div>
       )}
@@ -676,49 +748,64 @@ const VehiclePanel = ({
   // Tab: EVENTS
   // -----------------------------------------------------------------------
   const renderEventsTab = () => (
-    <div className="vp-tab-content">
-      <div className="vp-events-filters">
-        <div className="vp-date-row">
-          <input className="vp-input" type="datetime-local" value={from} onChange={(e) => onFromChange(e.target.value)} />
-          <input className="vp-input" type="datetime-local" value={to} onChange={(e) => onToChange(e.target.value)} />
-        </div>
-        <select className="vp-select" value={eventTypeFilter} onChange={(e) => onEventTypeChange(e.target.value as (typeof EVENT_TYPE_OPTIONS)[number])}>
-          {EVENT_TYPE_OPTIONS.map((v) => (
-            <option key={v} value={v}>{getEventTypeLabel(v)}</option>
-          ))}
-        </select>
-        <button
-          type="button"
-          className="vp-action-btn vp-action-btn--primary"
-          onClick={onLoadEvents}
-          disabled={eventsLoading || !selectedVehicle.isLinked}
-        >
-          <RefreshRoundedIcon fontSize="small" />
-          <span>{eventsLoading ? `${strings.EVENT_CENTER}...` : strings.EVENT_CENTER}</span>
-        </button>
+    <div className="space-y-3">
+      {/* Filters */}
+      <div className="flex gap-2">
+        <input
+          type="datetime-local"
+          value={from}
+          onChange={(e) => onFromChange(e.target.value)}
+          className="flex-1 h-9 px-3 rounded-lg border border-border text-xs bg-white focus:border-primary outline-none"
+        />
+        <input
+          type="datetime-local"
+          value={to}
+          onChange={(e) => onToChange(e.target.value)}
+          className="flex-1 h-9 px-3 rounded-lg border border-border text-xs bg-white focus:border-primary outline-none"
+        />
       </div>
+      <select
+        value={eventTypeFilter}
+        onChange={(e) => onEventTypeChange(e.target.value as (typeof EVENT_TYPE_OPTIONS)[number])}
+        className="w-full h-9 px-3 rounded-lg border border-border text-xs bg-white focus:border-primary outline-none"
+      >
+        {EVENT_TYPE_OPTIONS.map((v) => (
+          <option key={v} value={v}>{getEventTypeLabel(v)}</option>
+        ))}
+      </select>
+      <button
+        type="button"
+        onClick={onLoadEvents}
+        disabled={eventsLoading || !selectedVehicle.isLinked}
+        className="w-full py-2 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-primary-dark transition-colors disabled:opacity-50"
+      >
+        {eventsLoading ? `${strings.EVENT_CENTER}...` : strings.EVENT_CENTER}
+      </button>
 
+      {/* Timeline */}
       {events.length > 0 ? (
-        <div className="vp-event-timeline">
+        <div className="space-y-0">
           {events.map((event, index) => (
             <div
               key={event.id || `${event.deviceId}-${event.eventTime}-${index}`}
-              className="vp-event-item"
+              className="flex gap-3 py-2 border-l-2 pl-4 ml-2"
               style={{ borderLeftColor: getEventBorderColor(event.type) }}
             >
-              <div className="vp-event-time">{formatTimestamp(event.eventTime)}</div>
-              <div className="vp-event-type">{getEventTypeLabel(event.type)}</div>
-              <div className="vp-event-detail">
-                {event.geofenceName || event.address || event.deviceName || strings.NO_DATA}
+              <div className="text-[10px] text-text-muted w-12 shrink-0">{formatTimestamp(event.eventTime)}</div>
+              <div className="min-w-0 flex-1">
+                <div className="text-xs font-semibold text-text">{getEventTypeLabel(event.type)}</div>
+                <div className="text-[10px] text-text-muted truncate">
+                  {event.geofenceName || event.address || event.deviceName || strings.NO_DATA}
+                </div>
+                {typeof event.speed === 'number' && (
+                  <div className="text-[10px] text-text-muted">{`${strings.SPEED}: ${Math.round(event.speed)} km/h`}</div>
+                )}
               </div>
-              {typeof event.speed === 'number' && (
-                <div className="vp-event-speed">{`${strings.SPEED}: ${Math.round(event.speed)} km/h`}</div>
-              )}
             </div>
           ))}
         </div>
       ) : (
-        <div className="vp-empty">{strings.NO_DATA}</div>
+        <div className="text-center text-sm text-text-muted py-6">{strings.NO_DATA}</div>
       )}
     </div>
   )
@@ -727,24 +814,26 @@ const VehiclePanel = ({
   // Tab: DEVICE
   // -----------------------------------------------------------------------
   const renderDeviceTab = () => (
-    <div className="vp-tab-content">
-      {/* Binding section */}
-      <div className="vp-device-section">
-        <div className="vp-device-section-title">
-          <span>{strings.LINK_DEVICE}</span>
-          <span className={`vp-device-dot ${selectedVehicle.isLinked ? 'vp-device-dot--linked' : ''}`} />
-          <span className="vp-device-dot-label">{selectedVehicle.isLinked ? strings.TRACKING_ENABLED : strings.TRACKING_DISABLED}</span>
-        </div>
+    <div className="space-y-4">
+      {/* Device binding */}
+      <div className="bg-background rounded-xl p-4 border border-border space-y-3">
+        <h4 className="text-sm font-semibold text-text flex items-center gap-2">
+          {strings.LINK_DEVICE}
+          <span className={`w-2 h-2 rounded-full ${selectedVehicle.isLinked ? 'bg-success' : 'bg-danger'}`} />
+          <span className="text-[10px] font-normal text-text-muted">
+            {selectedVehicle.isLinked ? strings.TRACKING_ENABLED : strings.TRACKING_DISABLED}
+          </span>
+        </h4>
 
-        <div className="vp-field">
-          <label className="vp-field-label">{strings.DEVICE_ID}</label>
+        <div>
+          <label className="text-[10px] uppercase font-semibold text-text-muted tracking-wide">{strings.DEVICE_ID}</label>
           <input
-            className="vp-input"
             list="tracking-device-list"
             type="text"
             value={deviceId}
             placeholder="e.g. 142"
             onChange={(e) => onDeviceIdChange(e.target.value)}
+            className="w-full mt-1 h-9 px-3 rounded-lg border border-border text-sm focus:border-primary outline-none"
           />
           <datalist id="tracking-device-list">
             {devices.map((device) => (
@@ -753,37 +842,61 @@ const VehiclePanel = ({
           </datalist>
         </div>
 
-        <div className="vp-field">
-          <label className="vp-field-label">{strings.DEVICE_NAME}</label>
-          <input className="vp-input" type="text" value={deviceName} placeholder="e.g. Teltonika FMC130" onChange={(e) => onDeviceNameChange(e.target.value)} />
+        <div>
+          <label className="text-[10px] uppercase font-semibold text-text-muted tracking-wide">{strings.DEVICE_NAME}</label>
+          <input
+            type="text"
+            value={deviceName}
+            placeholder="e.g. Teltonika FMC130"
+            onChange={(e) => onDeviceNameChange(e.target.value)}
+            className="w-full mt-1 h-9 px-3 rounded-lg border border-border text-sm focus:border-primary outline-none"
+          />
         </div>
 
-        <div className="vp-field">
-          <label className="vp-field-label">{strings.NOTES}</label>
-          <input className="vp-input" type="text" value={notes} placeholder="..." onChange={(e) => onNotesChange(e.target.value)} />
+        <div>
+          <label className="text-[10px] uppercase font-semibold text-text-muted tracking-wide">{strings.NOTES}</label>
+          <input
+            type="text"
+            value={notes}
+            placeholder="..."
+            onChange={(e) => onNotesChange(e.target.value)}
+            className="w-full mt-1 h-9 px-3 rounded-lg border border-border text-sm focus:border-primary outline-none"
+          />
         </div>
 
-        <div className="vp-device-btn-row">
-          <button type="button" className="vp-action-btn vp-action-btn--primary" onClick={onLinkDevice} disabled={deviceSaving}>
-            <LinkRoundedIcon fontSize="small" />
-            <span>{deviceSaving ? `${strings.LINK_DEVICE}...` : strings.LINK_DEVICE}</span>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={onLinkDevice}
+            disabled={deviceSaving}
+            className="flex-1 py-2 rounded-lg bg-primary text-white text-xs font-semibold disabled:opacity-50 flex items-center justify-center gap-1"
+          >
+            <LinkRoundedIcon style={{ fontSize: 14 }} />
+            {deviceSaving ? `${strings.LINK_DEVICE}...` : strings.LINK_DEVICE}
           </button>
-          <button type="button" className="vp-action-btn vp-action-btn--danger" onClick={onUnlinkDevice} disabled={deviceSaving || !selectedVehicle.isLinked}>
-            <LinkOffRoundedIcon fontSize="small" />
-            <span>{strings.UNLINK_DEVICE}</span>
+          <button
+            type="button"
+            onClick={onUnlinkDevice}
+            disabled={deviceSaving || !selectedVehicle.isLinked}
+            className="flex-1 py-2 rounded-lg border border-danger text-danger text-xs font-semibold disabled:opacity-50 flex items-center justify-center gap-1"
+          >
+            <LinkOffRoundedIcon style={{ fontSize: 14 }} />
+            {strings.UNLINK_DEVICE}
           </button>
         </div>
       </div>
 
-      {/* Commands section */}
-      <div className="vp-device-section">
-        <div className="vp-device-section-title">
-          <span>{strings.COMMAND_CENTER}</span>
-        </div>
+      {/* Command center */}
+      <div className="bg-background rounded-xl p-4 border border-border space-y-3">
+        <h4 className="text-sm font-semibold text-text">{strings.COMMAND_CENTER}</h4>
 
-        <div className="vp-field">
-          <label className="vp-field-label">{strings.COMMAND_TYPE}</label>
-          <select className="vp-select" value={selectedCommandType} onChange={(e) => onCommandTypeChange(e.target.value)}>
+        <div>
+          <label className="text-[10px] uppercase font-semibold text-text-muted tracking-wide">{strings.COMMAND_TYPE}</label>
+          <select
+            value={selectedCommandType}
+            onChange={(e) => onCommandTypeChange(e.target.value)}
+            className="w-full mt-1 h-9 px-3 rounded-lg border border-border text-sm bg-white focus:border-primary outline-none"
+          >
             {commandTypes.length === 0
               ? <option value="">{strings.NO_DATA}</option>
               : commandTypes.map((ct) => (
@@ -792,24 +905,34 @@ const VehiclePanel = ({
           </select>
         </div>
 
-        <label className="vp-checkbox-row">
-          <input type="checkbox" checked={commandTextChannel} onChange={(e) => onCommandTextChannelChange(e.target.checked)} />
+        <label className="flex items-center gap-2 text-sm text-text cursor-pointer">
+          <input
+            type="checkbox"
+            checked={commandTextChannel}
+            onChange={(e) => onCommandTextChannelChange(e.target.checked)}
+            className="accent-primary w-4 h-4"
+          />
           <span>{strings.TEXT_CHANNEL}</span>
         </label>
 
-        <div className="vp-field">
-          <label className="vp-field-label">{strings.COMMAND_ATTRIBUTES}</label>
-          <textarea className="vp-textarea" rows={6} value={commandAttributes} onChange={(e) => onCommandAttributesChange(e.target.value)} />
+        <div>
+          <label className="text-[10px] uppercase font-semibold text-text-muted tracking-wide">{strings.COMMAND_ATTRIBUTES}</label>
+          <textarea
+            rows={6}
+            value={commandAttributes}
+            onChange={(e) => onCommandAttributesChange(e.target.value)}
+            className="w-full mt-1 px-3 py-2 rounded-lg border border-border text-sm bg-white focus:border-primary outline-none resize-y"
+          />
         </div>
 
         <button
           type="button"
-          className="vp-action-btn"
           onClick={onSendCommand}
           disabled={commandSending || !selectedCommandType || !selectedVehicle.isLinked}
+          className="w-full py-2 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-primary-dark transition-colors disabled:opacity-50 flex items-center justify-center gap-1"
         >
-          <SendRoundedIcon fontSize="small" />
-          <span>{commandSending ? `${strings.SEND_COMMAND}...` : strings.SEND_COMMAND}</span>
+          <SendRoundedIcon style={{ fontSize: 14 }} />
+          {commandSending ? `${strings.SEND_COMMAND}...` : strings.SEND_COMMAND}
         </button>
       </div>
     </div>
@@ -819,57 +942,77 @@ const VehiclePanel = ({
   // Render
   // -----------------------------------------------------------------------
   return (
-    <div className="vp">
+    <div className="flex flex-col h-full bg-surface">
       {/* Header */}
-      <div className="vp-header">
-        <div className="vp-header-actions">
-          <button type="button" className="vp-icon-btn" onClick={onBack} title={strings.FLEET_MODE}>
+      <div className="px-4 py-3 border-b border-border">
+        <div className="flex items-center justify-between mb-2">
+          <button
+            type="button"
+            onClick={onBack}
+            title={strings.FLEET_MODE}
+            className="w-8 h-8 rounded-lg border border-border flex items-center justify-center hover:bg-background transition-colors"
+          >
             <ArrowBackRoundedIcon fontSize="small" />
           </button>
-          <button type="button" className="vp-icon-btn" onClick={onFocusVehicle} title={strings.MAP_OVERVIEW}>
+          <button
+            type="button"
+            onClick={onFocusVehicle}
+            title={strings.MAP_OVERVIEW}
+            className="text-xs text-primary font-medium flex items-center gap-1 hover:underline"
+          >
             <CenterFocusStrongRoundedIcon fontSize="small" />
+            Center
           </button>
         </div>
 
-        <div className="vp-header-identity">
-          <DirectionsCarFilledRoundedIcon className="vp-header-car-icon" style={{ color: getStatusColor(selectedVehicle.status) }} />
-          <div>
-            <div className="vp-header-car-name">{selectedVehicle.car.name}</div>
-            <div className="vp-header-sub">
+        <div className="flex items-center gap-2.5 mb-2">
+          <DirectionsCarFilledRoundedIcon style={{ color: getStatusColor(selectedVehicle.status), fontSize: 22 }} />
+          <div className="min-w-0">
+            <h2 className="text-lg font-bold text-text leading-tight truncate">{selectedVehicle.car.name}</h2>
+            <p className="text-xs text-text-muted mt-0.5">
               {selectedVehicle.car.licensePlate || '---'}
               {selectedVehicle.supplierName && ` \u00B7 ${selectedVehicle.supplierName}`}
-            </div>
+            </p>
           </div>
         </div>
 
-        <div className="vp-header-status-row">
-          <span className="vp-status-pill" style={{ background: getStatusColor(selectedVehicle.status) }}>
+        <div className="flex items-center gap-2">
+          <span
+            className="px-2 py-0.5 rounded-full text-xs font-semibold text-white"
+            style={{ backgroundColor: getStatusColor(selectedVehicle.status) }}
+          >
             {getStatusLabel(selectedVehicle.status)}
           </span>
           {selectedVehicle.speedKmh > 0 && (
-            <span className="vp-header-speed">{`${Math.round(selectedVehicle.speedKmh)} km/h`}</span>
+            <span className="text-sm font-semibold" style={{ color: getStatusColor(selectedVehicle.status) }}>
+              {Math.round(selectedVehicle.speedKmh)} km/h
+            </span>
           )}
-          <span className="vp-header-seen">{`\u00B7 ${selectedVehicle.lastSeenLabel}`}</span>
+          <span className="text-xs text-text-muted">{`\u00B7 ${selectedVehicle.lastSeenLabel}`}</span>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="vp-tabs">
+      <div className="flex border-b border-border">
         {TAB_CONFIG.map(({ key, label, Icon }) => (
           <button
             type="button"
             key={key}
-            className={`vp-tab ${activeTab === key ? 'vp-tab--active' : ''}`}
             onClick={() => onTabChange(key)}
+            className={`flex-1 flex flex-col items-center gap-0.5 py-2.5 text-xs font-semibold transition-colors border-b-2 ${
+              activeTab === key
+                ? 'border-primary text-primary'
+                : 'border-transparent text-text-muted hover:text-text-secondary'
+            }`}
           >
-            <Icon className="vp-tab-icon" />
-            <span>{label}</span>
+            <Icon style={{ fontSize: 18 }} />
+            {label}
           </button>
         ))}
       </div>
 
-      {/* Body */}
-      <div className="vp-body">
+      {/* Body - scrollable */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {activeTab === 'status' && renderStatusTab()}
         {activeTab === 'route' && renderRouteTab()}
         {activeTab === 'geofences' && renderZonesTab()}

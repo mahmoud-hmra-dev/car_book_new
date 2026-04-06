@@ -239,7 +239,8 @@ export const getDevices = async (): Promise<bookcarsTypes.TraccarDevice[]> => {
 export const getDevice = async (deviceId: number): Promise<bookcarsTypes.TraccarDevice | undefined> => {
   ensureEnabled()
   const response = await getClient().get('/api/devices', { params: { id: deviceId } })
-  return response.data
+  const devices = response.data as bookcarsTypes.TraccarDevice[]
+  return Array.isArray(devices) ? devices.find((d) => d.id === deviceId) : undefined
 }
 
 export const getPositions = async (deviceId?: number): Promise<bookcarsTypes.TraccarPosition[]> => {
@@ -528,7 +529,15 @@ export const getNotificationTypes = async (): Promise<bookcarsTypes.TraccarNotif
 
 export const testNotification = async (id: number): Promise<void> => {
   ensureEnabled()
-  await getClient().post('/api/notifications/test', { id })
+  const response = await getClient().get('/api/notifications', { params: { id } })
+  const notifications = response.data as bookcarsTypes.TraccarNotification[]
+  const notification = Array.isArray(notifications) ? notifications.find((n) => n.id === id) : undefined
+
+  if (!notification) {
+    throw new Error('Notification not found')
+  }
+
+  await getClient().post('/api/notifications/test', notification)
 }
 
 // --- Groups ---
@@ -575,7 +584,7 @@ export const updateAccumulators = async (deviceId: number, payload: Omit<bookcar
 
 export const exportPositionsKML = async (deviceId: number, from: string, to: string): Promise<string> => {
   ensureEnabled()
-  const response = await getClient().get('/api/positions/kml', {
+  const response = await getClient().get('/api/positions', {
     params: { deviceId, from, to },
     headers: { Accept: 'application/vnd.google-earth.kml+xml' },
     responseType: 'text',
@@ -585,7 +594,7 @@ export const exportPositionsKML = async (deviceId: number, from: string, to: str
 
 export const exportPositionsCSV = async (deviceId: number, from: string, to: string): Promise<string> => {
   ensureEnabled()
-  const response = await getClient().get('/api/positions/csv', {
+  const response = await getClient().get('/api/positions', {
     params: { deviceId, from, to },
     headers: { Accept: 'text/csv' },
     responseType: 'text',
@@ -595,7 +604,7 @@ export const exportPositionsCSV = async (deviceId: number, from: string, to: str
 
 export const exportPositionsGPX = async (deviceId: number, from: string, to: string): Promise<string> => {
   ensureEnabled()
-  const response = await getClient().get('/api/positions/gpx', {
+  const response = await getClient().get('/api/positions', {
     params: { deviceId, from, to },
     headers: { Accept: 'application/gpx+xml' },
     responseType: 'text',
