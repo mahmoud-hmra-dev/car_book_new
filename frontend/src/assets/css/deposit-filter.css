@@ -1,20 +1,70 @@
-div.deposit-filter div.filter-elements {
-  padding: 7px 5px;
+/* ============================================
+   DEPOSIT FILTER - Radio Buttons
+   ============================================ */
+
+div.deposit-filter .filter-elements {
+  padding: 12px 0 16px;
 }
 
-div.deposit-filter div.filter-elements div.filter-element input[type='radio'].deposit-radio {
-  cursor: pointer;
-  margin-left: 5px;
+div.deposit-filter .filter-element {
+  display: flex;
+  align-items: center;
+  padding: 6px 0;
 }
 
-div.deposit-filter div.filter-elements div.filter-element span {
-  margin-left: 5px;
+div.deposit-filter .filter-element input[type='radio'].deposit-radio {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+div.deposit-filter .filter-element span {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 400;
+  color: #334155;
+  line-height: 1.4;
+  width: 100%;
+  padding: 2px 0;
 }
 
-div.deposit-filter div.filter-actions {
-  text-align: center;
-  padding-bottom: 10px;
+div.deposit-filter .filter-element span::before {
+  content: '';
+  display: inline-flex;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #cbd5e1;
+  border-radius: 50%;
+  background: #fff;
+  transition: all 0.15s ease;
+}
+
+div.deposit-filter .filter-element span:hover::before {
+  border-color: #6b3ce6;
+}
+
+div.deposit-filter .filter-element input[type='radio']:checked + span::before {
+  border-color: #6b3ce6;
+  background: #fff;
+  box-shadow:
+    inset 0 0 0 4px #fff,
+    inset 0 0 0 10px #6b3ce6;
+  animation: deposit-radio-pop 0.15s ease;
+}
+
+div.deposit-filter .filter-element input[type='radio']:focus-visible + span::before {
+  outline: 2px solid #6b3ce6;
+  outline-offset: 2px;
+}
+
+@keyframes deposit-radio-pop {
+  0% { transform: scale(0.85); }
+  60% { transform: scale(1.05); }
+  100% { transform: scale(1); }
 }

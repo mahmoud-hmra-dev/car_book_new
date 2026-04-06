@@ -1,26 +1,55 @@
-div.gearbox-filter div.filter-elements {
-  padding: 7px 5px;
+/* ============================================
+   GEARBOX FILTER - Toggle Chips
+   ============================================ */
+
+div.gearbox-filter .filter-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 12px 0 16px;
 }
 
-div.gearbox-filter div.filter-elements div.filter-element input[type='checkbox'].gearbox-checkbox {
+div.gearbox-filter .filter-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  padding: 0 20px;
+  border-radius: 999px;
+  border: 1.5px solid #cbd5e1;
+  background: #fff;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
-  margin-left: 5px;
+  transition: all 0.15s ease;
+  user-select: none;
+  flex: 1;
+  min-width: 0;
 }
 
-div.gearbox-filter div.filter-elements div.filter-element span {
-  margin-left: 5px;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 400;
+div.gearbox-filter .filter-chip:hover {
+  border-color: #6b3ce6;
+  color: #6b3ce6;
 }
 
-div.gearbox-filter div.filter-actions {
-  text-align: center;
-  padding-bottom: 10px;
+div.gearbox-filter .filter-chip.active {
+  background: #6b3ce6;
+  border-color: #6b3ce6;
+  color: #fff;
+  box-shadow: 0 2px 6px rgb(107 60 230 / 25%);
 }
 
-div.gearbox-filter div.filter-actions span.uncheckall {
-  text-decoration: underline;
-  cursor: pointer;
-  color: #0064c8;
+div.gearbox-filter .filter-chip input[type='checkbox'] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+div.gearbox-filter .filter-chip input[type='checkbox']:focus-visible ~ span {
+  outline: 2px solid #6b3ce6;
+  outline-offset: 2px;
+  border-radius: 999px;
 }

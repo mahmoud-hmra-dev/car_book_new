@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import * as bookcarsTypes from ':bookcars-types'
 import * as bookcarsHelper from ':bookcars-helper'
-import { strings as commonStrings } from '@/lang/common'
 import { strings } from '@/lang/cars'
 import Accordion from './Accordion'
 
@@ -62,12 +61,12 @@ const GearboxFilter = ({
     handleOnChange(values)
   }
 
-  const handleAutomaticClick = (e: React.MouseEvent<HTMLElement>) => {
-    const checkbox = e.currentTarget.previousSibling as HTMLInputElement
-    checkbox.checked = !checkbox.checked
-    const event = e
-    event.currentTarget = checkbox
-    handleCheckAutomaticChange(event)
+  const handleAutomaticClick = () => {
+    if (automaticRef.current) {
+      automaticRef.current.checked = !automaticRef.current.checked
+      const syntheticEvent = { currentTarget: automaticRef.current } as React.ChangeEvent<HTMLInputElement>
+      handleCheckAutomaticChange(syntheticEvent)
+    }
   }
 
   const handleCheckManualChange = (e: React.ChangeEvent<HTMLInputElement> | React.MouseEvent<HTMLElement>) => {
@@ -93,79 +92,35 @@ const GearboxFilter = ({
     handleOnChange(values)
   }
 
-  const handleManualClick = (e: React.MouseEvent<HTMLElement>) => {
-    const checkbox = e.currentTarget.previousSibling as HTMLInputElement
-    checkbox.checked = !checkbox.checked
-    const event = e
-    event.currentTarget = checkbox
-    handleCheckManualChange(event)
-  }
-
-  const handleUncheckAllChange = () => {
-    if (allChecked) {
-      // uncheck all
-      if (automaticRef.current) {
-        automaticRef.current.checked = false
-      }
-      if (manualRef.current) {
-        manualRef.current.checked = false
-      }
-
-      setAllChecked(false)
-      setValues([])
-    } else {
-      // check all
-      if (automaticRef.current) {
-        automaticRef.current.checked = true
-      }
-      if (manualRef.current) {
-        manualRef.current.checked = true
-      }
-
-      const _values = [bookcarsTypes.GearboxType.Automatic, bookcarsTypes.GearboxType.Manual]
-
-      setAllChecked(true)
-      setValues(_values)
-
-      if (onChange) {
-        onChange(bookcarsHelper.clone(_values))
-      }
+  const handleManualClick = () => {
+    if (manualRef.current) {
+      manualRef.current.checked = !manualRef.current.checked
+      const syntheticEvent = { currentTarget: manualRef.current } as React.ChangeEvent<HTMLInputElement>
+      handleCheckManualChange(syntheticEvent)
     }
   }
 
   return (
     <Accordion title={strings.GEARBOX} collapse={collapse} className={`${className ? `${className} ` : ''}gearbox-filter`}>
-      <div className="filter-elements">
-        <div className="filter-element">
-          <input ref={automaticRef} type="checkbox" className="gearbox-checkbox" onChange={handleCheckAutomaticChange} />
-          <span
-            onClick={handleAutomaticClick}
-            role="button"
-            tabIndex={0}
-          >
-            {strings.GEARBOX_AUTOMATIC}
-          </span>
-        </div>
-        <div className="filter-element">
-          <input ref={manualRef} type="checkbox" className="gearbox-checkbox" onChange={handleCheckManualChange} />
-          <span
-            onClick={handleManualClick}
-            role="button"
-            tabIndex={0}
-          >
-            {strings.GEARBOX_MANUAL}
-          </span>
-        </div>
-      </div>
-      <div className="filter-actions">
-        <span
-          onClick={handleUncheckAllChange}
-          className="uncheckall"
+      <div className="filter-chips">
+        <div
+          className={`filter-chip${values.includes(bookcarsTypes.GearboxType.Automatic) ? ' active' : ''}`}
+          onClick={handleAutomaticClick}
           role="button"
           tabIndex={0}
         >
-          {allChecked ? commonStrings.UNCHECK_ALL : commonStrings.CHECK_ALL}
-        </span>
+          <input ref={automaticRef} type="checkbox" className="gearbox-checkbox" onChange={handleCheckAutomaticChange} />
+          <span>{strings.GEARBOX_AUTOMATIC}</span>
+        </div>
+        <div
+          className={`filter-chip${values.includes(bookcarsTypes.GearboxType.Manual) ? ' active' : ''}`}
+          onClick={handleManualClick}
+          role="button"
+          tabIndex={0}
+        >
+          <input ref={manualRef} type="checkbox" className="gearbox-checkbox" onChange={handleCheckManualChange} />
+          <span>{strings.GEARBOX_MANUAL}</span>
+        </div>
       </div>
     </Accordion>
   )

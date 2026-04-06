@@ -1,33 +1,82 @@
-div.rating-filter div.filter-elements {
-  padding: 7px 5px;
+/* ============================================
+   CAR RATING FILTER - Radio with Stars
+   ============================================ */
+
+div.rating-filter .filter-elements {
+  padding: 12px 0 16px;
 }
 
-div.rating-filter div.filter-elements div.filter-element {
-  margin: 5px;
-  width: fit-content;
+div.rating-filter .filter-element {
   display: flex;
-  flex-direction: row;
   align-items: center;
+  padding: 6px 0;
 }
 
-div.rating-filter div.filter-elements div.filter-element input[type='radio'].rating-checkbox {
+div.rating-filter .filter-element input[type='radio'].rating-checkbox {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+div.rating-filter .filter-element span.ratings {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   cursor: pointer;
-  margin-left: 5px;
+  font-size: 14px;
+  font-weight: 400;
+  color: #334155;
+  line-height: 1.4;
+  padding: 2px 0;
 }
 
-div.rating-filter div.filter-elements div.filter-element span.ratings {
-  cursor: pointer;
-  display: inline-block;
-  padding: 0 4px;
+div.rating-filter .filter-element span.ratings::before {
+  content: '';
+  display: inline-flex;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #cbd5e1;
+  border-radius: 50%;
+  background: #fff;
+  transition: all 0.15s ease;
 }
 
-div.rating-filter div.filter-elements div.filter-element .rating {
+div.rating-filter .filter-element span.ratings:hover::before {
+  border-color: #6b3ce6;
+}
+
+div.rating-filter .filter-element input[type='radio']:checked + span.ratings::before {
+  border-color: #6b3ce6;
+  background: #fff;
+  box-shadow:
+    inset 0 0 0 4px #fff,
+    inset 0 0 0 10px #6b3ce6;
+  animation: rating-radio-pop 0.15s ease;
+}
+
+div.rating-filter .filter-element input[type='radio']:focus-visible + span.ratings::before {
+  outline: 2px solid #6b3ce6;
+  outline-offset: 2px;
+}
+
+div.rating-filter .filter-element .rating {
   position: relative;
-  bottom: -4px;
+  bottom: 0;
 }
 
-div.rating-filter div.filter-elements div.filter-element span.rating-text {
+div.rating-filter .filter-element span.rating-text {
   font-size: 12px;
-  color: #a3a3a3;
-  margin-top: 4px;
+  color: #94a3b8;
+  margin-top: 0;
+  margin-left: 4px;
+  white-space: nowrap;
+}
+
+@keyframes rating-radio-pop {
+  0% { transform: scale(0.85); }
+  60% { transform: scale(1.05); }
+  100% { transform: scale(1); }
 }

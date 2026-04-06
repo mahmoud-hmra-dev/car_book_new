@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { Button } from '@mui/material'
 import {
   Tune as FiltersIcon,
   DirectionsCar as CarIcon,
+  EditOutlined as EditIcon,
+  Close as CloseIcon,
 } from '@mui/icons-material'
 import * as bookcarsTypes from ':bookcars-types'
 import * as bookcarsHelper from ':bookcars-helper'
@@ -64,10 +65,11 @@ const Search = () => {
   const [rating, setRating] = useState(-1)
   const [seats, setSeats] = useState(-1)
   const [openMapDialog, setOpenMapDialog] = useState(false)
-  const [showFilters, setShowFilters] = useState(false)
   const [activeTab, setActiveTab] = useState<string>('all')
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false)
+  const [totalRecords, setTotalRecords] = useState(0)
 
-  const rangeTabs: RangeTab[] = [
+  const rangeTabs: RangeTab[] = useMemo(() => [
     { key: 'all', label: strings.ALL_VEHICLES, range: null },
     { key: 'mini', label: strings.TAB_SEDAN, range: bookcarsTypes.CarRange.Mini },
     { key: 'midi', label: strings.TAB_SUV, range: bookcarsTypes.CarRange.Midi },
@@ -76,7 +78,43 @@ const Search = () => {
     { key: 'bus', label: strings.TAB_BUS, range: bookcarsTypes.CarRange.Bus },
     { key: 'truck', label: strings.TAB_TRUCK, range: bookcarsTypes.CarRange.Truck },
     { key: 'caravan', label: strings.TAB_CARAVAN, range: bookcarsTypes.CarRange.Caravan },
-  ]
+  ], [])
+
+  // Count active filters
+  const activeFilterCount = useMemo(() => {
+    let count = 0
+    if (rating > -1) {
+      count += 1
+    }
+    if (seats > -1) {
+      count += 1
+    }
+    if (deposit > -1) {
+      count += 1
+    }
+    if (multimedia.length > 0) {
+      count += 1
+    }
+    if (Object.keys(carSpecs).length > 0) {
+      count += 1
+    }
+    if (carType.length < bookcarsHelper.getAllCarTypes().length) {
+      count += 1
+    }
+    if (gearbox.length < 2) {
+      count += 1
+    }
+    if (mileage.length < 2) {
+      count += 1
+    }
+    if (fuelPolicy.length < bookcarsHelper.getAllFuelPolicies().length) {
+      count += 1
+    }
+    if (ranges.length < bookcarsHelper.getAllRanges().length) {
+      count += 1
+    }
+    return count
+  }, [rating, seats, deposit, multimedia, carSpecs, carType, gearbox, mileage, fuelPolicy, ranges])
 
   useEffect(() => {
     const fetchSuppliers = async () => {
@@ -120,14 +158,37 @@ const Search = () => {
     }
   }, [pickupLocation, carSpecs, carType, gearbox, mileage, fuelPolicy, deposit, ranges, multimedia, rating, seats, from, to])
 
-  const handleTabChange = (tab: RangeTab) => {
+  // Close mobile drawer on window resize to desktop
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 960 && mobileDrawerOpen) {
+        setMobileDrawerOpen(false)
+      }
+    }
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [mobileDrawerOpen])
+
+  // Prevent body scroll when drawer is open
+  useEffect(() => {
+    if (mobileDrawerOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [mobileDrawerOpen])
+
+  const handleTabChange = useCallback((tab: RangeTab) => {
     setActiveTab(tab.key)
     if (tab.range === null) {
       setRanges(bookcarsHelper.getAllRanges())
     } else {
       setRanges([tab.range])
     }
-  }
+  }, [])
 
   const handleCarFilterSubmit = async (filter: bookcarsTypes.CarFilter) => {
     if (suppliers.length < allSuppliers.length) {
@@ -185,6 +246,12 @@ const Search = () => {
   const handleDepositFilterChange = (value: number) => {
     setDeposit(value)
   }
+
+  const handleCarListLoad = useCallback((data?: bookcarsTypes.Data<bookcarsTypes.Car>) => {
+    if (data) {
+      setTotalRecords(data.rowCount)
+    }
+  }, [])
 
   const onLoad = async (user?: bookcarsTypes.User) => {
     const { state } = location
@@ -266,6 +333,83 @@ const Search = () => {
     }
   }
 
+  const hasMap = pickupLocation
+    && ((pickupLocation.latitude && pickupLocation.longitude)
+      || (pickupLocation.parkingSpots && pickupLocation.parkingSpots.length > 0))
+
+  const sidebarContent = (
+    <>
+      {/* Search/Date Section */}
+      <div className="search-sidebar-card">
+        <div className="search-sidebar-heading">
+          <div className="search-sidebar-heading-left">
+            <EditIcon />
+            <h3>{strings.MODIFY_SEARCH}</h3>
+          </div>
+        </div>
+
+        {!loading && pickupLocation && dropOffLocation && from && to && (
+          <CarFilter
+            className="filter"
+            pickupLocation={pickupLocation}
+            dropOffLocation={dropOffLocation}
+            from={from}
+            to={to}
+            collapse
+            onSubmit={handleCarFilterSubmit}
+          />
+        )}
+      </div>
+
+      {/* Map */}
+      {!loading && hasMap && (
+        <div className="search-sidebar-card">
+          <Map
+            position={[
+              pickupLocation!.latitude || Number(pickupLocation!.parkingSpots![0].latitude),
+              pickupLocation!.longitude || Number(pickupLocation!.parkingSpots![0].longitude),
+            ]}
+            initialZoom={10}
+            locations={[pickupLocation!]}
+            parkingSpots={pickupLocation!.parkingSpots}
+            className="search-sidebar-map"
+          >
+            <ViewOnMapButton onClick={() => setOpenMapDialog(true)} />
+          </Map>
+        </div>
+      )}
+
+      {/* Filters Section */}
+      <div className="search-sidebar-card">
+        <div className="search-sidebar-heading">
+          <div className="search-sidebar-heading-left">
+            <FiltersIcon />
+            <h3>{strings.FILTERS}</h3>
+            {activeFilterCount > 0 && (
+              <span className="search-filter-count-badge">{activeFilterCount}</span>
+            )}
+          </div>
+        </div>
+
+        {!loading && (
+          <div className="search-sidebar-filters">
+            {!env.HIDE_SUPPLIERS && <SupplierFilter className="filter" suppliers={suppliers} onChange={handleSupplierFilterChange} />}
+            <CarRatingFilter className="filter" onChange={handleRatingFilterChange} />
+            <CarRangeFilter className="filter" onChange={handleRangeFilterChange} />
+            <CarMultimediaFilter className="filter" onChange={handleMultimediaFilterChange} />
+            <CarSeatsFilter className="filter" onChange={handleSeatsFilterChange} />
+            <CarSpecsFilter className="filter" onChange={handleCarSpecsFilterChange} />
+            <CarType className="filter" onChange={handleCarTypeFilterChange} />
+            <GearboxFilter className="filter" onChange={handleGearboxFilterChange} />
+            <MileageFilter className="filter" onChange={handleMileageFilterChange} />
+            <FuelPolicyFilter className="filter" onChange={handleFuelPolicyFilterChange} />
+            <DepositFilter className="filter" onChange={handleDepositFilterChange} />
+          </div>
+        )}
+      </div>
+    </>
+  )
+
   return (
     <>
       <Layout onLoad={onLoad} strict={false}>
@@ -273,105 +417,86 @@ const Search = () => {
           <div className="search-redesign">
             {/* Page Header */}
             <div className="search-page-header">
-              <h1 className="search-page-title">{strings.SELECT_VEHICLE_GROUP}</h1>
-
-              {/* Category Tabs */}
-              <div className="search-category-tabs">
-                {rangeTabs.map((tab) => (
-                  <button
-                    key={tab.key}
-                    type="button"
-                    className={`search-tab${activeTab === tab.key ? ' search-tab-active' : ''}`}
-                    onClick={() => handleTabChange(tab)}
-                  >
-                    {tab.key !== 'all' && <CarIcon className="search-tab-icon" />}
-                    <span>{tab.label}</span>
-                  </button>
-                ))}
+              <div className="search-page-header-inner">
+                <h1 className="search-page-title">
+                  {strings.FIND_PERFECT_CAR}
+                  {totalRecords > 0 && (
+                    <span className="search-results-count">
+                      {` - ${totalRecords} ${totalRecords === 1 ? strings.CAR_FOUND : strings.CARS_FOUND}`}
+                    </span>
+                  )}
+                </h1>
               </div>
             </div>
 
-            {/* Filters Bar */}
-            <div className="search-filters-bar">
-              {!loading && (
-                <>
-                  {((pickupLocation.latitude && pickupLocation.longitude)
-                    || (pickupLocation.parkingSpots && pickupLocation.parkingSpots.length > 0)) && (
-                      <Map
-                        position={[pickupLocation.latitude || Number(pickupLocation.parkingSpots![0].latitude), pickupLocation.longitude || Number(pickupLocation.parkingSpots![0].longitude)]}
-                        initialZoom={10}
-                        locations={[pickupLocation]}
-                        parkingSpots={pickupLocation.parkingSpots}
-                        className="search-map"
-                      >
-                        <ViewOnMapButton onClick={() => setOpenMapDialog(true)} />
-                      </Map>
-                    )}
+            {/* Body: Sidebar + Main Content */}
+            <div className="search-body">
+              {/* Mobile Drawer Overlay */}
+              <div
+                className={`search-drawer-overlay${mobileDrawerOpen ? ' search-drawer-overlay-open' : ''}`}
+                onClick={() => setMobileDrawerOpen(false)}
+              />
 
-                  <CarFilter
-                    className="filter"
-                    pickupLocation={pickupLocation}
-                    dropOffLocation={dropOffLocation}
+              {/* Sidebar (desktop: static, mobile: slide-out drawer) */}
+              <aside className={`search-sidebar${mobileDrawerOpen ? ' search-sidebar-open' : ''}`}>
+                <div className="search-sidebar-close">
+                  <button
+                    type="button"
+                    className="search-sidebar-close-btn"
+                    onClick={() => setMobileDrawerOpen(false)}
+                    aria-label="Close filters"
+                  >
+                    <CloseIcon />
+                  </button>
+                </div>
+                {sidebarContent}
+              </aside>
+
+              {/* Main Content */}
+              <div className="search-main">
+                {/* Results Header with Category Tabs */}
+                <div className="search-results-header">
+                  <div className="search-category-tabs">
+                    {rangeTabs.map((tab) => (
+                      <button
+                        key={tab.key}
+                        type="button"
+                        className={`search-tab${activeTab === tab.key ? ' search-tab-active' : ''}`}
+                        onClick={() => handleTabChange(tab)}
+                      >
+                        {tab.key !== 'all' && <CarIcon className="search-tab-icon" />}
+                        <span>{tab.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Car Grid */}
+                <div className="search-grid-area">
+                  <CarList
+                    carSpecs={carSpecs}
+                    suppliers={supplierIds}
+                    carType={carType}
+                    gearbox={gearbox}
+                    mileage={mileage}
+                    fuelPolicy={fuelPolicy}
+                    deposit={deposit}
+                    pickupLocation={pickupLocation._id}
+                    dropOffLocation={dropOffLocation._id}
+                    loading={loading}
                     from={from}
                     to={to}
-                    collapse
-                    onSubmit={handleCarFilterSubmit}
+                    ranges={ranges}
+                    multimedia={multimedia}
+                    rating={rating}
+                    seats={seats}
+                    hideSupplier={env.HIDE_SUPPLIERS}
+                    includeComingSoonCars
+                    variant="grid"
+                    onLoad={handleCarListLoad}
                   />
-
-                  <Button
-                    variant="outlined"
-                    color="primary"
-                    startIcon={<FiltersIcon />}
-                    disableElevation
-                    fullWidth
-                    className="btn btn-filters"
-                    onClick={() => setShowFilters((prev) => !prev)}
-                  >
-                    {showFilters ? strings.HILE_FILTERS : strings.SHOW_FILTERS}
-                  </Button>
-
-                  {showFilters && (
-                    <div className="search-advanced-filters">
-                      {!env.HIDE_SUPPLIERS && <SupplierFilter className="filter" suppliers={suppliers} onChange={handleSupplierFilterChange} />}
-                      <CarRatingFilter className="filter" onChange={handleRatingFilterChange} />
-                      <CarRangeFilter className="filter" onChange={handleRangeFilterChange} />
-                      <CarMultimediaFilter className="filter" onChange={handleMultimediaFilterChange} />
-                      <CarSeatsFilter className="filter" onChange={handleSeatsFilterChange} />
-                      <CarSpecsFilter className="filter" onChange={handleCarSpecsFilterChange} />
-                      <CarType className="filter" onChange={handleCarTypeFilterChange} />
-                      <GearboxFilter className="filter" onChange={handleGearboxFilterChange} />
-                      <MileageFilter className="filter" onChange={handleMileageFilterChange} />
-                      <FuelPolicyFilter className="filter" onChange={handleFuelPolicyFilterChange} />
-                      <DepositFilter className="filter" onChange={handleDepositFilterChange} />
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-
-            {/* Car Grid */}
-            <div className="search-grid-area">
-              <CarList
-                carSpecs={carSpecs}
-                suppliers={supplierIds}
-                carType={carType}
-                gearbox={gearbox}
-                mileage={mileage}
-                fuelPolicy={fuelPolicy}
-                deposit={deposit}
-                pickupLocation={pickupLocation._id}
-                dropOffLocation={dropOffLocation._id}
-                loading={loading}
-                from={from}
-                to={to}
-                ranges={ranges}
-                multimedia={multimedia}
-                rating={rating}
-                seats={seats}
-                hideSupplier={env.HIDE_SUPPLIERS}
-                includeComingSoonCars
-                variant="grid"
-              />
+                </div>
+              </div>
             </div>
 
             {/* Brand Logos */}
@@ -385,6 +510,19 @@ const Search = () => {
                 <span className="search-brand-logo">Audi</span>
               </div>
             </div>
+
+            {/* Mobile Filters FAB */}
+            <button
+              type="button"
+              className="search-mobile-filters-fab"
+              onClick={() => setMobileDrawerOpen(true)}
+            >
+              <FiltersIcon />
+              <span>{strings.FILTERS}</span>
+              {activeFilterCount > 0 && (
+                <span className="search-fab-badge">{activeFilterCount}</span>
+              )}
+            </button>
           </div>
         )}
 

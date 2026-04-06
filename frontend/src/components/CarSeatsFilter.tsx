@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { strings as commonStrings } from '@/lang/common'
 import { strings } from '@/lang/car-seats-filter'
 import Accordion from './Accordion'
@@ -16,6 +16,8 @@ const CarSeatsFilter = ({
   collapse,
   onChange
 }: CarSeatsFilterProps) => {
+  const [selected, setSelected] = useState(-1)
+
   const twoRef = useRef<HTMLInputElement>(null)
   const fourRef = useRef<HTMLInputElement>(null)
   const fiveRef = useRef<HTMLInputElement>(null)
@@ -27,6 +29,48 @@ const CarSeatsFilter = ({
       anyRef.current.checked = true
     }
   }, [])
+
+  const handleSelect = (value: number) => {
+    setSelected(value)
+
+    // uncheck all radios first
+    if (twoRef.current) {
+      twoRef.current.checked = false
+    }
+    if (fourRef.current) {
+      fourRef.current.checked = false
+    }
+    if (fiveRef.current) {
+      fiveRef.current.checked = false
+    }
+    if (fivePlusRef.current) {
+      fivePlusRef.current.checked = false
+    }
+    if (anyRef.current) {
+      anyRef.current.checked = false
+    }
+
+    // check the selected one
+    if (value === -1 && anyRef.current) {
+      anyRef.current.checked = true
+    }
+    if (value === 2 && twoRef.current) {
+      twoRef.current.checked = true
+    }
+    if (value === 4 && fourRef.current) {
+      fourRef.current.checked = true
+    }
+    if (value === 5 && fiveRef.current) {
+      fiveRef.current.checked = true
+    }
+    if (value === 6 && fivePlusRef.current) {
+      fivePlusRef.current.checked = true
+    }
+
+    if (onChange) {
+      onChange(value)
+    }
+  }
 
   const handleAnyChange = (e: React.ChangeEvent<HTMLInputElement> | React.MouseEvent<HTMLElement>) => {
     if ('checked' in e.currentTarget && e.currentTarget.checked) {
@@ -46,16 +90,6 @@ const CarSeatsFilter = ({
       if (onChange) {
         onChange(value)
       }
-    }
-  }
-
-  const handleAnyClick = (e: React.MouseEvent<HTMLElement>) => {
-    const checkbox = e.currentTarget.previousSibling as HTMLInputElement
-    if (!checkbox.checked) {
-      checkbox.checked = !checkbox.checked
-      const event = e
-      event.currentTarget = checkbox
-      handleAnyChange(event)
     }
   }
 
@@ -80,16 +114,6 @@ const CarSeatsFilter = ({
     }
   }
 
-  const handleTwoClick = (e: React.MouseEvent<HTMLElement>) => {
-    const checkbox = e.currentTarget.previousSibling as HTMLInputElement
-    if (!checkbox.checked) {
-      checkbox.checked = !checkbox.checked
-      const event = e
-      event.currentTarget = checkbox
-      handleCheckTwoChange(event)
-    }
-  }
-
   const handleCheckFourChange = (e: React.ChangeEvent<HTMLInputElement> | React.MouseEvent<HTMLElement>) => {
     if ('checked' in e.currentTarget && e.currentTarget.checked) {
       const value = 4
@@ -108,16 +132,6 @@ const CarSeatsFilter = ({
       if (onChange) {
         onChange(value)
       }
-    }
-  }
-
-  const handleFourClick = (e: React.MouseEvent<HTMLElement>) => {
-    const checkbox = e.currentTarget.previousSibling as HTMLInputElement
-    if (!checkbox.checked) {
-      checkbox.checked = !checkbox.checked
-      const event = e
-      event.currentTarget = checkbox
-      handleCheckFourChange(event)
     }
   }
 
@@ -142,16 +156,6 @@ const CarSeatsFilter = ({
     }
   }
 
-  const handleFiveClick = (e: React.MouseEvent<HTMLElement>) => {
-    const checkbox = e.currentTarget.previousSibling as HTMLInputElement
-    if (!checkbox.checked) {
-      checkbox.checked = !checkbox.checked
-      const event = e
-      event.currentTarget = checkbox
-      handleCheckFiveChange(event)
-    }
-  }
-
   const handleCheckFivePlusChange = (e: React.ChangeEvent<HTMLInputElement> | React.MouseEvent<HTMLElement>) => {
     if ('checked' in e.currentTarget && e.currentTarget.checked) {
       const value = 6
@@ -173,68 +177,53 @@ const CarSeatsFilter = ({
     }
   }
 
-  const handleFivePlusClick = (e: React.MouseEvent<HTMLElement>) => {
-    const checkbox = e.currentTarget.previousSibling as HTMLInputElement
-    if (!checkbox.checked) {
-      checkbox.checked = !checkbox.checked
-      const event = e
-      event.currentTarget = checkbox
-      handleCheckFivePlusChange(event)
-    }
-  }
-
   return (
     <Accordion title={strings.SEATS} collapse={collapse} className={`${className ? `${className} ` : ''}seats-filter`}>
-      <div className="filter-elements">
-        <div className="filter-element">
+      <div className="filter-badges">
+        <div
+          className={`filter-badge${selected === 2 ? ' active' : ''}`}
+          onClick={() => handleSelect(2)}
+          role="button"
+          tabIndex={0}
+        >
           <input ref={twoRef} type="radio" className="seats-checkbox" onChange={handleCheckTwoChange} />
-          <span
-            onClick={handleTwoClick}
-            role="button"
-            tabIndex={0}
-          >
-            {strings.TWO}
-          </span>
+          <span>2</span>
         </div>
-        <div className="filter-element">
+        <div
+          className={`filter-badge${selected === 4 ? ' active' : ''}`}
+          onClick={() => handleSelect(4)}
+          role="button"
+          tabIndex={0}
+        >
           <input ref={fourRef} type="radio" className="seats-checkbox" onChange={handleCheckFourChange} />
-          <span
-            onClick={handleFourClick}
-            role="button"
-            tabIndex={0}
-          >
-            {strings.FOUR}
-          </span>
+          <span>4</span>
         </div>
-        <div className="filter-element">
+        <div
+          className={`filter-badge${selected === 5 ? ' active' : ''}`}
+          onClick={() => handleSelect(5)}
+          role="button"
+          tabIndex={0}
+        >
           <input ref={fiveRef} type="radio" className="seats-checkbox" onChange={handleCheckFiveChange} />
-          <span
-            onClick={handleFiveClick}
-            role="button"
-            tabIndex={0}
-          >
-            {strings.FIVE}
-          </span>
+          <span>5</span>
         </div>
-        <div className="filter-element">
+        <div
+          className={`filter-badge${selected === 6 ? ' active' : ''}`}
+          onClick={() => handleSelect(6)}
+          role="button"
+          tabIndex={0}
+        >
           <input ref={fivePlusRef} type="radio" className="seats-checkbox" onChange={handleCheckFivePlusChange} />
-          <span
-            onClick={handleFivePlusClick}
-            role="button"
-            tabIndex={0}
-          >
-            {strings.FIVE_PLUS}
-          </span>
+          <span>{strings.FIVE_PLUS}</span>
         </div>
-        <div className="filter-element">
+        <div
+          className={`filter-badge badge-wide${selected === -1 ? ' active' : ''}`}
+          onClick={() => handleSelect(-1)}
+          role="button"
+          tabIndex={0}
+        >
           <input ref={anyRef} type="radio" className="seats-checkbox" onChange={handleAnyChange} />
-          <span
-            onClick={handleAnyClick}
-            role="button"
-            tabIndex={0}
-          >
-            {commonStrings.ANY}
-          </span>
+          <span>{commonStrings.ANY}</span>
         </div>
       </div>
     </Accordion>

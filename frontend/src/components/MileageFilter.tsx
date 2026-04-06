@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import * as bookcarsTypes from ':bookcars-types'
 import * as bookcarsHelper from ':bookcars-helper'
-import { strings as commonStrings } from '@/lang/common'
 import { strings } from '@/lang/cars'
 import Accordion from './Accordion'
 
@@ -62,12 +61,12 @@ const MileageFilter = ({
     handleOnChange(values)
   }
 
-  const handleLimitedMileageClick = (e: React.MouseEvent<HTMLElement>) => {
-    const checkbox = e.currentTarget.previousSibling as HTMLInputElement
-    checkbox.checked = !checkbox.checked
-    const event = e
-    event.currentTarget = checkbox
-    handleLimitedMileageChange(event)
+  const handleLimitedMileageClick = () => {
+    if (limitedRef.current) {
+      limitedRef.current.checked = !limitedRef.current.checked
+      const syntheticEvent = { currentTarget: limitedRef.current } as React.ChangeEvent<HTMLInputElement>
+      handleLimitedMileageChange(syntheticEvent)
+    }
   }
 
   const handleUnlimitedMileageChange = (e: React.ChangeEvent<HTMLInputElement> | React.MouseEvent<HTMLElement>) => {
@@ -93,78 +92,34 @@ const MileageFilter = ({
     handleOnChange(values)
   }
 
-  const handleUnlimitedMileageClick = (e: React.MouseEvent<HTMLElement>) => {
-    const checkbox = e.currentTarget.previousSibling as HTMLInputElement
-    checkbox.checked = !checkbox.checked
-    const event = e
-    event.currentTarget = checkbox
-    handleUnlimitedMileageChange(event)
-  }
-
-  const handleUncheckAllChange = () => {
-    if (allChecked) {
-      // uncheck all
-      if (limitedRef.current) {
-        limitedRef.current.checked = false
-      }
-      if (unlimitedRef.current) {
-        unlimitedRef.current.checked = false
-      }
-
-      setAllChecked(false)
-      setValues([])
-    } else {
-      // check all
-      if (limitedRef.current) {
-        limitedRef.current.checked = true
-      }
-      if (unlimitedRef.current) {
-        unlimitedRef.current.checked = true
-      }
-
-      const _values = [bookcarsTypes.Mileage.Limited, bookcarsTypes.Mileage.Unlimited]
-
-      setAllChecked(true)
-      setValues(_values)
-
-      if (onChange) {
-        onChange(bookcarsHelper.clone(_values))
-      }
+  const handleUnlimitedMileageClick = () => {
+    if (unlimitedRef.current) {
+      unlimitedRef.current.checked = !unlimitedRef.current.checked
+      const syntheticEvent = { currentTarget: unlimitedRef.current } as React.ChangeEvent<HTMLInputElement>
+      handleUnlimitedMileageChange(syntheticEvent)
     }
   }
 
   return (
     <Accordion title={strings.MILEAGE} collapse={collapse} className={`${className ? `${className} ` : ''}mileage-filter`}>
-      <div className="filter-elements">
-        <div className="filter-element">
+      <div className="filter-chips">
+        <div
+          className={`filter-chip${values.includes(bookcarsTypes.Mileage.Limited) ? ' active' : ''}`}
+          onClick={handleLimitedMileageClick}
+          role="button"
+          tabIndex={0}
+        >
           <input ref={limitedRef} type="checkbox" className="mileage-checkbox" onChange={handleLimitedMileageChange} />
-          <span
-            onClick={handleLimitedMileageClick}
-            role="button"
-            tabIndex={0}
-          >
-            {strings.LIMITED}
-          </span>
+          <span>{strings.LIMITED}</span>
         </div>
-        <div className="filter-element">
+        <div
+          className={`filter-chip${values.includes(bookcarsTypes.Mileage.Unlimited) ? ' active' : ''}`}
+          onClick={handleUnlimitedMileageClick}
+          role="button"
+          tabIndex={0}
+        >
           <input ref={unlimitedRef} type="checkbox" className="mileage-checkbox" onChange={handleUnlimitedMileageChange} />
-          <span
-            onClick={handleUnlimitedMileageClick}
-            role="button"
-            tabIndex={0}
-          >
-            {strings.UNLIMITED}
-          </span>
-        </div>
-        <div className="filter-actions">
-          <span
-            onClick={handleUncheckAllChange}
-            className="uncheckall"
-            role="button"
-            tabIndex={0}
-          >
-            {allChecked ? commonStrings.UNCHECK_ALL : commonStrings.CHECK_ALL}
-          </span>
+          <span>{strings.UNLIMITED}</span>
         </div>
       </div>
     </Accordion>

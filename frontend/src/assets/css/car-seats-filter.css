@@ -1,27 +1,58 @@
-div.seats-filter div.filter-elements {
-  padding: 7px 5px;
+/* ============================================
+   CAR SEATS FILTER - Number Badges
+   ============================================ */
+
+div.seats-filter .filter-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 12px 0 16px;
 }
 
-div.seats-filter div.filter-elements div.filter-element input[type='checkbox'].seats-checkbox {
+div.seats-filter .filter-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 38px;
+  border-radius: 8px;
+  border: 1.5px solid #cbd5e1;
+  background: #fff;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
-  margin-left: 5px;
+  transition: all 0.15s ease;
+  user-select: none;
 }
 
-div.seats-filter div.filter-elements div.filter-element span {
-  margin-left: 5px;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 400;
-  text-transform: capitalize;
+div.seats-filter .filter-badge.badge-wide {
+  width: auto;
+  padding: 0 14px;
 }
 
-div.seats-filter div.filter-actions {
-  text-align: center;
-  padding-bottom: 10px;
+div.seats-filter .filter-badge:hover {
+  border-color: #6b3ce6;
+  color: #6b3ce6;
 }
 
-div.seats-filter div.filter-actions span.uncheckall {
-  text-decoration: underline;
-  cursor: pointer;
-  color: #0064c8;
+div.seats-filter .filter-badge.active {
+  background: #6b3ce6;
+  border-color: #6b3ce6;
+  color: #fff;
+  box-shadow: 0 2px 6px rgb(107 60 230 / 25%);
+}
+
+div.seats-filter .filter-badge input[type='radio'] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+div.seats-filter .filter-badge input[type='radio']:focus-visible ~ span {
+  outline: 2px solid #6b3ce6;
+  outline-offset: 2px;
+  border-radius: 8px;
 }

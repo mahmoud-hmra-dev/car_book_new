@@ -1,75 +1,130 @@
+/* ============================================
+   SUPPLIER FILTER - Modern Redesign
+   ============================================ */
+
 div.supplier-filter {
-  margin: 10px 0;
-  font-size: 13px;
-  text-align: center;
+  margin: 0;
+  font-size: 14px;
+  text-align: left;
 }
 
 div.supplier-filter ul.supplier-list {
   list-style-type: none;
-  font-size: 13px;
-  margin: 15px 0 0;
-  padding: 0;
+  font-size: 14px;
+  margin: 0;
+  padding: 12px 0 8px;
   width: 100%;
-  /* display: flex;
-  flex-wrap: wrap; */
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 div.supplier-filter ul.supplier-list li {
-  margin-bottom: 12px;
-  /* margin-left: 15px;
-  margin-right: 5px; */
-  margin-bottom: 8px;
   display: flex;
   flex-direction: row;
-  justify-content: center;
   align-items: center;
-  height: 32px;
+  padding: 6px 0;
+  margin: 0;
+  height: auto;
+}
+
+div.supplier-filter ul.supplier-list li input[type='checkbox'] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
 }
 
 div.supplier-filter ul.supplier-list li span.supplier {
-  border-radius: 3px;
-  border: 1px solid #d9d9d9;
-  box-shadow: none;
-  vertical-align: middle;
-  cursor: pointer;
-  overflow: hidden;
-  margin-bottom: 0;
-  font-weight: 400;
-  margin-left: 5px;
-  width: 62px;
-  height: 32px;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
   align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 400;
+  color: #334155;
+  line-height: 1.4;
+  padding: 2px 0;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  width: auto;
+  height: auto;
+  margin: 0;
+  overflow: visible;
+}
+
+div.supplier-filter ul.supplier-list li span.supplier::before {
+  content: '';
+  display: inline-flex;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #cbd5e1;
+  border-radius: 4px;
+  background: #fff;
+  transition: all 0.15s ease;
+}
+
+div.supplier-filter ul.supplier-list li span.supplier:hover::before {
+  border-color: #6b3ce6;
+}
+
+div.supplier-filter ul.supplier-list li input[type='checkbox']:checked + span.supplier::before {
+  background: #6b3ce6;
+  border-color: #6b3ce6;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='white'%3E%3Cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3E%3C/svg%3E");
+  background-size: 14px;
+  background-position: center;
+  background-repeat: no-repeat;
+  box-shadow: 0 1px 3px rgb(107 60 230 / 30%);
+  animation: supplier-checkbox-pop 0.15s ease;
+}
+
+div.supplier-filter ul.supplier-list li input[type='checkbox']:focus-visible + span.supplier::before {
+  outline: 2px solid #6b3ce6;
+  outline-offset: 2px;
 }
 
 div.supplier-filter ul.supplier-list li span.supplier img {
   margin: 0;
-  max-width: 100%;
-  max-height: 100%;
+  max-width: 48px;
+  max-height: 28px;
+  border-radius: 3px;
+  object-fit: contain;
 }
 
 div.supplier-filter ul.supplier-list li span.car-count {
-  margin-left: 5px;
-  width: 35px;
+  margin-left: auto;
+  font-size: 12px;
+  color: #94a3b8;
+  font-weight: 400;
+  width: auto;
+  text-align: right;
+}
+
+div.supplier-filter .filter-actions {
   text-align: left;
+  padding: 4px 0 8px;
 }
 
-div.supplier-filter ul.supplier-list li input[type='checkbox'] {
+div.supplier-filter .filter-actions span.uncheckall {
+  font-size: 12px;
+  font-weight: 500;
+  color: #6b3ce6;
   cursor: pointer;
-  display: inline-flex;
+  text-decoration: none;
+  transition: all 0.15s ease;
 }
 
-div.supplier-filter div.filter-actions {
-  text-align: center;
-  padding-bottom: 10px;
-}
-
-div.supplier-filter div.filter-actions span.uncheckall {
+div.supplier-filter .filter-actions span.uncheckall:hover {
   text-decoration: underline;
-  cursor: pointer;
-  color: #0064c8;
+  color: #5b2fd6;
+}
+
+@keyframes supplier-checkbox-pop {
+  0% { transform: scale(0.85); }
+  60% { transform: scale(1.05); }
+  100% { transform: scale(1); }
 }

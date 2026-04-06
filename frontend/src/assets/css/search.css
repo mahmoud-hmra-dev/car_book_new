@@ -1,36 +1,275 @@
 /* ============================================
-   SEARCH RESULTS PAGE - Redesigned Layout
+   SEARCH RESULTS PAGE - Sidebar + Main Layout
    ============================================ */
+
+/* ---- CSS Variables ---- */
+:root {
+  --search-sidebar-width: 280px;
+  --search-bg: #F8FAFB;
+  --search-card-bg: #fff;
+  --search-card-radius: 16px;
+  --search-card-shadow: 0 2px 12px rgb(0 0 0 / 6%);
+  --search-gap: 24px;
+  --search-primary: var(--bc-primary, #6B3CE6);
+  --search-primary-hover: #5a2ec4;
+  --search-text-dark: #0F1419;
+  --search-text-muted: #64748B;
+  --search-text-body: #334155;
+  --search-border: rgb(0 0 0 / 6%);
+}
 
 /* ---- Main Container ---- */
 div.search-redesign {
   display: flex;
   flex-direction: column;
   flex: 1 0 auto;
-  background: #F8FAFB;
+  background: var(--search-bg);
   min-height: calc(100vh - 64px);
 }
 
 /* ---- Page Header ---- */
 .search-page-header {
-  background: #fff;
-  padding: 40px 24px 32px;
-  text-align: center;
+  background: var(--search-card-bg);
+  padding: 32px 24px 24px;
+  border-bottom: 1px solid var(--search-border);
+}
+
+.search-page-header-inner {
+  max-width: 1320px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
 .search-page-title {
-  font-size: 36px;
+  font-size: 28px;
   font-weight: 700;
-  color: #0F1419;
-  margin: 0 0 24px;
+  color: var(--search-text-dark);
+  margin: 0;
+  white-space: nowrap;
+}
+
+.search-results-count {
+  font-size: 14px;
+  color: var(--search-text-muted);
+  font-weight: 400;
+}
+
+/* ---- Body: Sidebar + Main ---- */
+.search-body {
+  display: flex;
+  max-width: 1320px;
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--search-gap);
+  gap: var(--search-gap);
+  align-items: flex-start;
+}
+
+/* ---- Sidebar ---- */
+.search-sidebar {
+  width: var(--search-sidebar-width);
+  flex-shrink: 0;
+  position: sticky;
+  top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Sidebar Card */
+.search-sidebar-card {
+  background: var(--search-card-bg);
+  border-radius: var(--search-card-radius);
+  box-shadow: var(--search-card-shadow);
+  padding: 20px;
+  border: 1px solid var(--search-border);
+}
+
+/* Sidebar Headings */
+.search-sidebar-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.search-sidebar-heading-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.search-sidebar-heading-left svg {
+  font-size: 20px;
+  color: var(--search-primary);
+}
+
+.search-sidebar-heading h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--search-text-dark);
+  margin: 0;
+}
+
+.search-sidebar-heading .search-clear-btn {
+  font-size: 13px;
+  color: var(--search-primary);
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 0;
+  font-weight: 500;
+  transition: opacity 0.2s ease;
+}
+
+.search-sidebar-heading .search-clear-btn:hover {
+  opacity: 0.7;
+}
+
+/* Sidebar filter badge */
+.search-filter-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: var(--search-primary);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Map in sidebar */
+.search-sidebar-map {
+  min-height: 0;
+  height: 160px;
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+/* Sidebar filter overrides */
+.search-sidebar-card .filter {
+  margin: 0;
+}
+
+.search-sidebar-card .filter .accordion-container {
+  border: none;
+  margin: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.search-sidebar-card .filter .accordion-container span.accordion {
+  text-align: left;
+  padding: 8px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--search-text-dark);
+  border-bottom: 1px solid rgb(0 0 0 / 6%);
+  border-radius: 0;
+  background: transparent;
+}
+
+.search-sidebar-card .filter .accordion-container span.accordion-active {
+  border-bottom: 1px solid rgb(0 0 0 / 6%);
+}
+
+.search-sidebar-card .filter .accordion-container span.accordion::after {
+  margin: 10px 4px 0;
+}
+
+/* Car filter in sidebar - no accordion wrapper needed */
+.search-sidebar-card div.car-filter {
+  margin: 0;
+  border: none;
+  background: transparent;
+}
+
+.search-sidebar-card div.car-filter .accordion-container {
+  border: none;
+  margin: 0;
+}
+
+.search-sidebar-card div.car-filter .accordion-container span.accordion {
+  display: none;
+}
+
+.search-sidebar-card div.car-filter .accordion-container div.panel,
+.search-sidebar-card div.car-filter .accordion-container div.panel-collapse {
+  max-height: none !important;
+  overflow: visible;
+}
+
+.search-sidebar-card div.car-filter form {
+  padding: 0;
+}
+
+.search-sidebar-card div.car-filter .pickup-location,
+.search-sidebar-card div.car-filter .drop-off-location,
+.search-sidebar-card div.car-filter .from,
+.search-sidebar-card div.car-filter .to,
+.search-sidebar-card div.car-filter .fc-search,
+.search-sidebar-card div.car-filter .chk-same-location {
+  padding: 4px 0;
+}
+
+.search-sidebar-card div.car-filter .btn-search {
+  background: var(--search-primary) !important;
+  border-radius: 10px;
+  height: 40px;
+  text-transform: none !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  box-shadow: none !important;
+  margin-top: 8px;
+}
+
+.search-sidebar-card div.car-filter .btn-search:hover {
+  background: var(--search-primary-hover) !important;
+}
+
+/* ---- Main Content ---- */
+.search-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--search-gap);
+}
+
+/* ---- Results Header ---- */
+.search-results-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.search-results-info {
+  font-size: 14px;
+  color: var(--search-text-muted);
+}
+
+.search-results-info strong {
+  color: var(--search-text-dark);
+  font-weight: 700;
 }
 
 /* ---- Category Tabs ---- */
 .search-category-tabs {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .search-tab {
@@ -38,11 +277,11 @@ div.search-redesign {
   align-items: center;
   gap: 6px;
   height: 36px;
-  padding: 0 20px;
+  padding: 0 18px;
   border-radius: 999px;
   border: 1px solid #CBD5E1;
-  background: #fff;
-  color: #334155;
+  background: var(--search-card-bg);
+  color: var(--search-text-body);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -51,19 +290,20 @@ div.search-redesign {
 }
 
 .search-tab:hover {
-  border-color: var(--bc-primary, #6B3CE6);
-  color: var(--bc-primary, #6B3CE6);
+  border-color: var(--search-primary);
+  color: var(--search-primary);
+  background: rgb(107 60 230 / 4%);
 }
 
 .search-tab-active {
-  background: var(--bc-primary, #6B3CE6);
-  border-color: var(--bc-primary, #6B3CE6);
+  background: var(--search-primary);
+  border-color: var(--search-primary);
   color: #fff;
 }
 
 .search-tab-active:hover {
-  background: #5a2ec4;
-  border-color: #5a2ec4;
+  background: var(--search-primary-hover);
+  border-color: var(--search-primary-hover);
   color: #fff;
 }
 
@@ -71,74 +311,26 @@ div.search-redesign {
   font-size: 18px !important;
 }
 
-/* ---- Filters Bar ---- */
-.search-filters-bar {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 16px 24px;
-  background: #fff;
-  border-bottom: 1px solid rgb(0 0 0 / 6%);
-}
-
-.search-filters-bar .search-map {
-  margin-bottom: 12px;
-  min-height: 0;
-  height: 180px;
-  width: 100%;
-  max-width: 600px;
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.search-filters-bar .filter {
-  margin: 6px 0;
-  width: 100%;
-  max-width: 600px;
-}
-
-.search-filters-bar .btn-filters {
-  max-width: 600px;
-  margin-top: 8px;
-  border-radius: 8px !important;
-  text-transform: none !important;
-  font-weight: 600 !important;
-  font-size: 14px !important;
-  height: 40px;
-  border-color: #CBD5E1 !important;
-  color: #334155 !important;
-}
-
-.search-filters-bar .btn-filters:hover {
-  background: rgb(107 60 230 / 4%) !important;
-  border-color: var(--bc-primary, #6B3CE6) !important;
-}
-
-.search-advanced-filters {
-  width: 100%;
-  max-width: 600px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.search-advanced-filters .filter {
-  width: 100%;
-}
-
 /* ---- Grid Area ---- */
 .search-grid-area {
-  max-width: 1296px;
   width: 100%;
-  margin: 0 auto;
-  padding: 40px 24px;
+}
+
+/* Override car-list grid in search context */
+.search-grid-area section.car-list {
+  padding-bottom: 0;
+}
+
+.search-grid-area section.car-list .car-list-grid {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
 }
 
 /* ---- Brand Logos Section ---- */
 .search-brands-section {
   padding: 40px 24px;
   border-top: 1px solid #E5E7EB;
-  background: #fff;
+  background: var(--search-card-bg);
 }
 
 .search-brands-row {
@@ -147,7 +339,7 @@ div.search-redesign {
   align-items: center;
   gap: 48px;
   flex-wrap: wrap;
-  max-width: 1296px;
+  max-width: 1320px;
   margin: 0 auto;
 }
 
@@ -165,33 +357,183 @@ div.search-redesign {
   opacity: 1;
 }
 
-/* ---- Responsive ---- */
+/* ---- Mobile Filters Button (FAB) ---- */
+.search-mobile-filters-fab {
+  display: none;
+}
+
+/* ---- Mobile Drawer Overlay ---- */
+.search-drawer-overlay {
+  display: none;
+}
+
+/* ---- Desktop: sidebar always visible ---- */
+@media (width >= 961px) {
+  .search-mobile-filters-fab {
+    display: none !important;
+  }
+
+  .search-drawer-overlay {
+    display: none !important;
+  }
+}
+
+/* ============================================
+   RESPONSIVE: Tablet (960-1200px)
+   ============================================ */
+@media (width <= 1200px) and (width >= 961px) {
+  .search-grid-area section.car-list .car-list-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ============================================
+   RESPONSIVE: Mobile (<960px)
+   ============================================ */
 @media (width <= 960px) {
   .search-page-header {
-    padding: 24px 16px 20px;
+    padding: 20px 16px 16px;
+  }
+
+  .search-page-header-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
   }
 
   .search-page-title {
-    font-size: 26px;
-    margin-bottom: 16px;
+    font-size: 22px;
   }
 
-  .search-category-tabs {
+  .search-body {
+    flex-direction: column;
+    padding: 16px;
+    gap: 16px;
+  }
+
+  /* Sidebar becomes a slide-out drawer on mobile */
+  .search-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 300px;
+    max-width: 85vw;
+    z-index: 1200;
+    background: var(--search-bg);
+    padding: 16px;
+    overflow-y: auto;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    box-shadow: 4px 0 20px rgb(0 0 0 / 15%);
+    border-radius: 0;
+    visibility: hidden;
+  }
+
+  .search-sidebar.search-sidebar-open {
+    transform: translateX(0);
+    visibility: visible;
+  }
+
+  /* Close button in mobile drawer */
+  .search-sidebar-close {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    margin-bottom: 8px;
+  }
+
+  .search-sidebar-close-btn {
+    border: none;
+    background: none;
+    padding: 4px;
+    cursor: pointer;
+    color: var(--search-text-muted);
+    font-size: 24px;
+    line-height: 1;
+  }
+
+  /* Mobile drawer overlay */
+  .search-drawer-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgb(0 0 0 / 40%);
+    z-index: 1199;
+  }
+
+  .search-drawer-overlay.search-drawer-overlay-open {
+    display: block;
+  }
+
+  /* FAB button for mobile */
+  .search-mobile-filters-fab {
+    display: flex;
+    align-items: center;
     gap: 8px;
+    position: fixed;
+    bottom: 24px;
+    left: 24px;
+    z-index: 1100;
+    background: var(--search-primary);
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgb(107 60 230 / 40%);
+    transition: all 0.2s ease;
+  }
+
+  .search-mobile-filters-fab:hover {
+    background: var(--search-primary-hover);
+    box-shadow: 0 6px 24px rgb(107 60 230 / 50%);
+  }
+
+  .search-mobile-filters-fab svg {
+    font-size: 20px;
+  }
+
+  .search-mobile-filters-fab .search-fab-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 9px;
+    background: #fff;
+    color: var(--search-primary);
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  /* Category tabs horizontal scroll */
+  .search-category-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .search-category-tabs::-webkit-scrollbar {
+    display: none;
   }
 
   .search-tab {
     height: 32px;
     padding: 0 14px;
     font-size: 13px;
+    flex-shrink: 0;
   }
 
-  .search-filters-bar {
-    padding: 12px 16px;
-  }
-
-  .search-grid-area {
-    padding: 24px 16px;
+  /* Grid 1 column on mobile */
+  .search-grid-area section.car-list .car-list-grid {
+    grid-template-columns: 1fr;
   }
 
   .search-brands-row {
@@ -201,15 +543,27 @@ div.search-redesign {
   .search-brand-logo {
     font-size: 14px;
   }
+
 }
 
+/* Hide close button on desktop */
+@media (width >= 961px) {
+  .search-sidebar-close {
+    display: none;
+  }
+}
+
+/* ============================================
+   RESPONSIVE: Small Mobile (<600px)
+   ============================================ */
 @media (width <= 600px) {
   .search-page-title {
-    font-size: 22px;
+    font-size: 20px;
   }
 
-  .search-category-tabs {
-    gap: 6px;
+  .search-body {
+    padding: 12px;
+    gap: 12px;
   }
 
   .search-tab {
@@ -218,7 +572,10 @@ div.search-redesign {
     font-size: 12px;
   }
 
-  .search-grid-area {
-    padding: 16px 12px;
+  .search-mobile-filters-fab {
+    bottom: 16px;
+    left: 16px;
+    padding: 10px 16px;
+    font-size: 13px;
   }
 }

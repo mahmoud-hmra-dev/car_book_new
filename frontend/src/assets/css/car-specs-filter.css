@@ -1,26 +1,91 @@
-div.car-specs-filter div.filter-elements {
-  padding: 7px 5px;
+/* ============================================
+   CAR SPECS FILTER
+   ============================================ */
+
+div.car-specs-filter .filter-elements {
+  padding: 12px 0 16px;
 }
 
-div.car-specs-filter div.filter-elements div.filter-element input[type='checkbox'].car-specs-checkbox {
-  cursor: pointer;
-  margin-left: 5px;
+div.car-specs-filter .filter-element {
+  display: flex;
+  align-items: center;
+  padding: 6px 0;
 }
 
-div.car-specs-filter div.filter-elements div.filter-element span {
-  margin-left: 5px;
+div.car-specs-filter .filter-element input[type='checkbox'].car-specs-checkbox {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+div.car-specs-filter .filter-element span {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 400;
+  color: #334155;
+  line-height: 1.4;
+  width: 100%;
+  padding: 2px 0;
 }
 
-div.car-specs-filter div.filter-actions {
-  text-align: center;
-  padding-bottom: 10px;
+div.car-specs-filter .filter-element span::before {
+  content: '';
+  display: inline-flex;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #cbd5e1;
+  border-radius: 4px;
+  background: #fff;
+  transition: all 0.15s ease;
 }
 
-div.car-specs-filter div.filter-actions span.uncheckall {
-  text-decoration: underline;
+div.car-specs-filter .filter-element span:hover::before {
+  border-color: #6b3ce6;
+}
+
+div.car-specs-filter .filter-element input[type='checkbox']:checked + span::before {
+  background: #6b3ce6;
+  border-color: #6b3ce6;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='white'%3E%3Cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3E%3C/svg%3E");
+  background-size: 14px;
+  background-position: center;
+  background-repeat: no-repeat;
+  box-shadow: 0 1px 3px rgb(107 60 230 / 30%);
+  animation: specs-checkbox-pop 0.15s ease;
+}
+
+div.car-specs-filter .filter-element input[type='checkbox']:focus-visible + span::before {
+  outline: 2px solid #6b3ce6;
+  outline-offset: 2px;
+}
+
+div.car-specs-filter .filter-actions {
+  text-align: left;
+  padding: 4px 0 8px;
+}
+
+div.car-specs-filter .filter-actions span.uncheckall {
+  font-size: 12px;
+  font-weight: 500;
+  color: #6b3ce6;
   cursor: pointer;
-  color: #0064c8;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+div.car-specs-filter .filter-actions span.uncheckall:hover {
+  text-decoration: underline;
+  color: #5b2fd6;
+}
+
+@keyframes specs-checkbox-pop {
+  0% { transform: scale(0.85); }
+  60% { transform: scale(1.05); }
+  100% { transform: scale(1); }
 }
