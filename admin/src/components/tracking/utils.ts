@@ -1,4 +1,3 @@
-import type { Libraries } from '@react-google-maps/api'
 import * as bookcarsTypes from ':bookcars-types'
 import wellknown from 'wellknown'
 import type {
@@ -30,7 +29,7 @@ export const EVENT_TYPE_OPTIONS = [
   'deviceMoving',
   'deviceStopped',
 ] as const
-export const GOOGLE_MAP_LIBRARIES: Libraries = ['drawing']
+export const GOOGLE_MAP_LIBRARIES: string[] = ['drawing']
 
 const STATUS_ORDER: Record<bookcarsTypes.TraccarFleetStatus, number> = {
   moving: 0,

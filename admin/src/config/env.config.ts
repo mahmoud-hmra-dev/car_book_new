@@ -74,6 +74,7 @@ const env = {
   RECAPTCHA_ENABLED: (import.meta.env.VITE_BC_RECAPTCHA_ENABLED && import.meta.env.VITE_BC_RECAPTCHA_ENABLED.toLowerCase()) === 'true',
   RECAPTCHA_SITE_KEY: String(import.meta.env.VITE_BC_RECAPTCHA_SITE_KEY),
   GOOGLE_MAPS_API_KEY: String(import.meta.env.VITE_BC_GOOGLE_MAPS_API_KEY || ''),
+  GOOGLE_MAPS_MAP_ID: String(import.meta.env.VITE_BC_GOOGLE_MAPS_MAP_ID || 'DEMO_MAP_ID'),
   PASSWORD_MIN_LENGTH: 6,
 }
 
