@@ -47,7 +47,7 @@ div.car section.car-sec div.license-plate {
 
 @media only screen and (width <= 960px) {
   div.car {
-    top: 56px;
+    top: 0;
   }
 
   div.car div.col-1 {
@@ -180,7 +180,7 @@ div.car section.car-sec div.license-plate {
 
 @media only screen and (width >= 960px) {
   div.car {
-    top: 64px;
+    top: 0;
   }
 
   div.car div.col-1 {

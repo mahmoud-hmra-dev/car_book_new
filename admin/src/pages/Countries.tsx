@@ -4,9 +4,9 @@ import { Button } from '@mui/material'
 import * as bookcarsTypes from ':bookcars-types'
 import Layout from '@/components/Layout'
 import { strings } from '@/lang/countries'
+import { strings as headerStrings } from '@/lang/header'
 import Search from '@/components/Search'
 import CountryList from '@/components/CountryList'
-import InfoBox from '@/components/InfoBox'
 
 import '@/assets/css/countries.css'
 
@@ -35,23 +35,26 @@ const Countries = () => {
   return (
     <Layout onLoad={onLoad} strict>
       <div className="countries">
+        <div className="page-header">
+          <div>
+            <h1 className="page-title">
+              {headerStrings.COUNTRIES}
+              {rowCount > 0 && (
+                <span className="page-count">
+                  {`(${rowCount} ${rowCount > 1 ? strings.COUNTRIES : strings.COUNTRY})`}
+                </span>
+              )}
+            </h1>
+          </div>
+          {rowCount > -1 && (
+            <Button variant="contained" className="btn-primary new-country" size="small" onClick={() => navigate('/create-country')}>
+              {strings.NEW_COUNTRY}
+            </Button>
+          )}
+        </div>
         <div className="col-1">
           <div className="col-1-container">
             <Search className="search" onSubmit={handleSearch} />
-
-            {rowCount > -1 && (
-              <Button variant="contained" className="btn-primary new-country" size="small" onClick={() => navigate('/create-country')}>
-                {strings.NEW_COUNTRY}
-              </Button>
-            )}
-
-            {rowCount > 0
-              && (
-                <InfoBox
-                  value={`${rowCount} ${rowCount > 1 ? strings.COUNTRIES : strings.COUNTRY}`}
-                  className="country-count"
-                />
-              )}
           </div>
         </div>
         <div className="col-2">

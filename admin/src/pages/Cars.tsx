@@ -6,11 +6,11 @@ import * as bookcarsHelper from ':bookcars-helper'
 import * as helper from '@/utils/helper'
 import env from '@/config/env.config'
 import { strings } from '@/lang/cars'
+import { strings as headerStrings } from '@/lang/header'
 import { strings as commonStrings } from '@/lang/common'
 import * as SupplierService from '@/services/SupplierService'
 import Layout from '@/components/Layout'
 import Search from '@/components/Search'
-import InfoBox from '@/components/InfoBox'
 import SupplierFilter from '@/components/SupplierFilter'
 import CarSpecsFilter from '@/components/CarSpecsFilter'
 import CarTypeFilter from '@/components/CarTypeFilter'
@@ -52,28 +52,6 @@ const Cars = () => {
   const [multimedia, setMultimedia] = useState<bookcarsTypes.CarMultimedia[]>([])
   const [rating, setRating] = useState(-1)
   const [seats, setSeats] = useState(-1)
-
-  // useEffect(() => {
-  //   const updateSuppliers = async () => {
-  //     const payload: bookcarsTypes.GetCarsPayload = {
-  //       carSpecs,
-  //       carType,
-  //       gearbox,
-  //       mileage,
-  //       fuelPolicy,
-  //       deposit,
-  //       availability,
-  //       ranges,
-  //       multimedia,
-  //       rating,
-  //       seats,
-  //     }
-  //     const _allSuppliers = await SupplierService.getAdminSuppliers(payload)
-  //     setAllSuppliers(_allSuppliers)
-  //   }
-
-  //   updateSuppliers()
-  // }, [carSpecs, carType, gearbox, mileage, fuelPolicy, deposit, availability, ranges, multimedia, rating, seats])
 
   const handleSearch = (newKeyword: string) => {
     setKeyword(newKeyword)
@@ -144,20 +122,6 @@ const Cars = () => {
     setAdmin(_isAdmin)
 
     if (_isAdmin) {
-      // const payload: bookcarsTypes.GetCarsPayload = {
-      //   carSpecs,
-      //   carType,
-      //   gearbox,
-      //   mileage,
-      //   fuelPolicy,
-      //   deposit,
-      //   availability,
-      //   ranges,
-      //   multimedia,
-      //   rating,
-      //   seats,
-      // }
-      // const _allSuppliers = await SupplierService.getAdminSuppliers(payload)
       const _allSuppliers = await SupplierService.getAllSuppliers()
       const _suppliers = bookcarsHelper.flattenSuppliers(_allSuppliers)
       setAllSuppliers(_allSuppliers)
@@ -175,15 +139,24 @@ const Cars = () => {
     <Layout onLoad={onLoad} strict>
       {user && (
         <div className="cars">
+          <div className="page-header">
+            <div>
+              <h1 className="page-title">
+                {headerStrings.CARS}
+                {rowCount > 0 && (
+                  <span className="page-count">
+                    {`(${bookcarsHelper.formatNumber(rowCount, language)} ${rowCount > 1 ? commonStrings.CARS : commonStrings.CAR})`}
+                  </span>
+                )}
+              </h1>
+            </div>
+            <Button type="submit" variant="contained" className="btn-primary new-car" size="small" onClick={() => navigate('/create-car')}>
+              {strings.NEW_CAR}
+            </Button>
+          </div>
           <div className="col-1">
             <div className="col-1-container">
               <Search onSubmit={handleSearch} className="search" />
-
-              <Button type="submit" variant="contained" className="btn-primary new-car" size="small" onClick={() => navigate('/create-car')}>
-                {strings.NEW_CAR}
-              </Button>
-
-              {rowCount > 0 && <InfoBox value={`${bookcarsHelper.formatNumber(rowCount, language)} ${rowCount > 1 ? commonStrings.CARS : commonStrings.CAR}`} className="car-count" />}
 
               {admin && (
                 loadingSuppliers ? (

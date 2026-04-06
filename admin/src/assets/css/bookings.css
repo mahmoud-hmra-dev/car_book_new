@@ -1,102 +1,107 @@
+/* ==========================================================
+   Bookings Page – Modern dashboard redesign
+   ========================================================== */
+
 div.bookings {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  left: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-height: 0;
+}
+
+/* --- Page Header Card --- */
+
+div.bookings .page-header {
+  background: var(--bc-white);
+  border-radius: var(--bc-radius-md);
+  box-shadow: var(--bc-shadow-sm);
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+div.bookings .page-header .page-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--bc-dark);
+  margin: 0;
+  line-height: 1.3;
+}
+
+div.bookings .page-header .cl-new-booking {
+  border-radius: var(--bc-radius-sm) !important;
+  text-transform: none !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  padding: 8px 20px !important;
+  box-shadow: none !important;
+}
+
+/* --- Filter Section (col-1 content) --- */
+
+div.bookings .col-1 {
+  background: var(--bc-white);
+  border-radius: var(--bc-radius-md);
+  box-shadow: var(--bc-shadow-sm);
+  padding: 20px 24px;
+}
+
+div.bookings div.col-1 .cl-supplier-filter,
+div.bookings div.col-1 .cl-status-filter,
+div.bookings div.col-1 .cl-booking-filter {
+  margin: 0;
+  background-color: transparent;
+  border: none;
+}
+
+div.bookings div.col-1 .cl-supplier-filter label.accordion,
+div.bookings div.col-1 .cl-status-filter label.accordion,
+div.bookings div.col-1 .cl-booking-filter label.accordion {
+  background: transparent;
+}
+
+div.bookings div.col-1 .cl-supplier-filter + .cl-status-filter,
+div.bookings div.col-1 .cl-status-filter + .cl-booking-filter {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--bc-gray-100);
+}
+
+div.bookings div.col-1 .cl-booking-filter div.panel,
+div.bookings div.col-1 .cl-booking-filter div.panel-collapse {
+  padding-right: 0;
+  padding-left: 0;
+}
+
+/* --- List Section (col-2 content) --- */
+
+div.bookings .col-2 {
+  background: var(--bc-white);
+  border-radius: var(--bc-radius-md);
+  box-shadow: var(--bc-shadow-sm);
+  min-height: 300px;
 }
 
 /* Device width is lower than or equal to 960px */
 
 @media only screen and (width <= 960px) {
-  div.bookings {
-    top: 56px;
-    overflow-y: auto;
+  div.bookings div.col-1 .cl-new-booking {
+    display: none;
   }
 
   div.bookings div.col-1,
   div.bookings div.col-2 {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  div.bookings div.col-1 .cl-supplier-filter label.accordion,
-  div.bookings div.col-1 .cl-status-filter label.accordion,
-  div.bookings div.col-1 .cl-booking-filter label.accordion {
-    background: #fff;
-  }
-
-  div.bookings div.col-1 .cl-supplier-filter,
-  div.bookings div.col-1 .cl-status-filter,
-  div.bookings div.col-1 .cl-booking-filter {
-    margin: 5px 10px;
-    background-color: #fff;
-    max-width: 480px;
-    width: calc(100% - 20px);
-  }
-
-  div.bookings div.col-1 .cl-booking-filter div.panel,
-  div.bookings div.col-1 .cl-booking-filter div.panel-collapse {
-    padding-right: 15px;
-    padding-left: 15px;
-  }
-
-  div.bookings div.col-1 .cl-new-booking {
-    width: calc(100% - 20px);
-    max-width: 480px;
-    margin: 15px 10px 5px;
+    width: 100%;
   }
 }
 
 /* Device width is greater than or equal to 960px */
 
 @media only screen and (width >= 960px) {
-  div.bookings {
-    top: 64px;
-  }
-
-  div.bookings div.col-1 {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    width: 336px;
-    padding: 12px 0 0 12px;
-    background: #fefefe;
-    overflow: auto;
-  }
-
-  div.bookings div.col-1 .cl-supplier-filter label.accordion,
-  div.bookings div.col-1 .cl-status-filter label.accordion,
-  div.bookings div.col-1 .cl-booking-filter label.accordion {
-    background: #fafafa;
-  }
-
-  div.bookings div.col-1 .cl-supplier-filter,
-  div.bookings div.col-1 .cl-status-filter,
-  div.bookings div.col-1 .cl-booking-filter {
-    margin: 10px 10px 10px 0;
-    background-color: #fafafa;
-  }
-
-  div.bookings div.col-1 .cl-booking-filter div.panel,
-  div.bookings div.col-1 .cl-booking-filter div.panel-collapse {
-    padding-right: 15px;
-    padding-left: 15px;
-  }
-
-  div.bookings div.col-1 .cl-status-filter,
-  div.bookings div.col-1 .cl-booking-filter {
-    margin-bottom: 10px;
-  }
-
   div.bookings div.col-1 .cl-new-booking {
-    width: 306px;
-    margin-left: 5px;
-  }
-
-  div.bookings div.col-2 {
-    position: absolute;
-    inset: 0 0 0 336px;
+    display: none;
   }
 }

@@ -1,19 +1,12 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback, ReactNode } from 'react'
 import { toast } from 'react-toastify'
 import {
-  AppBar,
-  Toolbar,
   Typography,
   IconButton,
   Badge,
   MenuItem,
   Menu,
   Button,
-  Drawer,
-  List,
-  ListItemIcon,
-  ListItemText,
-  ListItem
 } from '@mui/material'
 import {
   Menu as MenuIcon,
@@ -39,7 +32,7 @@ import {
   MenuBook as ManualDocumentationIcon,
   IntegrationInstructions as TechnicalDocumentationIcon,
 } from '@mui/icons-material'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import * as bookcarsTypes from ':bookcars-types'
 import env from '@/config/env.config'
 import { strings } from '@/lang/header'
@@ -56,12 +49,27 @@ import '@/assets/css/header.css'
 
 interface HeaderProps {
   hidden?: boolean
+  children?: ReactNode
+}
+
+interface NavItem {
+  path: string
+  label: string
+  icon: React.ReactElement
+  exact?: boolean
+}
+
+interface NavGroup {
+  label?: string
+  items: NavItem[]
 }
 
 const Header = ({
   hidden,
+  children,
 }: HeaderProps) => {
   const navigate = useNavigate()
+  const location = useLocation()
 
   const { user } = useUserContext() as UserContextType
   const { notificationCount } = useNotificationContext() as NotificationContextType
@@ -71,34 +79,14 @@ const Header = ({
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
   const [langAnchorEl, setLangAnchorEl] = useState<HTMLElement | null>(null)
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = useState<HTMLElement | null>(null)
-  const [sideAnchorEl, setSideAnchorEl] = useState<HTMLElement | null>(null)
   const [isSignedIn, setIsSignedIn] = useState(false)
   const [isLoaded, setIsLoaded] = useState(false)
   const [bankDetails, setBankDetails] = useState<bookcarsTypes.BankDetails | null>(null)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const isMenuOpen = Boolean(anchorEl)
   const isMobileMenuOpen = Boolean(mobileMoreAnchorEl)
   const isLangMenuOpen = Boolean(langAnchorEl)
-  const isSideMenuOpen = Boolean(sideAnchorEl)
-
-  const classes = {
-    list: {
-      width: 250,
-    },
-    formControl: {
-      margin: 1,
-      minWidth: 120,
-    },
-    selectEmpty: {
-      marginTop: 2,
-    },
-    grow: {
-      flexGrow: 1,
-    },
-    menuButton: {
-      marginRight: 2,
-    },
-  }
 
   const handleAccountMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget)
@@ -113,16 +101,6 @@ const Header = ({
   }
 
   const refreshPage = () => {
-    // const params = new URLSearchParams(window.location.search)
-
-    // if (params.has('l')) {
-    //   params.delete('l')
-    //   // window.location.href = window.location.href.split('?')[0] + ([...params].length > 0 ? `?${params}` : '')
-    //   window.location.replace(window.location.href.split('?')[0] + ([...params].length > 0 ? `?${params}` : ''))
-    // } else {
-    //   // window.location.reload()
-    //   window.location.replace(window.location.href)
-    // }
     navigate(0)
   }
 
@@ -134,7 +112,6 @@ const Header = ({
       setLang(helper.getLanguage(code))
       const currentLang = UserService.getLanguage()
       if (isSignedIn && user) {
-        // Update user language
         const data: bookcarsTypes.UpdateLanguagePayload = {
           id: user._id as string,
           language: code,
@@ -143,7 +120,6 @@ const Header = ({
         if (status === 200) {
           UserService.setLanguage(code)
           if (code && code !== currentLang) {
-            // Refresh page
             refreshPage()
           }
         } else {
@@ -152,7 +128,6 @@ const Header = ({
       } else {
         UserService.setLanguage(code)
         if (code && code !== currentLang) {
-          // Refresh page
           refreshPage()
         }
       }
@@ -178,16 +153,28 @@ const Header = ({
     setMobileMoreAnchorEl(event.currentTarget)
   }
 
-  const handleSideMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setSideAnchorEl(event.currentTarget)
-  }
-
-  const handleSideMenuClose = () => {
-    setSideAnchorEl(null)
-  }
-
   const handleNotificationsClick = () => {
     navigate('/notifications')
+  }
+
+  const handleSidebarOpen = () => {
+    setSidebarOpen(true)
+  }
+
+  const handleSidebarClose = useCallback(() => {
+    setSidebarOpen(false)
+  }, [])
+
+  const handleNavClick = (path: string) => {
+    navigate(path)
+    handleSidebarClose()
+  }
+
+  const isActive = (path: string, exact?: boolean) => {
+    if (exact) {
+      return location.pathname === path
+    }
+    return location.pathname === path || location.pathname.startsWith(`${path}/`)
   }
 
   useEffect(() => {
@@ -221,6 +208,66 @@ const Header = ({
 
     init()
   }, [hidden, currentUser])
+
+  // Close sidebar on route change (mobile)
+  useEffect(() => {
+    handleSidebarClose()
+  }, [location.pathname, handleSidebarClose])
+
+  // Build navigation groups
+  const buildNavGroups = (): NavGroup[] => {
+    const groups: NavGroup[] = [
+      {
+        items: [
+          { path: '/', label: strings.DASHBOARD, icon: <DashboardIcon />, exact: true },
+          { path: '/scheduler', label: strings.SCHEDULER, icon: <SchedulerIcon /> },
+        ],
+      },
+      {
+        label: 'MANAGE',
+        items: [
+          { path: '/suppliers', label: strings.COMPANIES, icon: <SuppliersIcon /> },
+          { path: '/countries', label: strings.COUNTRIES, icon: <CountriesIcon /> },
+          { path: '/locations', label: strings.LOCATIONS, icon: <LocationsIcon /> },
+          { path: '/cars', label: strings.CARS, icon: <CarsIcon /> },
+          { path: '/users', label: strings.USERS, icon: <UsersIcon /> },
+        ],
+      },
+      {
+        label: 'TOOLS',
+        items: [
+          { path: '/tracking', label: strings.TRACKING, icon: <TrackingIcon /> },
+          { path: '/pricing', label: strings.PRICING, icon: <PricingIcon /> },
+          { path: '/assistant', label: strings.ASSISTANT, icon: <AssistantIcon /> },
+        ],
+      },
+      {
+        label: 'DOCS',
+        items: [
+          { path: '/manual-documentation', label: strings.MANUAL_DOCUMENTATION, icon: <ManualDocumentationIcon /> },
+          ...(currentUser?.type === bookcarsTypes.UserType.Admin
+            ? [{ path: '/technical-documentation', label: strings.TECHNICAL_DOCUMENTATION, icon: <TechnicalDocumentationIcon /> }]
+            : []),
+        ],
+      },
+    ]
+
+    // ACCOUNT group
+    const accountItems: NavItem[] = []
+    if (bankDetails?.showBankDetailsPage) {
+      accountItems.push({ path: '/bank-details', label: strings.BANK_DETAILS, icon: <BankDetailsIcon /> })
+    }
+    accountItems.push({ path: '/settings', label: strings.SETTINGS, icon: <SettingsIcon /> })
+
+    groups.push({
+      label: 'ACCOUNT',
+      items: accountItems,
+    })
+
+    return groups
+  }
+
+  const navGroups = buildNavGroups()
 
   const menuId = 'primary-account-menu'
   const renderMenu = (
@@ -294,224 +341,184 @@ const Header = ({
     </Menu>
   )
 
-  return !hidden && (
-    <div style={classes.grow} className="header">
-      <AppBar position="fixed" sx={{ bgcolor: '#6B3CE6' }}>
-        <Toolbar className="toolbar">
-          {isLoaded && isSignedIn && (
-            <IconButton edge="start" sx={classes.menuButton} color="inherit" aria-label="open drawer" onClick={handleSideMenuOpen}>
-              <MenuIcon />
-            </IconButton>
-          )}
-          <>
-            <Drawer open={isSideMenuOpen} onClose={handleSideMenuClose} className="menu  side-menu">
-              <List sx={classes.list}>
-                <ListItem
-                  onClick={() => {
-                    navigate('/')
-                    handleSideMenuClose()
-                  }}
-                >
-                  <ListItemIcon><DashboardIcon /></ListItemIcon>
-                  <ListItemText primary={strings.DASHBOARD} />
-                </ListItem>
-                <ListItem
-                  onClick={() => {
-                    navigate('/scheduler')
-                    handleSideMenuClose()
-                  }}
-                >
-                  <ListItemIcon><SchedulerIcon /></ListItemIcon>
-                  <ListItemText primary={strings.SCHEDULER} />
-                </ListItem>
-                <ListItem
-                  onClick={() => {
-                    navigate('/suppliers')
-                    handleSideMenuClose()
-                  }}
-                >
-                  <ListItemIcon><SuppliersIcon /></ListItemIcon>
-                  <ListItemText primary={strings.COMPANIES} />
-                </ListItem>
-                <ListItem
-                  onClick={() => {
-                    navigate('/countries')
-                    handleSideMenuClose()
-                  }}
-                >
-                  <ListItemIcon><CountriesIcon /></ListItemIcon>
-                  <ListItemText primary={strings.COUNTRIES} />
-                </ListItem>
-                <ListItem
-                  onClick={() => {
-                    navigate('/locations')
-                    handleSideMenuClose()
-                  }}
-                >
-                  <ListItemIcon><LocationsIcon /></ListItemIcon>
-                  <ListItemText primary={strings.LOCATIONS} />
-                </ListItem>
-                <ListItem
-                  onClick={() => {
-                    navigate('/cars')
-                    handleSideMenuClose()
-                  }}
-                >
-                  <ListItemIcon><CarsIcon /></ListItemIcon>
-                  <ListItemText primary={strings.CARS} />
-                </ListItem>
-                <ListItem
-                  onClick={() => {
-                    navigate('/tracking')
-                    handleSideMenuClose()
-                  }}
-                >
-                  <ListItemIcon><TrackingIcon /></ListItemIcon>
-                  <ListItemText primary={strings.TRACKING} />
-                </ListItem>
-                <ListItem
-                  onClick={() => {
-                    navigate('/users')
-                    handleSideMenuClose()
-                  }}
-                >
-                  <ListItemIcon><UsersIcon /></ListItemIcon>
-                  <ListItemText primary={strings.USERS} />
-                </ListItem>
-                <ListItem
-                  onClick={() => {
-                    navigate('/pricing')
-                    handleSideMenuClose()
-                  }}
-                >
-                  <ListItemIcon><PricingIcon /></ListItemIcon>
-                  <ListItemText primary={strings.PRICING} />
-                </ListItem>
-                <ListItem
-                  onClick={() => {
-                    navigate('/assistant')
-                    handleSideMenuClose()
-                  }}
-                >
-                  <ListItemIcon><AssistantIcon /></ListItemIcon>
-                  <ListItemText primary={strings.ASSISTANT} />
-                </ListItem>
-                <ListItem
-                  onClick={() => {
-                    navigate('/manual-documentation')
-                    handleSideMenuClose()
-                  }}
-                >
-                  <ListItemIcon><ManualDocumentationIcon /></ListItemIcon>
-                  <ListItemText primary={strings.MANUAL_DOCUMENTATION} />
-                </ListItem>
-                {currentUser?.type === bookcarsTypes.UserType.Admin && (
-                  <ListItem
-                    onClick={() => {
-                      navigate('/technical-documentation')
-                      handleSideMenuClose()
+  if (hidden) {
+    return null
+  }
+
+  return (
+    <>
+      {/* Mobile backdrop */}
+      <div
+        className={`sidebar-drawer-backdrop${sidebarOpen ? ' backdrop-visible' : ''}`}
+        onClick={handleSidebarClose}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') {
+            handleSidebarClose()
+          }
+        }}
+        role="button"
+        tabIndex={-1}
+      />
+
+      {/* Sidebar (only when signed in) */}
+      {isLoaded && isSignedIn && (
+        <aside className={`admin-sidebar${sidebarOpen ? ' sidebar-open' : ''}`}>
+          {/* Brand */}
+          <div className="sidebar-brand">
+            <CarsIcon className="sidebar-brand-icon" />
+            <span className="sidebar-brand-text">{env.WEBSITE_NAME || 'BookCars'}</span>
+          </div>
+
+          {/* Navigation */}
+          <nav className="sidebar-nav">
+            {navGroups.map((group, gi) => (
+              <div key={`group-${gi}`}>
+                {group.label && (
+                  <div className="sidebar-group-label">{group.label}</div>
+                )}
+                {group.items.map((item) => (
+                  <div
+                    key={item.path}
+                    className={`sidebar-nav-item${isActive(item.path, item.exact) ? ' active' : ''}`}
+                    onClick={() => handleNavClick(item.path)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        handleNavClick(item.path)
+                      }
                     }}
                   >
-                    <ListItemIcon><TechnicalDocumentationIcon /></ListItemIcon>
-                    <ListItemText primary={strings.TECHNICAL_DOCUMENTATION} />
-                  </ListItem>
-                )}
-                {bankDetails?.showBankDetailsPage && (
-                  <ListItem
-                    onClick={() => {
-                      navigate('/bank-details')
-                      handleSideMenuClose()
-                    }}
-                  >
-                    <ListItemIcon><BankDetailsIcon /></ListItemIcon>
-                    <ListItemText primary={strings.BANK_DETAILS} />
-                  </ListItem>
-                )}
-                <ListItem
-                  onClick={() => {
-                    navigate('/settings')
-                    handleSideMenuClose()
-                  }}
-                >
-                  <ListItemIcon><SettingsIcon /></ListItemIcon>
-                  <ListItemText primary={strings.SETTINGS} />
-                </ListItem>
-              </List>
-              <ListItem
-                onClick={() => {
-                  navigate('/about')
-                  handleSideMenuClose()
-                }}
+                    <span className="sidebar-nav-icon">{item.icon}</span>
+                    <span className="sidebar-nav-label">{item.label}</span>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </nav>
+
+          {/* Footer links */}
+          <div className="sidebar-footer">
+            <div
+              className={`sidebar-nav-item${isActive('/about') ? ' active' : ''}`}
+              onClick={() => handleNavClick('/about')}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  handleNavClick('/about')
+                }
+              }}
+            >
+              <span className="sidebar-nav-icon"><AboutIcon /></span>
+              <span className="sidebar-nav-label">{strings.ABOUT}</span>
+            </div>
+            <div
+              className={`sidebar-nav-item${isActive('/tos') ? ' active' : ''}`}
+              onClick={() => handleNavClick('/tos')}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  handleNavClick('/tos')
+                }
+              }}
+            >
+              <span className="sidebar-nav-icon"><TosIcon /></span>
+              <span className="sidebar-nav-label">{strings.TOS}</span>
+            </div>
+            <div
+              className={`sidebar-nav-item${isActive('/contact') ? ' active' : ''}`}
+              onClick={() => handleNavClick('/contact')}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  handleNavClick('/contact')
+                }
+              }}
+            >
+              <span className="sidebar-nav-icon"><MailIcon /></span>
+              <span className="sidebar-nav-label">{strings.CONTACT}</span>
+            </div>
+          </div>
+        </aside>
+      )}
+
+      {/* Content column: topbar + page content */}
+      <div className="admin-content-column">
+        <header className="admin-topbar">
+          <div className="topbar-left">
+            {isLoaded && isSignedIn && (
+              <IconButton
+                className="topbar-hamburger"
+                edge="start"
+                color="default"
+                aria-label="open sidebar"
+                onClick={handleSidebarOpen}
               >
-                <ListItemIcon><AboutIcon /></ListItemIcon>
-                <ListItemText primary={strings.ABOUT} />
-              </ListItem>
-              <ListItem
-                onClick={() => {
-                  navigate('/tos')
-                  handleSideMenuClose()
-                }}
-              >
-                <ListItemIcon><TosIcon /></ListItemIcon>
-                <ListItemText primary={strings.TOS} />
-              </ListItem>
-              <ListItem
-                onClick={() => {
-                  navigate('/contact')
-                  handleSideMenuClose()
-                }}
-              >
-                <ListItemIcon><MailIcon /></ListItemIcon>
-                <ListItemText primary={strings.CONTACT} />
-              </ListItem>
-            </Drawer>
-          </>
-          <div style={classes.grow} />
-          <div className="header-desktop">
+                <MenuIcon />
+              </IconButton>
+            )}
+            <span className="topbar-brand-mobile">{env.WEBSITE_NAME || 'BookCars'}</span>
+          </div>
+
+          <div className="topbar-spacer" />
+
+          <div className="topbar-actions">
             {isSignedIn && (
-              <IconButton aria-label="" color="inherit" onClick={handleNotificationsClick}>
+              <IconButton aria-label="notifications" color="default" onClick={handleNotificationsClick}>
                 <Badge badgeContent={notificationCount > 0 ? notificationCount : null} color="error">
                   <NotificationsIcon />
                 </Badge>
               </IconButton>
             )}
             {isLoaded && (
-              <Button variant="contained" startIcon={<LanguageIcon />} onClick={handleLangMenuOpen} disableElevation className="btn-primary">
+              <Button
+                variant="text"
+                startIcon={<LanguageIcon />}
+                onClick={handleLangMenuOpen}
+                sx={{ color: '#334155', textTransform: 'none', fontWeight: 500, fontSize: '13px', minWidth: 'auto' }}
+              >
                 {lang?.label}
               </Button>
             )}
             {isSignedIn && user && (
-              <IconButton edge="end" aria-label="account" aria-controls={menuId} aria-haspopup="true" onClick={handleAccountMenuOpen} color="inherit">
+              <IconButton
+                edge="end"
+                aria-label="account"
+                aria-controls={menuId}
+                aria-haspopup="true"
+                onClick={handleAccountMenuOpen}
+                color="default"
+              >
                 <Avatar record={user} type={user.type} size="small" readonly />
               </IconButton>
             )}
-          </div>
-          <div className="header-mobile">
-            {!isSignedIn && (
-              <Button variant="contained" startIcon={<LanguageIcon />} onClick={handleLangMenuOpen} disableElevation className="btn-primary">
-                {lang?.label}
-              </Button>
-            )}
             {isSignedIn && (
-              <IconButton color="inherit" onClick={handleNotificationsClick}>
-                <Badge badgeContent={notificationCount > 0 ? notificationCount : null} color="error">
-                  <NotificationsIcon />
-                </Badge>
-              </IconButton>
-            )}
-            {isSignedIn && (
-              <IconButton aria-label="show more" aria-controls={mobileMenuId} aria-haspopup="true" onClick={handleMobileMenuOpen} color="inherit">
+              <IconButton
+                className="topbar-mobile-more"
+                aria-label="show more"
+                aria-controls={mobileMenuId}
+                aria-haspopup="true"
+                onClick={handleMobileMenuOpen}
+                color="default"
+                sx={{ display: { xs: 'inline-flex', md: 'none' } }}
+              >
                 <MoreIcon />
               </IconButton>
             )}
           </div>
-        </Toolbar>
-      </AppBar>
+        </header>
+
+        {/* Page content passed as children */}
+        {children}
+      </div>
 
       {renderMobileMenu}
       {renderMenu}
       {renderLanguageMenu}
-    </div>
+    </>
   )
 }
 

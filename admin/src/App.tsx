@@ -61,10 +61,13 @@ const AppLayout = () => {
       <NotificationProvider refreshKey={refreshKey}>
         <RecaptchaProvider>
           <ScrollToTop />
-          <div className="app">
+          <div className="admin-layout">
             <Suspense fallback={<NProgressIndicator />}>
-              <Header />
-              <Outlet />
+              <Header>
+                <main className="admin-main">
+                  <Outlet />
+                </main>
+              </Header>
             </Suspense>
           </div>
         </RecaptchaProvider>

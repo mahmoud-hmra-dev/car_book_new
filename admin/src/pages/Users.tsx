@@ -5,6 +5,7 @@ import * as bookcarsTypes from ':bookcars-types'
 import Layout from '@/components/Layout'
 import env from '@/config/env.config'
 import { strings } from '@/lang/users'
+import { strings as headerStrings } from '@/lang/header'
 import * as helper from '@/utils/helper'
 import UserTypeFilter from '@/components/UserTypeFilter'
 import Search from '@/components/Search'
@@ -43,8 +44,14 @@ const Users = () => {
     <Layout onLoad={onLoad} strict>
       {user && (
         <div className="users">
+          <div className="page-header">
+            <h1 className="page-title">{headerStrings.USERS}</h1>
+            <Button variant="contained" className="btn-primary new-user" size="small" onClick={() => navigate('/create-user')}>
+              {strings.NEW_USER}
+            </Button>
+          </div>
           <div className="col-1">
-            <div className="div.col-1-container">
+            <div className="col-1-container">
               <Search onSubmit={handleSearch} className="search" />
 
               {admin
@@ -54,10 +61,6 @@ const Users = () => {
                     onChange={handleUserTypeFilterChange}
                   />
                 )}
-
-              <Button variant="contained" className="btn-primary new-user" size="small" onClick={() => navigate('/create-user')}>
-                {strings.NEW_USER}
-              </Button>
             </div>
           </div>
           <div className="col-2">

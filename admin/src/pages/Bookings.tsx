@@ -6,6 +6,7 @@ import * as bookcarsHelper from ':bookcars-helper'
 import Layout from '@/components/Layout'
 import env from '@/config/env.config'
 import { strings } from '@/lang/bookings'
+import { strings as headerStrings } from '@/lang/header'
 import * as helper from '@/utils/helper'
 import BookingList from '@/components/BookingList'
 import SupplierFilter from '@/components/SupplierFilter'
@@ -30,7 +31,7 @@ const Bookings = () => {
 
   useEffect(() => {
     if (user && user.verified) {
-      const col1 = document.querySelector('div.col-1')
+      const col1 = document.querySelector('div.bookings div.col-1')
       if (col1) {
         setOffset(col1.clientHeight)
       }
@@ -70,12 +71,15 @@ const Bookings = () => {
     <Layout onLoad={onLoad} strict>
       {user && (
         <div className="bookings">
+          <div className="page-header">
+            <h1 className="page-title">{headerStrings.DASHBOARD}</h1>
+            <Button variant="contained" className="btn-primary cl-new-booking" size="small" onClick={() => navigate('/create-booking')}>
+              {strings.NEW_BOOKING}
+            </Button>
+          </div>
           <div className="col-1">
             {leftPanel && (
               <>
-                <Button variant="contained" className="btn-primary cl-new-booking" size="small" onClick={() => navigate('/create-booking')}>
-                  {strings.NEW_BOOKING}
-                </Button>
                 {admin
                   && (
                     <SupplierFilter
