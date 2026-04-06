@@ -1,0 +1,92 @@
+/* ============================================
+   BOOKINGS PAGE - Modern Card Layout
+   ============================================ */
+
+div.bookings {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: absolute;
+  inset: 64px 0 0;
+  transform: translate3d(0, 0, 0);
+  background: #F8FAFB;
+}
+
+/* Filter Sidebar */
+div.bookings div.col-1 {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 320px;
+  padding: 16px;
+  background-color: #FFFFFF;
+  overflow: auto;
+  border-right: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+div.bookings div.col-1 .cl-supplier-filter,
+div.bookings div.col-1 .cl-status-filter,
+div.bookings div.col-1 .cl-booking-filter {
+  margin: 8px 0;
+}
+
+div.bookings div.col-1 .cl-booking-filter div.panel,
+div.bookings div.col-1 .cl-booking-filter div.panel-collapse {
+  padding-right: 12px;
+  padding-left: 12px;
+}
+
+/* Results */
+div.bookings div.col-2 {
+  position: absolute;
+  inset: 0 0 0 320px;
+}
+
+/* Mobile */
+@media (max-width: 960px) {
+  div.bookings {
+    position: relative;
+    top: 0;
+    overflow-y: auto;
+  }
+
+  div.bookings div.col-1,
+  div.bookings div.col-2 {
+    width: 100%;
+    max-width: 520px;
+  }
+
+  div.bookings div.col-1 {
+    position: relative;
+    inset: 0;
+    padding: 12px;
+    border-right: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  div.bookings div.col-2 {
+    position: relative;
+    inset: 0;
+  }
+
+  div.bookings div.col-1 .cl-supplier-filter label.accordion,
+  div.bookings div.col-1 .cl-status-filter label.accordion,
+  div.bookings div.col-1 .cl-booking-filter label.accordion {
+    background: #fff;
+  }
+
+  div.bookings div.col-1 .cl-supplier-filter,
+  div.bookings div.col-1 .cl-status-filter,
+  div.bookings div.col-1 .cl-booking-filter {
+    background-color: #fff;
+    width: 100%;
+    max-width: 520px;
+  }
+
+  div.bookings div.col-1 .cl-new-booking {
+    width: 100%;
+    max-width: 520px;
+    margin: 12px 0;
+  }
+}

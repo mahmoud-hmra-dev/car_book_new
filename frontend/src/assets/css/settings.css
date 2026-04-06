@@ -1,0 +1,76 @@
+/* ============================================
+   SETTINGS PAGE - Card-based Sections
+   ============================================ */
+
+div.settings {
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 auto;
+  justify-content: flex-start;
+  align-items: center;
+  transform: translate3d(0, 0, 0);
+  margin: 40px 0 80px 0;
+  min-height: 100vh;
+  background: #F8FAFB;
+}
+
+div.settings .settings-form-wrapper {
+  margin: 24px 0;
+}
+
+div.settings .settings-form-title {
+  text-align: center;
+  color: var(--bc-dark, #0F1419);
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+}
+
+div.settings .settings-net-wrapper {
+  margin: 24px 0;
+}
+
+@media (max-width: 960px) {
+  div.settings .settings-form {
+    width: 100%;
+    max-width: 400px;
+    padding: 24px;
+  }
+
+  div.settings .settings-ctn {
+    height: 240px;
+  }
+
+  div.settings .settings-net {
+    width: 100%;
+    max-width: 400px;
+    height: 200px;
+    padding: 24px;
+  }
+}
+
+@media (min-width: 961px) {
+  div.settings .settings-form {
+    width: 560px;
+    padding: 32px;
+    background: #FFFFFF;
+    border-radius: var(--bc-radius-lg, 16px);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow: var(--bc-shadow-sm, 0 1px 3px rgba(0,0,0,0.06));
+  }
+
+  div.settings .settings-ctn {
+    height: 190px;
+  }
+
+  div.settings .settings-net {
+    width: 560px;
+    height: 200px;
+    padding: 32px;
+    background: #FFFFFF;
+    border-radius: var(--bc-radius-lg, 16px);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow: var(--bc-shadow-sm, 0 1px 3px rgba(0,0,0,0.06));
+  }
+}

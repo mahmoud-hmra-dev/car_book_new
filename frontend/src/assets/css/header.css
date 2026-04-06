@@ -1,0 +1,114 @@
+/* Header */
+.header {
+  transform: translate3d(0, 0, 0);
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+}
+
+.menu {
+  z-index: 1401 !important;
+}
+
+.menu div.language,
+.btn div.language {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.flag {
+  width: 24px;
+  margin-right: 10px;
+}
+
+.menu .menu-lnk {
+  color: #0F1419;
+}
+
+.side-menu li {
+  cursor: pointer;
+  border-radius: 8px;
+  margin: 2px 8px;
+  transition: background-color 0.2s ease;
+}
+
+.side-menu li:hover {
+  background-color: rgba(27, 107, 74, 0.06);
+}
+
+.header-action {
+  margin-right: 20px;
+}
+
+.header-desktop {
+  display: flex;
+  flex-direction: row;
+  flex-grow: 1;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
+}
+
+.header-mobile {
+  display: none;
+}
+
+.header .btn {
+  background-color: transparent !important;
+  color: #0F1419 !important;
+  text-transform: none !important;
+  border-radius: 10px !important;
+  font-weight: 500 !important;
+}
+
+.header .btn:hover {
+  background-color: rgba(27, 107, 74, 0.06) !important;
+}
+
+.header .btn-auth span.btn-auth-txt {
+  white-space: nowrap;
+}
+
+.header .logo {
+  text-decoration: none;
+  text-transform: none;
+  background: transparent;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1B6B4A;
+  letter-spacing: -0.02em;
+}
+
+/* Device width is greater than or equal to 960px */
+@media only screen and (width >= 960px) {
+  .header {
+    min-height: 64px;
+  }
+}
+
+/* Device width is less than or equal to 960px */
+@media only screen and (width <= 960px) {
+  .header {
+    min-height: 56px;
+  }
+
+  header .btn {
+    padding: 0 8px;
+    min-width: 0;
+  }
+
+  .header-desktop {
+    display: none;
+  }
+
+  .header-mobile {
+    display: flex;
+    margin-right: -13px;
+  }
+
+  .toolbar {
+    min-height: 56px !important;
+  }
+}

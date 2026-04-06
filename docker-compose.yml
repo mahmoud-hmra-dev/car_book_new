@@ -1,0 +1,203 @@
+services:
+  mongo:
+    image: mongo:latest
+    command: mongod --quiet --logpath /dev/null
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
+    ports:
+      - 27018:27017
+    volumes:
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  mongo-express:
+    image: mongo-express:latest
+    restart: always
+    ports:
+      - 8084:8081
+    environment:
+      ME_CONFIG_MONGODB_URL: "mongodb://admin:admin@mongo:27017/"
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin
+    depends_on:
+      mongo:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+  traccar-db:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: traccar
+      POSTGRES_USER: traccar
+      POSTGRES_PASSWORD: traccar
+    ports:
+      - 5433:5432
+    volumes:
+      - traccar_postgres_data:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  traccar:
+    image: traccar/traccar:latest
+    restart: always
+    ports:
+      - 8382:8082
+      - 5000:5000
+    depends_on:
+      - traccar-db
+    volumes:
+      - ./__config/traccar/traccar.xml:/opt/traccar/conf/traccar.xml:ro
+      - traccar_data:/opt/traccar/data
+      - traccar_logs:/opt/traccar/logs
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  bc-backend:
+    build:
+      context: .
+      dockerfile: ./backend/Dockerfile
+    env_file: ./backend/.env.docker
+    restart: always
+    ports:
+      - 4002:4002
+    depends_on:
+      mongo:
+        condition: service_healthy
+    volumes:
+      - cdn:/var/www/cdn/bookcars
+      - backend_logs:/bookcars/backend/logs
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  bc-admin:
+    build:
+      context: .
+      dockerfile: ./admin/Dockerfile
+    depends_on:
+      - bc-backend
+    ports:
+      - 3001:3001
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  bc-frontend:
+    build:
+      context: .
+      dockerfile: ./frontend/Dockerfile
+    depends_on:
+      - bc-backend
+    ports:
+      - 8088:80
+    volumes:
+      - cdn:/var/www/cdn/bookcars
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  mysql_payment:
+    image: mysql:8.0
+    container_name: controtrack-mysql-payment
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: controtrack_payment
+      MYSQL_USER: controtrack
+      MYSQL_PASSWORD: controtrackpass
+    ports:
+      - "3388:3306"
+    volumes:
+      - db_payment:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  payment:
+    build:
+      context: ./payment
+      dockerfile: ../docker/payment/Dockerfile
+    container_name: controtrack-payment
+    restart: unless-stopped
+    ports:
+      - "8081:8000"
+    depends_on:
+      mysql_payment:
+        condition: service_healthy
+    env_file:
+      - ./payment/.env
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+      DB_CONNECTION: mysql
+      DB_HOST: mysql_payment
+      DB_PORT: 3306
+      DB_DATABASE: controtrack_payment
+      DB_USERNAME: controtrack
+      DB_PASSWORD: controtrackpass
+    volumes:
+      - payment_storage:/var/www/html/storage
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  bc-mcp:
+    build:
+      context: ./mcp
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      mongo:
+        condition: service_healthy
+      bc-backend:
+        condition: service_started
+    ports:
+      - 3100:3100
+    environment:
+      BC_API_URL: http://bc-backend:4002
+      MCP_MONGO_URI: "mongodb://admin:admin@mongo:27017/mcp_logs?authSource=admin"
+    stdin_open: true
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+volumes:
+  cdn:
+  mongodb_data:
+  mongodb_config:
+  backend_logs:
+  traccar_postgres_data:
+  traccar_data:
+  traccar_logs:
+  db_payment:
+  payment_storage:
