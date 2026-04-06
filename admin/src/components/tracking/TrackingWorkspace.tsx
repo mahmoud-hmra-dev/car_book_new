@@ -62,7 +62,7 @@ const TrackingWorkspace = () => {
 
   return (
     <Layout onLoad={tracking.onLoad} strict>
-      <div className="flex flex-col h-[calc(100vh-56px)] bg-background overflow-hidden">
+      <div className="-m-6 flex flex-col h-[calc(100vh-56px)] bg-background overflow-hidden">
         {/* Header */}
         <TrackingTopbar
           totalCount={tracking.counts.total}
