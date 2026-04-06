@@ -204,6 +204,61 @@ export const getTracking = (id: string): Promise<bookcarsTypes.CarTrackingSnapsh
     .then((res) => res.data)
 
 /**
+ * Upload additional images for a Car.
+ *
+ * @param {string} id
+ * @param {File[]} files
+ * @returns {Promise<string[]>}
+ */
+export const addImages = (id: string, files: File[]): Promise<string[]> => {
+  const formData = new FormData()
+  files.forEach((file) => formData.append('images', file))
+
+  return axiosInstance
+    .post(
+      `/api/add-car-images/${encodeURIComponent(id)}`,
+      formData,
+      {
+        withCredentials: true,
+        headers: { 'Content-Type': 'multipart/form-data' },
+      },
+    )
+    .then((res) => res.data)
+}
+
+/**
+ * Delete a specific image from a Car's images list.
+ *
+ * @param {string} id
+ * @param {string} image
+ * @returns {Promise<number>}
+ */
+export const deleteCarImageFromList = (id: string, image: string): Promise<number> =>
+  axiosInstance
+    .post(
+      `/api/delete-car-image-from-list/${encodeURIComponent(id)}/${encodeURIComponent(image)}`,
+      null,
+      { withCredentials: true },
+    )
+    .then((res) => res.status)
+
+/**
+ * Reorder a Car's images list.
+ *
+ * @param {string} id
+ * @param {string[]} images
+ * @returns {Promise<number>}
+ */
+export const reorderImages = (id: string, images: string[]): Promise<number> =>
+  axiosInstance
+    .put(
+      `/api/reorder-car-images/${encodeURIComponent(id)}`,
+      { images },
+      { withCredentials: true },
+    )
+    .then((res) => res.status)
+
+/**
  * Get Cars by supplier and location.
  *
  * @param {string} keyword

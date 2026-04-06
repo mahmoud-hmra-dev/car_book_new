@@ -40,6 +40,7 @@ import { Option, Supplier } from '@/models/common'
 import { schema, FormFields, DateBasedPrice } from '@/models/CarForm'
 
 import '@/assets/css/create-car.css'
+import '@/assets/css/car-image-gallery.css'
 
 const CreateCar = () => {
   const navigate = useNavigate()
@@ -289,6 +290,10 @@ const CreateCar = () => {
               <InfoIcon />
               <span>{strings.RECOMMENDED_IMAGE_SIZE}</span>
             </div>
+
+            <p className="car-image-gallery-note">
+              You can add more images after creating the car.
+            </p>
 
             <FormControl fullWidth margin="dense">
               <InputLabel className="required">{strings.NAME}</InputLabel>

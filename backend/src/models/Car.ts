@@ -118,6 +118,10 @@ const carSchema = new Schema<env.Car>(
     image: {
       type: String,
     },
+    images: {
+      type: [String],
+      default: [],
+    },
     seats: {
       type: Number,
       required: [true, "can't be blank"],

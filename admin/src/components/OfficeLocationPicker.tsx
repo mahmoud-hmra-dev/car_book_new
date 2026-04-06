@@ -156,7 +156,7 @@ const OfficeLocationPicker: React.FC<Props> = ({
   if (!isLoaded) {
     return (
       <div className="olp-loading">
-        <CircularProgress size={28} sx={{ color: '#1B6B4A' }} />
+        <CircularProgress size={28} sx={{ color: '#6B3CE6' }} />
         <span>Loading map…</span>
       </div>
     )
@@ -228,7 +228,7 @@ const OfficeLocationPicker: React.FC<Props> = ({
           </div>
           {address && (
             <div className="olp-coords-address">
-              <LocationOnIcon fontSize="small" sx={{ color: '#1B6B4A', mr: 0.5, flexShrink: 0 }} />
+              <LocationOnIcon fontSize="small" sx={{ color: '#6B3CE6', mr: 0.5, flexShrink: 0 }} />
               {address}
             </div>
           )}

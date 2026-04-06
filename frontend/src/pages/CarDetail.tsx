@@ -1,6 +1,6 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Button, CircularProgress } from '@mui/material'
+import { Button, CircularProgress, IconButton } from '@mui/material'
 import {
   AccountTree as GearboxIcon,
   LocalGasStation as FuelIcon,
@@ -11,6 +11,9 @@ import {
   Clear as UncheckIcon,
   ArrowBack as ArrowBackIcon,
   ArrowForward as ArrowForwardIcon,
+  ChevronLeft as ChevronLeftIcon,
+  ChevronRight as ChevronRightIcon,
+  PlayCircleOutline as PlayIcon,
 } from '@mui/icons-material'
 import * as bookcarsTypes from ':bookcars-types'
 import * as bookcarsHelper from ':bookcars-helper'
@@ -47,6 +50,13 @@ const CarDetail = () => {
   const [pricePerDay, setPricePerDay] = useState(0)
   const [language, setLanguage] = useState('')
   const [selectedImage, setSelectedImage] = useState('')
+  const [thumbnailOffset, setThumbnailOffset] = useState(0)
+  const thumbnailsRef = useRef<HTMLDivElement>(null)
+
+  const VIDEO_EXTENSIONS = ['.mp4', '.webm', '.mov', '.avi']
+  const MAX_VISIBLE_THUMBNAILS = 5
+
+  const isVideo = (url: string) => VIDEO_EXTENSIONS.some((ext) => url.toLowerCase().endsWith(ext))
 
   const onLoad = useCallback(async () => {
     const { state } = location
@@ -235,15 +245,55 @@ const CarDetail = () => {
     return items
   }
 
-  // Generate thumbnail images. Since the Car model only has one image,
-  // we create a single-item gallery from it. If additional images are
-  // added in the future, this can be extended.
   const getImages = () => {
     if (!car) {
       return []
     }
-    const images = [helper.carImageURL(car.image)]
-    return images
+    const imgs: string[] = []
+    // Main image first
+    if (car.image) {
+      imgs.push(helper.carImageURL(car.image))
+    }
+    // Additional images
+    if (car.images && car.images.length > 0) {
+      car.images.forEach((img) => {
+        imgs.push(helper.carImageURL(img))
+      })
+    }
+    return imgs
+  }
+
+  const handlePrevImage = () => {
+    const images = getImages()
+    const currentIndex = images.indexOf(selectedImage)
+    if (currentIndex > 0) {
+      setSelectedImage(images[currentIndex - 1])
+      // Adjust thumbnail scroll if needed
+      if (currentIndex - 1 < thumbnailOffset) {
+        setThumbnailOffset(thumbnailOffset - 1)
+      }
+    }
+  }
+
+  const handleNextImage = () => {
+    const images = getImages()
+    const currentIndex = images.indexOf(selectedImage)
+    if (currentIndex < images.length - 1) {
+      setSelectedImage(images[currentIndex + 1])
+      // Adjust thumbnail scroll if needed
+      if (currentIndex + 1 >= thumbnailOffset + MAX_VISIBLE_THUMBNAILS) {
+        setThumbnailOffset(thumbnailOffset + 1)
+      }
+    }
+  }
+
+  const handleThumbnailScrollLeft = () => {
+    setThumbnailOffset((prev) => Math.max(0, prev - 1))
+  }
+
+  const handleThumbnailScrollRight = () => {
+    const images = getImages()
+    setThumbnailOffset((prev) => Math.min(images.length - MAX_VISIBLE_THUMBNAILS, prev + 1))
   }
 
   return (
@@ -281,20 +331,82 @@ const CarDetail = () => {
                 </div>
 
                 <div className="car-detail-main-image">
-                  <img src={selectedImage} alt={car.name} />
+                  {getImages().length > 1 && (
+                    <IconButton
+                      className="car-detail-nav-arrow car-detail-nav-left"
+                      onClick={handlePrevImage}
+                      disabled={getImages().indexOf(selectedImage) === 0}
+                    >
+                      <ChevronLeftIcon />
+                    </IconButton>
+                  )}
+                  {isVideo(selectedImage) ? (
+                    <video
+                      src={selectedImage}
+                      controls
+                      className="car-detail-main-video"
+                    >
+                      <track kind="captions" />
+                    </video>
+                  ) : (
+                    <img src={selectedImage} alt={car.name} />
+                  )}
+                  {getImages().length > 1 && (
+                    <IconButton
+                      className="car-detail-nav-arrow car-detail-nav-right"
+                      onClick={handleNextImage}
+                      disabled={getImages().indexOf(selectedImage) === getImages().length - 1}
+                    >
+                      <ChevronRightIcon />
+                    </IconButton>
+                  )}
                 </div>
 
-                <div className="car-detail-thumbnails">
-                  {getImages().map((img, index) => (
-                    <div
-                      key={index}
-                      className={`car-detail-thumbnail${selectedImage === img ? ' active' : ''}`}
-                      onClick={() => setSelectedImage(img)}
-                    >
-                      <img src={img} alt={`${car.name} ${index + 1}`} />
+                {getImages().length > 1 && (
+                  <div className="car-detail-thumbnails-wrapper">
+                    {getImages().length > MAX_VISIBLE_THUMBNAILS && thumbnailOffset > 0 && (
+                      <IconButton
+                        className="car-detail-thumb-arrow"
+                        onClick={handleThumbnailScrollLeft}
+                        size="small"
+                      >
+                        <ChevronLeftIcon fontSize="small" />
+                      </IconButton>
+                    )}
+                    <div className="car-detail-thumbnails" ref={thumbnailsRef}>
+                      {getImages()
+                        .slice(thumbnailOffset, thumbnailOffset + MAX_VISIBLE_THUMBNAILS)
+                        .map((img, index) => (
+                          <div
+                            key={thumbnailOffset + index}
+                            className={`car-detail-thumbnail${selectedImage === img ? ' active' : ''}`}
+                            onClick={() => setSelectedImage(img)}
+                          >
+                            {isVideo(img) ? (
+                              <div className="car-detail-video-thumb">
+                                <video src={img} muted preload="metadata">
+                                  <track kind="captions" />
+                                </video>
+                                <PlayIcon className="car-detail-play-overlay" />
+                              </div>
+                            ) : (
+                              <img src={img} alt={`${car.name} ${thumbnailOffset + index + 1}`} />
+                            )}
+                          </div>
+                        ))}
                     </div>
-                  ))}
-                </div>
+                    {getImages().length > MAX_VISIBLE_THUMBNAILS
+                      && thumbnailOffset < getImages().length - MAX_VISIBLE_THUMBNAILS && (
+                        <IconButton
+                          className="car-detail-thumb-arrow"
+                          onClick={handleThumbnailScrollRight}
+                          size="small"
+                        >
+                          <ChevronRightIcon fontSize="small" />
+                        </IconButton>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Right Column: Specs + Equipment */}

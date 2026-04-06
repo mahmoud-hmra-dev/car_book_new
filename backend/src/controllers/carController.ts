@@ -120,6 +120,53 @@ export const create = async (req: Request, res: Response) => {
     }
     // --------- image ---------
 
+    // --------- additional images ---------
+    if (body.images && body.images.length > 0) {
+      const tempDir = path.resolve(env.CDN_TEMP_CARS)
+      const carsDir = path.resolve(env.CDN_CARS)
+      const movedImages: string[] = []
+
+      for (const tempImage of body.images) {
+        const safeName = path.basename(tempImage)
+        if (safeName !== tempImage) {
+          logger.warn(`[car.create] Directory traversal attempt (additional image): ${tempImage}`)
+          continue
+        }
+
+        const tempPath = path.resolve(tempDir, safeName)
+        if (!tempPath.startsWith(tempDir + path.sep)) {
+          logger.warn(`[car.create] Source path escape attempt (additional image): ${tempPath}`)
+          continue
+        }
+
+        if (await helper.pathExists(tempPath)) {
+          const imgExt = path.extname(safeName).toLowerCase()
+          if (!env.allowedMediaExtensions.includes(imgExt)) {
+            logger.warn(`[car.create] Invalid media type (additional image): ${imgExt}`)
+            continue
+          }
+
+          const newFilename = `${car._id}_${nanoid()}_${Date.now()}${imgExt}`
+          const destPath = path.resolve(carsDir, newFilename)
+          if (!destPath.startsWith(carsDir + path.sep)) {
+            logger.warn(`[car.create] Destination path escape attempt (additional image): ${destPath}`)
+            continue
+          }
+
+          await asyncFs.rename(tempPath, destPath)
+          movedImages.push(newFilename)
+        } else {
+          logger.warn(`[car.create] Additional image not found in temp: ${safeName}`)
+        }
+      }
+
+      if (movedImages.length > 0) {
+        car.images = movedImages
+        await car.save()
+      }
+    }
+    // --------- additional images ---------
+
     // notify admin if the car was created by a supplier
     if (body.loggedUser) {
       const loggedUser = await User.findById(body.loggedUser)
@@ -466,6 +513,17 @@ export const deleteCar = async (req: Request, res: Response) => {
           await asyncFs.unlink(image)
         }
       }
+
+      // delete additional images
+      if (car.images && car.images.length > 0) {
+        for (const img of car.images) {
+          const imgPath = path.join(env.CDN_CARS, img)
+          if (await helper.pathExists(imgPath)) {
+            await asyncFs.unlink(imgPath)
+          }
+        }
+      }
+
       await Booking.deleteMany({ car: car._id })
     } else {
       res.sendStatus(204)
@@ -642,6 +700,220 @@ export const deleteTempImage = async (req: Request, res: Response) => {
     res.sendStatus(200)
   } catch (err) {
     logger.error(`[car.deleteTempImage] ${i18n.t('ERROR')} ${image}`, err)
+    res.status(400).json({ error: i18n.t('ERROR') })
+  }
+}
+
+/**
+ * Add multiple images/videos to an existing car.
+ *
+ * @export
+ * @async
+ * @param {Request} req
+ * @param {Response} res
+ * @returns {unknown}
+ */
+export const addImages = async (req: Request, res: Response) => {
+  const { id } = req.params
+
+  try {
+    if (!helper.isValidObjectId(id)) {
+      throw new Error('id is not valid')
+    }
+
+    const car = await Car.findById(id)
+    if (!car) {
+      logger.error('[car.addImages] Car not found:', id)
+      res.sendStatus(204)
+      return
+    }
+
+    // security check
+    const sessionUserId = req.user?._id
+    const sessionUser = await User.findById(sessionUserId)
+    if (!sessionUser || (sessionUser.type === bookcarsTypes.UserType.Supplier && car.supplier?.toString() !== sessionUserId)) {
+      logger.error(`[car.addImages] Unauthorized attempt by user ${sessionUserId}`)
+      res.status(403).send('Forbidden: You cannot update this car')
+      return
+    }
+
+    const files = req.files as { originalname: string; buffer: Buffer }[]
+    if (!files || files.length === 0) {
+      throw new Error('[car.addImages] No files uploaded')
+    }
+
+    const carsDir = path.resolve(env.CDN_CARS)
+    const addedImages: string[] = []
+
+    for (const file of files) {
+      const ext = path.extname(file.originalname).toLowerCase()
+
+      if (!env.allowedMediaExtensions.includes(ext)) {
+        logger.warn(`[car.addImages] Invalid media type: ${ext}`)
+        continue
+      }
+
+      const filename = `${car._id}_${nanoid()}_${Date.now()}${ext}`
+      const filepath = path.resolve(carsDir, filename)
+
+      if (!filepath.startsWith(carsDir + path.sep)) {
+        logger.warn(`[car.addImages] Destination path escape attempt: ${filepath}`)
+        continue
+      }
+
+      await asyncFs.writeFile(filepath, file.buffer)
+      addedImages.push(filename)
+    }
+
+    if (addedImages.length > 0) {
+      car.images.push(...addedImages)
+      await car.save()
+    }
+
+    res.json(car.images)
+  } catch (err) {
+    logger.error(`[car.addImages] ${i18n.t('ERROR')} ${id}`, err)
+    res.status(400).json({ error: i18n.t('ERROR') })
+  }
+}
+
+/**
+ * Delete a specific image from car's images array.
+ *
+ * @export
+ * @async
+ * @param {Request} req
+ * @param {Response} res
+ * @returns {unknown}
+ */
+export const deleteCarImageFromList = async (req: Request, res: Response) => {
+  const { id, image } = req.params
+
+  try {
+    if (!helper.isValidObjectId(id)) {
+      throw new Error('id is not valid')
+    }
+
+    // prevent null bytes
+    if (image.includes('\0')) {
+      res.status(400).send('Invalid filename')
+      return
+    }
+
+    // prevent directory traversal
+    const safeName = path.basename(image)
+    if (safeName !== image) {
+      logger.warn(`[car.deleteCarImageFromList] Directory traversal attempt: ${image}`)
+      res.status(403).send('Forbidden')
+      return
+    }
+
+    const car = await Car.findById(id)
+    if (!car) {
+      logger.error('[car.deleteCarImageFromList] Car not found:', id)
+      res.sendStatus(204)
+      return
+    }
+
+    // security check
+    const sessionUserId = req.user?._id
+    const sessionUser = await User.findById(sessionUserId)
+    if (!sessionUser || (sessionUser.type === bookcarsTypes.UserType.Supplier && car.supplier?.toString() !== sessionUserId)) {
+      logger.error(`[car.deleteCarImageFromList] Unauthorized attempt by user ${sessionUserId}`)
+      res.status(403).send('Forbidden: You cannot update this car')
+      return
+    }
+
+    const imageIndex = car.images.indexOf(safeName)
+    if (imageIndex === -1) {
+      logger.error('[car.deleteCarImageFromList] Image not found in car images:', safeName)
+      res.status(404).send('Image not found')
+      return
+    }
+
+    car.images.splice(imageIndex, 1)
+
+    const baseDir = path.resolve(env.CDN_CARS)
+    const targetPath = path.resolve(baseDir, safeName)
+
+    if (!targetPath.startsWith(baseDir + path.sep)) {
+      logger.warn(`[car.deleteCarImageFromList] Path escape attempt: ${targetPath}`)
+      res.status(403).send('Forbidden')
+      return
+    }
+
+    if (await helper.pathExists(targetPath)) {
+      await asyncFs.unlink(targetPath)
+    }
+
+    await car.save()
+    res.sendStatus(200)
+  } catch (err) {
+    logger.error(`[car.deleteCarImageFromList] ${i18n.t('ERROR')} ${id}`, err)
+    res.status(400).json({ error: i18n.t('ERROR') })
+  }
+}
+
+/**
+ * Reorder car's images array.
+ *
+ * @export
+ * @async
+ * @param {Request} req
+ * @param {Response} res
+ * @returns {unknown}
+ */
+export const reorderImages = async (req: Request, res: Response) => {
+  const { id } = req.params
+
+  try {
+    if (!helper.isValidObjectId(id)) {
+      throw new Error('id is not valid')
+    }
+
+    const { images } = req.body as { images: string[] }
+
+    if (!Array.isArray(images)) {
+      res.status(400).send('images must be an array')
+      return
+    }
+
+    const car = await Car.findById(id)
+    if (!car) {
+      logger.error('[car.reorderImages] Car not found:', id)
+      res.sendStatus(204)
+      return
+    }
+
+    // security check
+    const sessionUserId = req.user?._id
+    const sessionUser = await User.findById(sessionUserId)
+    if (!sessionUser || (sessionUser.type === bookcarsTypes.UserType.Supplier && car.supplier?.toString() !== sessionUserId)) {
+      logger.error(`[car.reorderImages] Unauthorized attempt by user ${sessionUserId}`)
+      res.status(403).send('Forbidden: You cannot update this car')
+      return
+    }
+
+    // validate all filenames in the new order exist in current car.images
+    const currentImages = new Set(car.images)
+    for (const img of images) {
+      if (!currentImages.has(img)) {
+        res.status(400).send(`Image not found in car images: ${img}`)
+        return
+      }
+    }
+
+    // validate no images were dropped
+    if (images.length !== car.images.length) {
+      res.status(400).send('Images array length mismatch')
+      return
+    }
+
+    car.images = images
+    await car.save()
+    res.sendStatus(200)
+  } catch (err) {
+    logger.error(`[car.reorderImages] ${i18n.t('ERROR')} ${id}`, err)
     res.status(400).json({ error: i18n.t('ERROR') })
   }
 }

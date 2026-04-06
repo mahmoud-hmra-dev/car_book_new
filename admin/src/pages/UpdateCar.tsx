@@ -37,6 +37,7 @@ import FuelPolicyList from '@/components/FuelPolicyList'
 import MultimediaList from '@/components/MultimediaList'
 import CarRangeList from '@/components/CarRangeList'
 import DateBasedPriceEditList from '@/components/DateBasedPriceEditList'
+import CarImageGallery from '@/components/CarImageGallery'
 import { Option, Supplier } from '@/models/common'
 import { schema, FormFields, DateBasedPrice } from '@/models/CarForm'
 
@@ -388,6 +389,14 @@ const UpdateCar = () => {
                 <InfoIcon />
                 <span>{strings.RECOMMENDED_IMAGE_SIZE}</span>
               </div>
+
+              {car && car._id && (
+                <CarImageGallery
+                  carId={car._id}
+                  images={car.images || []}
+                  onChange={(newImages) => setCar({ ...car, images: newImages })}
+                />
+              )}
 
               <FormControl fullWidth margin="dense">
                 <InputLabel className="required">{strings.NAME}</InputLabel>

@@ -4,7 +4,7 @@
 
 .olp-wrapper {
   border-radius: 12px;
-  border: 1px solid rgba(27, 107, 74, 0.18);
+  border: 1px solid rgba(107, 60, 230, 0.18);
   overflow: hidden;
   background: #fff;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
@@ -18,7 +18,7 @@
   align-items: flex-start;
   gap: 10px;
   padding: 14px 18px 12px;
-  background: linear-gradient(135deg, #1B6B4A 0%, #2D9D6F 100%);
+  background: linear-gradient(135deg, #6B3CE6 0%, #8B6AEF 100%);
   color: #fff;
 }
 
@@ -71,7 +71,7 @@
 }
 
 .olp-geo-btn {
-  background: #1B6B4A !important;
+  background: #6B3CE6 !important;
   min-width: 0 !important;
   width: 36px !important;
   height: 36px !important;
@@ -81,7 +81,7 @@
 }
 
 .olp-geo-btn:hover {
-  background: #155c3e !important;
+  background: #5229BF !important;
 }
 
 .olp-clear-btn {
@@ -101,8 +101,8 @@
 /* Coordinates display */
 .olp-coords {
   padding: 12px 16px;
-  background: #F0F9F4;
-  border-top: 1px solid rgba(27, 107, 74, 0.12);
+  background: #F0EBF9;
+  border-top: 1px solid rgba(107, 60, 230, 0.12);
 }
 
 .olp-coords-row {

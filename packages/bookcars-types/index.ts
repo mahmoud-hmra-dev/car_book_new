@@ -418,6 +418,7 @@ export interface CreateCarPayload {
   gearbox: string
   aircon: boolean
   image?: string
+  images?: string[]
   seats: number
   doors: number
   fuelPolicy: string
@@ -708,6 +709,7 @@ export interface Car {
   gearbox: GearboxType
   aircon: boolean
   image?: string
+  images?: string[]
   seats: number
   doors: number
   fuelPolicy: FuelPolicy

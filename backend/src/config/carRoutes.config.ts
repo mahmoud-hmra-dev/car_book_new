@@ -14,6 +14,9 @@ const routes = {
   getFrontendCars: '/api/frontend-cars/:page/:size',
   checkCar: '/api/check-car/:id',
   getTracking: '/api/car-tracking/:id',
+  addImages: '/api/add-car-images/:id',
+  deleteCarImage: '/api/delete-car-image-from-list/:id/:image',
+  reorderImages: '/api/reorder-car-images/:id',
 }
 
 export default routes

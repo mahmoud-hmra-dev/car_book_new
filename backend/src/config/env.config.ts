@@ -794,6 +794,7 @@ export interface Car extends Document {
   gearbox: bookcarsTypes.GearboxType
   aircon: boolean
   image: string | null
+  images: string[]
   seats: number
   doors: number
   fuelPolicy: bookcarsTypes.FuelPolicy
@@ -1065,6 +1066,19 @@ export const allowedImageExtensions = [
   '.gif',
   '.bmp',
   '.tiff',
+]
+
+/**
+ * Allowed car media file extensions (images + videos).
+ *
+ * @type {string[]}
+ */
+export const allowedMediaExtensions = [
+  ...allowedImageExtensions,
+  '.mp4',
+  '.webm',
+  '.mov',
+  '.avi',
 ]
 
 /**

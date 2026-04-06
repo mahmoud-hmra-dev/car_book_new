@@ -181,7 +181,7 @@ const Car = ({
     return (
       <div className="car-grid-card">
         <div className="car-grid-card-image">
-          <img src={helper.carImageURL(car.image)} alt={car.name} loading="lazy" />
+          <img src={helper.carImageURL(car.image || (car.images && car.images.length > 0 ? car.images[0] : undefined))} alt={car.name} loading="lazy" />
         </div>
         <div className="car-grid-card-body">
           <div className="car-grid-card-header">
@@ -302,7 +302,7 @@ const Car = ({
       <article>
         <div className="car">
           <img
-            src={helper.carImageURL(car.image)}
+            src={helper.carImageURL(car.image || (car.images && car.images.length > 0 ? car.images[0] : undefined))}
             alt={car.name}
             className="car-img"
             loading="lazy"

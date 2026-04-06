@@ -91,6 +91,7 @@
   justify-content: center;
   overflow: hidden;
   margin-bottom: 16px;
+  position: relative;
 }
 
 .car-detail-main-image img {
@@ -100,24 +101,78 @@
   transition: opacity 0.3s ease;
 }
 
+.car-detail-main-video {
+  max-width: 90%;
+  max-height: 90%;
+  object-fit: contain;
+}
+
+/* ---- Navigation Arrows ---- */
+.car-detail-nav-arrow {
+  position: absolute !important;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  background: rgb(255 255 255 / 85%) !important;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 12%) !important;
+  width: 40px !important;
+  height: 40px !important;
+  transition: all 0.2s ease !important;
+}
+
+.car-detail-nav-arrow:hover {
+  background: #fff !important;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 18%) !important;
+}
+
+.car-detail-nav-arrow:disabled {
+  opacity: 0.4 !important;
+}
+
+.car-detail-nav-left {
+  left: 12px;
+}
+
+.car-detail-nav-right {
+  right: 12px;
+}
+
+/* ---- Thumbnails ---- */
+.car-detail-thumbnails-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.car-detail-thumb-arrow {
+  flex-shrink: 0;
+  color: var(--bc-gray-500, #64748B) !important;
+}
+
+.car-detail-thumb-arrow:hover {
+  color: var(--bc-primary, #6B3CE6) !important;
+}
+
 .car-detail-thumbnails {
   display: flex;
-  flex-direction: row;
-  gap: 12px;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 8px 0;
 }
 
 .car-detail-thumbnail {
   width: 80px;
   height: 60px;
-  background: var(--bc-gray-100, #F1F5F9);
-  border-radius: var(--bc-radius-sm, 8px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  border-radius: 8px;
   overflow: hidden;
   cursor: pointer;
   border: 2px solid transparent;
-  transition: all 0.2s ease;
+  flex-shrink: 0;
+  transition: border-color 0.2s;
+  background: var(--bc-gray-100, #F1F5F9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .car-detail-thumbnail:hover {
@@ -126,13 +181,40 @@
 
 .car-detail-thumbnail.active {
   border-color: var(--bc-primary, #6B3CE6);
-  box-shadow: 0 0 0 2px rgba(107, 60, 230, 0.2);
 }
 
-.car-detail-thumbnail img {
-  max-width: 90%;
-  max-height: 90%;
-  object-fit: contain;
+.car-detail-thumbnail img,
+.car-detail-thumbnail video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ---- Video Thumbnail Overlay ---- */
+.car-detail-video-thumb {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.car-detail-video-thumb video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.car-detail-play-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 28px !important;
+  color: #fff;
+  filter: drop-shadow(0 1px 3px rgb(0 0 0 / 50%));
+  pointer-events: none;
 }
 
 /* ---- Right Column ---- */
@@ -463,5 +545,10 @@
   .car-detail-thumbnail {
     width: 64px;
     height: 48px;
+  }
+
+  .car-detail-nav-arrow {
+    width: 32px !important;
+    height: 32px !important;
   }
 }
