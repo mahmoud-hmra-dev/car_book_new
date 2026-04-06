@@ -27,4 +27,57 @@ routes.route(routeNames.geofences).get(authJwt.verifyToken, authJwt.authAdmin, t
 routes.route(routeNames.geofenceAlerts).get(authJwt.verifyToken, authJwt.authAdmin, traccarController.getGeofenceAlerts)
 routes.route(routeNames.eventCenter).get(authJwt.verifyToken, authJwt.authAdmin, traccarController.getEventCenter)
 
+// Drivers
+routes.route(routeNames.driverCollection)
+  .get(authJwt.verifyToken, authJwt.authAdmin, traccarController.getDrivers)
+  .post(authJwt.verifyToken, authJwt.authAdmin, traccarController.createDriver)
+routes.route(routeNames.driverEntity)
+  .put(authJwt.verifyToken, authJwt.authAdmin, traccarController.updateDriver)
+  .delete(authJwt.verifyToken, authJwt.authAdmin, traccarController.deleteDriver)
+
+// Maintenance
+routes.route(routeNames.maintenanceCollection)
+  .get(authJwt.verifyToken, authJwt.authAdmin, traccarController.getMaintenance)
+  .post(authJwt.verifyToken, authJwt.authAdmin, traccarController.createMaintenance)
+routes.route(routeNames.maintenanceEntity)
+  .put(authJwt.verifyToken, authJwt.authAdmin, traccarController.updateMaintenance)
+  .delete(authJwt.verifyToken, authJwt.authAdmin, traccarController.deleteMaintenance)
+
+// Notifications (types route MUST be registered before the :id param route)
+routes.route(routeNames.notificationTypes).get(authJwt.verifyToken, authJwt.authAdmin, traccarController.getNotificationTypes)
+routes.route(routeNames.notificationTest).post(authJwt.verifyToken, authJwt.authAdmin, traccarController.testNotification)
+routes.route(routeNames.notificationCollection)
+  .get(authJwt.verifyToken, authJwt.authAdmin, traccarController.getNotifications)
+  .post(authJwt.verifyToken, authJwt.authAdmin, traccarController.createNotification)
+routes.route(routeNames.notificationEntity)
+  .put(authJwt.verifyToken, authJwt.authAdmin, traccarController.updateNotification)
+  .delete(authJwt.verifyToken, authJwt.authAdmin, traccarController.deleteNotification)
+
+// Groups
+routes.route(routeNames.groupCollection)
+  .get(authJwt.verifyToken, authJwt.authAdmin, traccarController.getGroups)
+  .post(authJwt.verifyToken, authJwt.authAdmin, traccarController.createGroup)
+routes.route(routeNames.groupEntity)
+  .put(authJwt.verifyToken, authJwt.authAdmin, traccarController.updateGroup)
+  .delete(authJwt.verifyToken, authJwt.authAdmin, traccarController.deleteGroup)
+
+// Statistics
+routes.route(routeNames.statistics).get(authJwt.verifyToken, authJwt.authAdmin, traccarController.getStatistics)
+
+// Device Accumulators
+routes.route(routeNames.deviceAccumulators).put(authJwt.verifyToken, authJwt.authAdmin, traccarController.updateAccumulators)
+
+// Position Export
+routes.route(routeNames.exportKml).get(authJwt.verifyToken, authJwt.authAdmin, traccarController.exportPositionsKML)
+routes.route(routeNames.exportCsv).get(authJwt.verifyToken, authJwt.authAdmin, traccarController.exportPositionsCSV)
+routes.route(routeNames.exportGpx).get(authJwt.verifyToken, authJwt.authAdmin, traccarController.exportPositionsGPX)
+
+// Computed Attributes
+routes.route(routeNames.computedAttributeCollection)
+  .get(authJwt.verifyToken, authJwt.authAdmin, traccarController.getComputedAttributes)
+  .post(authJwt.verifyToken, authJwt.authAdmin, traccarController.createComputedAttribute)
+routes.route(routeNames.computedAttributeEntity)
+  .put(authJwt.verifyToken, authJwt.authAdmin, traccarController.updateComputedAttribute)
+  .delete(authJwt.verifyToken, authJwt.authAdmin, traccarController.deleteComputedAttribute)
+
 export default routes

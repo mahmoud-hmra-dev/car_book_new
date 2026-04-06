@@ -376,6 +376,69 @@ export interface UpsertTraccarGeofencePayload {
   attributes?: Record<string, any>
 }
 
+export interface TraccarDriver {
+  id: number
+  name: string
+  uniqueId: string
+  attributes: Record<string, any>
+}
+
+export interface TraccarMaintenance {
+  id: number
+  name: string
+  type: string
+  start: number
+  period: number
+  attributes: Record<string, any>
+}
+
+export interface TraccarNotification {
+  id: number
+  type: string
+  always: boolean
+  notificators: string
+  attributes: Record<string, any>
+  calendarId?: number
+}
+
+export interface TraccarNotificationType {
+  type: string
+}
+
+export interface TraccarGroup {
+  id: number
+  name: string
+  groupId?: number
+  attributes: Record<string, any>
+}
+
+export interface TraccarStatistics {
+  captureTime: string
+  activeUsers: number
+  activeDevices: number
+  requests: number
+  messagesReceived: number
+  messagesStored: number
+  mailSent: number
+  smsSent: number
+  geocoderRequests: number
+  geolocationRequests: number
+}
+
+export interface TraccarDeviceAccumulators {
+  deviceId: number
+  totalDistance?: number
+  hours?: number
+}
+
+export interface TraccarComputedAttribute {
+  id: number
+  description: string
+  attribute: string
+  expression: string
+  type: string
+}
+
 export interface CarTrackingSnapshot {
   linked: boolean
   tracking?: TraccarCarTracking

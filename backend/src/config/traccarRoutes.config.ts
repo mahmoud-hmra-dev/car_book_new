@@ -16,6 +16,39 @@ const routes = {
   geofences: '/api/geofences/:carId',
   geofenceAlerts: '/api/geofence-alerts/:carId',
   eventCenter: '/api/events-center',
+
+  // Drivers
+  driverCollection: '/api/tracking/drivers',
+  driverEntity: '/api/tracking/drivers/:id',
+
+  // Maintenance
+  maintenanceCollection: '/api/tracking/maintenance',
+  maintenanceEntity: '/api/tracking/maintenance/:id',
+
+  // Notifications
+  notificationCollection: '/api/tracking/notifications',
+  notificationEntity: '/api/tracking/notifications/:id',
+  notificationTypes: '/api/tracking/notifications/types',
+  notificationTest: '/api/tracking/notifications/:id/test',
+
+  // Groups
+  groupCollection: '/api/tracking/groups',
+  groupEntity: '/api/tracking/groups/:id',
+
+  // Statistics
+  statistics: '/api/tracking/statistics',
+
+  // Device Accumulators
+  deviceAccumulators: '/api/tracking/devices/:deviceId/accumulators',
+
+  // Position Export
+  exportKml: '/api/tracking/export/kml/:deviceId',
+  exportCsv: '/api/tracking/export/csv/:deviceId',
+  exportGpx: '/api/tracking/export/gpx/:deviceId',
+
+  // Computed Attributes
+  computedAttributeCollection: '/api/tracking/attributes',
+  computedAttributeEntity: '/api/tracking/attributes/:id',
 }
 
 export default routes

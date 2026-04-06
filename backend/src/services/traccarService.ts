@@ -445,6 +445,194 @@ export const getSummary = async (deviceId: number, from: string, to: string): Pr
   return items[0] || null
 }
 
+// --- Drivers ---
+
+export const getDrivers = async (): Promise<bookcarsTypes.TraccarDriver[]> => {
+  ensureEnabled()
+  const response = await getClient().get('/api/drivers')
+  return response.data
+}
+
+export const createDriver = async (payload: Omit<bookcarsTypes.TraccarDriver, 'id'>): Promise<bookcarsTypes.TraccarDriver> => {
+  ensureEnabled()
+  const response = await getClient().post('/api/drivers', payload)
+  return response.data
+}
+
+export const updateDriver = async (id: number, payload: Partial<bookcarsTypes.TraccarDriver>): Promise<bookcarsTypes.TraccarDriver> => {
+  ensureEnabled()
+  const response = await getClient().put(`/api/drivers/${id}`, { ...payload, id })
+  return response.data
+}
+
+export const deleteDriver = async (id: number): Promise<void> => {
+  ensureEnabled()
+  await getClient().delete(`/api/drivers/${id}`)
+}
+
+// --- Maintenance ---
+
+export const getMaintenance = async (): Promise<bookcarsTypes.TraccarMaintenance[]> => {
+  ensureEnabled()
+  const response = await getClient().get('/api/maintenance')
+  return response.data
+}
+
+export const createMaintenance = async (payload: Omit<bookcarsTypes.TraccarMaintenance, 'id'>): Promise<bookcarsTypes.TraccarMaintenance> => {
+  ensureEnabled()
+  const response = await getClient().post('/api/maintenance', payload)
+  return response.data
+}
+
+export const updateMaintenance = async (id: number, payload: Partial<bookcarsTypes.TraccarMaintenance>): Promise<bookcarsTypes.TraccarMaintenance> => {
+  ensureEnabled()
+  const response = await getClient().put(`/api/maintenance/${id}`, { ...payload, id })
+  return response.data
+}
+
+export const deleteMaintenance = async (id: number): Promise<void> => {
+  ensureEnabled()
+  await getClient().delete(`/api/maintenance/${id}`)
+}
+
+// --- Notifications ---
+
+export const getNotifications = async (): Promise<bookcarsTypes.TraccarNotification[]> => {
+  ensureEnabled()
+  const response = await getClient().get('/api/notifications')
+  return response.data
+}
+
+export const createNotification = async (payload: Omit<bookcarsTypes.TraccarNotification, 'id'>): Promise<bookcarsTypes.TraccarNotification> => {
+  ensureEnabled()
+  const response = await getClient().post('/api/notifications', payload)
+  return response.data
+}
+
+export const updateNotification = async (id: number, payload: Partial<bookcarsTypes.TraccarNotification>): Promise<bookcarsTypes.TraccarNotification> => {
+  ensureEnabled()
+  const response = await getClient().put(`/api/notifications/${id}`, { ...payload, id })
+  return response.data
+}
+
+export const deleteNotification = async (id: number): Promise<void> => {
+  ensureEnabled()
+  await getClient().delete(`/api/notifications/${id}`)
+}
+
+export const getNotificationTypes = async (): Promise<bookcarsTypes.TraccarNotificationType[]> => {
+  ensureEnabled()
+  const response = await getClient().get('/api/notifications/types')
+  return response.data
+}
+
+export const testNotification = async (id: number): Promise<void> => {
+  ensureEnabled()
+  await getClient().post('/api/notifications/test', { id })
+}
+
+// --- Groups ---
+
+export const getGroups = async (): Promise<bookcarsTypes.TraccarGroup[]> => {
+  ensureEnabled()
+  const response = await getClient().get('/api/groups')
+  return response.data
+}
+
+export const createGroup = async (payload: Omit<bookcarsTypes.TraccarGroup, 'id'>): Promise<bookcarsTypes.TraccarGroup> => {
+  ensureEnabled()
+  const response = await getClient().post('/api/groups', payload)
+  return response.data
+}
+
+export const updateGroup = async (id: number, payload: Partial<bookcarsTypes.TraccarGroup>): Promise<bookcarsTypes.TraccarGroup> => {
+  ensureEnabled()
+  const response = await getClient().put(`/api/groups/${id}`, { ...payload, id })
+  return response.data
+}
+
+export const deleteGroup = async (id: number): Promise<void> => {
+  ensureEnabled()
+  await getClient().delete(`/api/groups/${id}`)
+}
+
+// --- Statistics ---
+
+export const getStatistics = async (from: string, to: string): Promise<bookcarsTypes.TraccarStatistics[]> => {
+  ensureEnabled()
+  const response = await getClient().get('/api/statistics', { params: { from, to } })
+  return response.data
+}
+
+// --- Device Accumulators ---
+
+export const updateAccumulators = async (deviceId: number, payload: Omit<bookcarsTypes.TraccarDeviceAccumulators, 'deviceId'>): Promise<void> => {
+  ensureEnabled()
+  await getClient().put(`/api/devices/${deviceId}/accumulators`, { ...payload, deviceId })
+}
+
+// --- Position Export ---
+
+export const exportPositionsKML = async (deviceId: number, from: string, to: string): Promise<string> => {
+  ensureEnabled()
+  const response = await getClient().get('/api/positions/kml', {
+    params: { deviceId, from, to },
+    headers: { Accept: 'application/vnd.google-earth.kml+xml' },
+    responseType: 'text',
+  })
+  return response.data
+}
+
+export const exportPositionsCSV = async (deviceId: number, from: string, to: string): Promise<string> => {
+  ensureEnabled()
+  const response = await getClient().get('/api/positions/csv', {
+    params: { deviceId, from, to },
+    headers: { Accept: 'text/csv' },
+    responseType: 'text',
+  })
+  return response.data
+}
+
+export const exportPositionsGPX = async (deviceId: number, from: string, to: string): Promise<string> => {
+  ensureEnabled()
+  const response = await getClient().get('/api/positions/gpx', {
+    params: { deviceId, from, to },
+    headers: { Accept: 'application/gpx+xml' },
+    responseType: 'text',
+  })
+  return response.data
+}
+
+// --- Computed Attributes ---
+
+export const getComputedAttributes = async (): Promise<bookcarsTypes.TraccarComputedAttribute[]> => {
+  ensureEnabled()
+  const response = await getClient().get('/api/attributes/computed')
+  return response.data
+}
+
+export const createComputedAttribute = async (
+  payload: Omit<bookcarsTypes.TraccarComputedAttribute, 'id'>,
+): Promise<bookcarsTypes.TraccarComputedAttribute> => {
+  ensureEnabled()
+  const response = await getClient().post('/api/attributes/computed', payload)
+  return response.data
+}
+
+export const updateComputedAttribute = async (
+  id: number,
+  payload: Partial<bookcarsTypes.TraccarComputedAttribute>,
+): Promise<bookcarsTypes.TraccarComputedAttribute> => {
+  ensureEnabled()
+  const response = await getClient().put(`/api/attributes/computed/${id}`, { ...payload, id })
+  return response.data
+}
+
+export const deleteComputedAttribute = async (id: number): Promise<void> => {
+  ensureEnabled()
+  await getClient().delete(`/api/attributes/computed/${id}`)
+}
+
 export const getSnapshot = async (deviceId: number) => {
   const from = new Date(Date.now() - (7 * 24 * 60 * 60 * 1000)).toISOString()
   const to = new Date().toISOString()

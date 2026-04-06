@@ -725,6 +725,322 @@ export const getVehicleReports = async (req: Request, res: Response) => {
   }
 }
 
+// --- Drivers ---
+
+export const getDrivers = async (_req: Request, res: Response) => {
+  try {
+    const drivers = await traccarService.getDrivers()
+    res.json(drivers)
+  } catch (err) {
+    logger.error('[traccar.getDrivers] Error', err)
+    res.status(400).json({ error: i18n.t('ERROR') })
+  }
+}
+
+export const createDriver = async (req: Request, res: Response) => {
+  try {
+    const driver = await traccarService.createDriver(req.body)
+    res.json(driver)
+  } catch (err) {
+    logger.error('[traccar.createDriver] Error', err)
+    res.status(400).json({ error: i18n.t('ERROR') })
+  }
+}
+
+export const updateDriver = async (req: Request, res: Response) => {
+  try {
+    const driver = await traccarService.updateDriver(parseId(req.params.id, 'id'), req.body)
+    res.json(driver)
+  } catch (err) {
+    logger.error('[traccar.updateDriver] Error', err)
+    res.status(400).json({ error: i18n.t('ERROR') })
+  }
+}
+
+export const deleteDriver = async (req: Request, res: Response) => {
+  try {
+    await traccarService.deleteDriver(parseId(req.params.id, 'id'))
+    res.status(204).send()
+  } catch (err) {
+    logger.error('[traccar.deleteDriver] Error', err)
+    res.status(400).json({ error: i18n.t('ERROR') })
+  }
+}
+
+// --- Maintenance ---
+
+export const getMaintenance = async (_req: Request, res: Response) => {
+  try {
+    const maintenance = await traccarService.getMaintenance()
+    res.json(maintenance)
+  } catch (err) {
+    logger.error('[traccar.getMaintenance] Error', err)
+    res.status(400).json({ error: i18n.t('ERROR') })
+  }
+}
+
+export const createMaintenance = async (req: Request, res: Response) => {
+  try {
+    const maintenance = await traccarService.createMaintenance(req.body)
+    res.json(maintenance)
+  } catch (err) {
+    logger.error('[traccar.createMaintenance] Error', err)
+    res.status(400).json({ error: i18n.t('ERROR') })
+  }
+}
+
+export const updateMaintenance = async (req: Request, res: Response) => {
+  try {
+    const maintenance = await traccarService.updateMaintenance(parseId(req.params.id, 'id'), req.body)
+    res.json(maintenance)
+  } catch (err) {
+    logger.error('[traccar.updateMaintenance] Error', err)
+    res.status(400).json({ error: i18n.t('ERROR') })
+  }
+}
+
+export const deleteMaintenance = async (req: Request, res: Response) => {
+  try {
+    await traccarService.deleteMaintenance(parseId(req.params.id, 'id'))
+    res.status(204).send()
+  } catch (err) {
+    logger.error('[traccar.deleteMaintenance] Error', err)
+    res.status(400).json({ error: i18n.t('ERROR') })
+  }
+}
+
+// --- Notifications ---
+
+export const getNotifications = async (_req: Request, res: Response) => {
+  try {
+    const notifications = await traccarService.getNotifications()
+    res.json(notifications)
+  } catch (err) {
+    logger.error('[traccar.getNotifications] Error', err)
+    res.status(400).json({ error: i18n.t('ERROR') })
+  }
+}
+
+export const createNotification = async (req: Request, res: Response) => {
+  try {
+    const notification = await traccarService.createNotification(req.body)
+    res.json(notification)
+  } catch (err) {
+    logger.error('[traccar.createNotification] Error', err)
+    res.status(400).json({ error: i18n.t('ERROR') })
+  }
+}
+
+export const updateNotification = async (req: Request, res: Response) => {
+  try {
+    const notification = await traccarService.updateNotification(parseId(req.params.id, 'id'), req.body)
+    res.json(notification)
+  } catch (err) {
+    logger.error('[traccar.updateNotification] Error', err)
+    res.status(400).json({ error: i18n.t('ERROR') })
+  }
+}
+
+export const deleteNotification = async (req: Request, res: Response) => {
+  try {
+    await traccarService.deleteNotification(parseId(req.params.id, 'id'))
+    res.status(204).send()
+  } catch (err) {
+    logger.error('[traccar.deleteNotification] Error', err)
+    res.status(400).json({ error: i18n.t('ERROR') })
+  }
+}
+
+export const getNotificationTypes = async (_req: Request, res: Response) => {
+  try {
+    const types = await traccarService.getNotificationTypes()
+    res.json(types)
+  } catch (err) {
+    logger.error('[traccar.getNotificationTypes] Error', err)
+    res.status(400).json({ error: i18n.t('ERROR') })
+  }
+}
+
+export const testNotification = async (req: Request, res: Response) => {
+  try {
+    await traccarService.testNotification(parseId(req.params.id, 'id'))
+    res.status(204).send()
+  } catch (err) {
+    logger.error('[traccar.testNotification] Error', err)
+    res.status(400).json({ error: i18n.t('ERROR') })
+  }
+}
+
+// --- Groups ---
+
+export const getGroups = async (_req: Request, res: Response) => {
+  try {
+    const groups = await traccarService.getGroups()
+    res.json(groups)
+  } catch (err) {
+    logger.error('[traccar.getGroups] Error', err)
+    res.status(400).json({ error: i18n.t('ERROR') })
+  }
+}
+
+export const createGroup = async (req: Request, res: Response) => {
+  try {
+    const group = await traccarService.createGroup(req.body)
+    res.json(group)
+  } catch (err) {
+    logger.error('[traccar.createGroup] Error', err)
+    res.status(400).json({ error: i18n.t('ERROR') })
+  }
+}
+
+export const updateGroup = async (req: Request, res: Response) => {
+  try {
+    const group = await traccarService.updateGroup(parseId(req.params.id, 'id'), req.body)
+    res.json(group)
+  } catch (err) {
+    logger.error('[traccar.updateGroup] Error', err)
+    res.status(400).json({ error: i18n.t('ERROR') })
+  }
+}
+
+export const deleteGroup = async (req: Request, res: Response) => {
+  try {
+    await traccarService.deleteGroup(parseId(req.params.id, 'id'))
+    res.status(204).send()
+  } catch (err) {
+    logger.error('[traccar.deleteGroup] Error', err)
+    res.status(400).json({ error: i18n.t('ERROR') })
+  }
+}
+
+// --- Statistics ---
+
+export const getStatistics = async (req: Request, res: Response) => {
+  try {
+    const from = req.query.from as string
+    const to = req.query.to as string
+
+    if (!from || !to) {
+      res.status(400).json({ error: 'from and to query parameters are required' })
+      return
+    }
+
+    const statistics = await traccarService.getStatistics(from, to)
+    res.json(statistics)
+  } catch (err) {
+    logger.error('[traccar.getStatistics] Error', err)
+    res.status(400).json({ error: i18n.t('ERROR') })
+  }
+}
+
+// --- Device Accumulators ---
+
+export const updateAccumulators = async (req: Request, res: Response) => {
+  try {
+    const deviceId = parseId(req.params.deviceId, 'deviceId')
+    await traccarService.updateAccumulators(deviceId, req.body)
+    res.status(204).send()
+  } catch (err) {
+    logger.error('[traccar.updateAccumulators] Error', err)
+    res.status(400).json({ error: i18n.t('ERROR') })
+  }
+}
+
+// --- Position Export ---
+
+export const exportPositionsKML = async (req: Request, res: Response) => {
+  try {
+    const deviceId = parseId(req.params.deviceId, 'deviceId')
+    const now = new Date()
+    const from = parseDate(req.query.from as string | undefined, new Date(now.getTime() - 24 * 60 * 60 * 1000))
+    const to = parseDate(req.query.to as string | undefined, now)
+
+    const data = await traccarService.exportPositionsKML(deviceId, from.toISOString(), to.toISOString())
+    res.set('Content-Type', 'application/vnd.google-earth.kml+xml')
+    res.set('Content-Disposition', `attachment; filename="positions-${deviceId}.kml"`)
+    res.send(data)
+  } catch (err) {
+    logger.error('[traccar.exportPositionsKML] Error', err)
+    res.status(400).json({ error: i18n.t('ERROR') })
+  }
+}
+
+export const exportPositionsCSV = async (req: Request, res: Response) => {
+  try {
+    const deviceId = parseId(req.params.deviceId, 'deviceId')
+    const now = new Date()
+    const from = parseDate(req.query.from as string | undefined, new Date(now.getTime() - 24 * 60 * 60 * 1000))
+    const to = parseDate(req.query.to as string | undefined, now)
+
+    const data = await traccarService.exportPositionsCSV(deviceId, from.toISOString(), to.toISOString())
+    res.set('Content-Type', 'text/csv')
+    res.set('Content-Disposition', `attachment; filename="positions-${deviceId}.csv"`)
+    res.send(data)
+  } catch (err) {
+    logger.error('[traccar.exportPositionsCSV] Error', err)
+    res.status(400).json({ error: i18n.t('ERROR') })
+  }
+}
+
+export const exportPositionsGPX = async (req: Request, res: Response) => {
+  try {
+    const deviceId = parseId(req.params.deviceId, 'deviceId')
+    const now = new Date()
+    const from = parseDate(req.query.from as string | undefined, new Date(now.getTime() - 24 * 60 * 60 * 1000))
+    const to = parseDate(req.query.to as string | undefined, now)
+
+    const data = await traccarService.exportPositionsGPX(deviceId, from.toISOString(), to.toISOString())
+    res.set('Content-Type', 'application/gpx+xml')
+    res.set('Content-Disposition', `attachment; filename="positions-${deviceId}.gpx"`)
+    res.send(data)
+  } catch (err) {
+    logger.error('[traccar.exportPositionsGPX] Error', err)
+    res.status(400).json({ error: i18n.t('ERROR') })
+  }
+}
+
+// --- Computed Attributes ---
+
+export const getComputedAttributes = async (_req: Request, res: Response) => {
+  try {
+    const attributes = await traccarService.getComputedAttributes()
+    res.json(attributes)
+  } catch (err) {
+    logger.error('[traccar.getComputedAttributes] Error', err)
+    res.status(400).json({ error: i18n.t('ERROR') })
+  }
+}
+
+export const createComputedAttribute = async (req: Request, res: Response) => {
+  try {
+    const attribute = await traccarService.createComputedAttribute(req.body)
+    res.json(attribute)
+  } catch (err) {
+    logger.error('[traccar.createComputedAttribute] Error', err)
+    res.status(400).json({ error: i18n.t('ERROR') })
+  }
+}
+
+export const updateComputedAttribute = async (req: Request, res: Response) => {
+  try {
+    const attribute = await traccarService.updateComputedAttribute(parseId(req.params.id, 'id'), req.body)
+    res.json(attribute)
+  } catch (err) {
+    logger.error('[traccar.updateComputedAttribute] Error', err)
+    res.status(400).json({ error: i18n.t('ERROR') })
+  }
+}
+
+export const deleteComputedAttribute = async (req: Request, res: Response) => {
+  try {
+    await traccarService.deleteComputedAttribute(parseId(req.params.id, 'id'))
+    res.status(204).send()
+  } catch (err) {
+    logger.error('[traccar.deleteComputedAttribute] Error', err)
+    res.status(400).json({ error: i18n.t('ERROR') })
+  }
+}
+
 export const getIntegrationStatus = async (_req: Request, res: Response) => {
   res.json({ enabled: env.TRACCAR_ENABLED, baseUrl: env.TRACCAR_BASE_URL })
 }
