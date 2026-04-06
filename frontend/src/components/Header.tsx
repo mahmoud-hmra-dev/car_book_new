@@ -467,6 +467,7 @@ const Header = ({
         <Drawer open={isSideMenuOpen} onClose={handleSideMenuClose} className="menu side-menu">
           <List sx={classes.list}>
             <ListItem
+              className={isNavActive('/') ? 'side-menu-active' : ''}
               onClick={() => {
                 navigate('/')
                 handleSideMenuClose()
@@ -475,29 +476,18 @@ const Header = ({
               <ListItemIcon><HomeIcon /></ListItemIcon>
               <ListItemText primary={strings.HOME} />
             </ListItem>
-            {isSignedIn && (
-              <ListItem
-                onClick={() => {
-                  navigate('/bookings')
-                  handleSideMenuClose()
-                }}
-              >
-                <ListItemIcon><BookingsIcon /></ListItemIcon>
-                <ListItemText primary={strings.BOOKINGS} />
-              </ListItem>
-            )}
-            {!env.HIDE_SUPPLIERS && (
-              <ListItem
-                onClick={() => {
-                  navigate('/suppliers')
-                  handleSideMenuClose()
-                }}
-              >
-                <ListItemIcon><SupplierIcon /></ListItemIcon>
-                <ListItemText primary={strings.SUPPLIERS} />
-              </ListItem>
-            )}
             <ListItem
+              className={isNavActive('/search') ? 'side-menu-active' : ''}
+              onClick={() => {
+                navigate('/search')
+                handleSideMenuClose()
+              }}
+            >
+              <ListItemIcon><CarIcon /></ListItemIcon>
+              <ListItemText primary={strings.VEHICLES} />
+            </ListItem>
+            <ListItem
+              className={isNavActive('/locations') ? 'side-menu-active' : ''}
               onClick={() => {
                 navigate('/locations')
                 handleSideMenuClose()
@@ -507,15 +497,101 @@ const Header = ({
               <ListItemText primary={strings.LOCATIONS} />
             </ListItem>
             <ListItem
+              className={isNavActive('/about') ? 'side-menu-active' : ''}
               onClick={() => {
                 navigate('/about')
                 handleSideMenuClose()
               }}
             >
               <ListItemIcon><AboutIcon /></ListItemIcon>
-              <ListItemText primary={strings.ABOUT} />
+              <ListItemText primary={strings.ABOUT_US} />
             </ListItem>
             <ListItem
+              className={isNavActive('/contact') ? 'side-menu-active' : ''}
+              onClick={() => {
+                navigate('/contact')
+                handleSideMenuClose()
+              }}
+            >
+              <ListItemIcon><MailIcon /></ListItemIcon>
+              <ListItemText primary={strings.CONTACT_US} />
+            </ListItem>
+            <ListItem
+              className={isNavActive('/faq') ? 'side-menu-active' : ''}
+              onClick={() => {
+                navigate('/faq')
+                handleSideMenuClose()
+              }}
+            >
+              <ListItemIcon><FaqIcon /></ListItemIcon>
+              <ListItemText primary={strings.FAQ} />
+            </ListItem>
+            {isSignedIn && (
+              <>
+                <li className="side-menu-divider" />
+                <ListItem
+                  className={isNavActive('/settings') ? 'side-menu-active' : ''}
+                  onClick={() => {
+                    navigate('/settings')
+                    handleSideMenuClose()
+                  }}
+                >
+                  <ListItemIcon><SettingsIcon /></ListItemIcon>
+                  <ListItemText primary={strings.SETTINGS} />
+                </ListItem>
+                <ListItem
+                  className={isNavActive('/bookings') ? 'side-menu-active' : ''}
+                  onClick={() => {
+                    navigate('/bookings')
+                    handleSideMenuClose()
+                  }}
+                >
+                  <ListItemIcon><BookingsIcon /></ListItemIcon>
+                  <ListItemText primary={strings.BOOKINGS} />
+                </ListItem>
+                <ListItem
+                  className={isNavActive('/notifications') ? 'side-menu-active' : ''}
+                  onClick={() => {
+                    navigate('/notifications')
+                    handleSideMenuClose()
+                  }}
+                >
+                  <ListItemIcon>
+                    <Badge badgeContent={notificationCount > 0 ? notificationCount : null} color="error">
+                      <NotificationsIcon />
+                    </Badge>
+                  </ListItemIcon>
+                  <ListItemText primary={strings.NOTIFICATIONS} />
+                </ListItem>
+                <ListItem
+                  onClick={() => {
+                    handleSignout()
+                    handleSideMenuClose()
+                  }}
+                >
+                  <ListItemIcon><SignoutIcon /></ListItemIcon>
+                  <ListItemText primary={strings.SIGN_OUT} />
+                </ListItem>
+              </>
+            )}
+            {!env.HIDE_SUPPLIERS && (
+              <>
+                <li className="side-menu-divider" />
+                <ListItem
+                  className={isNavActive('/suppliers') ? 'side-menu-active' : ''}
+                  onClick={() => {
+                    navigate('/suppliers')
+                    handleSideMenuClose()
+                  }}
+                >
+                  <ListItemIcon><SupplierIcon /></ListItemIcon>
+                  <ListItemText primary={strings.SUPPLIERS} />
+                </ListItem>
+              </>
+            )}
+            <li className="side-menu-divider" />
+            <ListItem
+              className={isNavActive('/cookie-policy') ? 'side-menu-active' : ''}
               onClick={() => {
                 navigate('/cookie-policy')
                 handleSideMenuClose()
@@ -525,6 +601,7 @@ const Header = ({
               <ListItemText primary={strings.COOKIE_POLICY} />
             </ListItem>
             <ListItem
+              className={isNavActive('/privacy') ? 'side-menu-active' : ''}
               onClick={() => {
                 navigate('/privacy')
                 handleSideMenuClose()
@@ -534,6 +611,7 @@ const Header = ({
               <ListItemText primary={strings.PRIVACY_POLICY} />
             </ListItem>
             <ListItem
+              className={isNavActive('/tos') ? 'side-menu-active' : ''}
               onClick={() => {
                 navigate('/tos')
                 handleSideMenuClose()
@@ -542,26 +620,9 @@ const Header = ({
               <ListItemIcon><TosIcon /></ListItemIcon>
               <ListItemText primary={strings.TOS} />
             </ListItem>
-            <ListItem
-              onClick={() => {
-                navigate('/faq')
-                handleSideMenuClose()
-              }}
-            >
-              <ListItemIcon><FaqIcon /></ListItemIcon>
-              <ListItemText primary={strings.FAQ} />
-            </ListItem>
-            <ListItem
-              onClick={() => {
-                navigate('/contact')
-                handleSideMenuClose()
-              }}
-            >
-              <ListItemIcon><MailIcon /></ListItemIcon>
-              <ListItemText primary={strings.CONTACT} />
-            </ListItem>
-            {env.isMobile && !hideSignin && !isSignedIn && isLoaded && (
+            {!hideSignin && !isSignedIn && isLoaded && (
               <>
+                <li className="side-menu-divider" />
                 <ListItem
                   onClick={() => {
                     navigate('/sign-in')

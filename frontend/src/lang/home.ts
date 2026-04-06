@@ -94,6 +94,7 @@ const strings = new LocalizedStrings({
     CTA_DESCRIPTION: 'Nous avons la voiture parfaite pour vous. Réservez maintenant et profitez de tarifs compétitifs avec un service exceptionnel.',
     CTA_PHONE: '+537 547-6401',
     BOOK_NOW: 'Réserver maintenant',
+    NO_CARS_AVAILABLE: 'Aucune voiture disponible pour le moment.',
   },
   en: {
     PICK_UP_DATE: 'Pick-up Date',
@@ -186,6 +187,7 @@ const strings = new LocalizedStrings({
     CTA_DESCRIPTION: 'We have the perfect car for you. Book now and enjoy competitive rates with exceptional service.',
     CTA_PHONE: '+537 547-6401',
     BOOK_NOW: 'Book now',
+    NO_CARS_AVAILABLE: 'No cars available at the moment.',
   },
   ar: {
     PICK_UP_DATE: 'تاريخ الاستلام',
@@ -278,6 +280,7 @@ const strings = new LocalizedStrings({
     CTA_DESCRIPTION: 'لدينا السيارة المثالية لك. احجز الآن واستمتع بأسعار تنافسية مع خدمة استثنائية.',
     CTA_PHONE: '+537 547-6401',
     BOOK_NOW: 'احجز الآن',
+    NO_CARS_AVAILABLE: 'لا توجد سيارات متاحة حاليا.',
   },
   es: {
     PICK_UP_DATE: 'Fecha de recogida',
@@ -370,6 +373,7 @@ const strings = new LocalizedStrings({
     CTA_DESCRIPTION: 'Tenemos el coche perfecto para ti. Reserva ahora y disfruta de tarifas competitivas con un servicio excepcional.',
     CTA_PHONE: '+537 547-6401',
     BOOK_NOW: 'Reservar ahora',
+    NO_CARS_AVAILABLE: 'No hay coches disponibles en este momento.',
   },
 })
 

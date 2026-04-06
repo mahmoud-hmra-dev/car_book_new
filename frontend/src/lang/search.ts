@@ -24,6 +24,8 @@ const strings = new LocalizedStrings({
     MODIFY_SEARCH: 'Modifier la recherche',
     FILTERS: 'Filtres',
     CLEAR_ALL: 'Tout effacer',
+    SEARCH_PROMPT_TITLE: 'Rechercher des vehicules',
+    SEARCH_PROMPT_MESSAGE: 'Selectionnez un lieu de prise en charge et des dates pour trouver les vehicules disponibles.',
   },
   en: {
     SHOW_FILTERS: 'Show Filters',
@@ -47,6 +49,8 @@ const strings = new LocalizedStrings({
     MODIFY_SEARCH: 'Modify Search',
     FILTERS: 'Filters',
     CLEAR_ALL: 'Clear all',
+    SEARCH_PROMPT_TITLE: 'Search for Vehicles',
+    SEARCH_PROMPT_MESSAGE: 'Select a pickup location and dates to find available vehicles.',
   },
   ar: {
     SHOW_FILTERS: 'إظهار الفلاتر',
@@ -70,6 +74,8 @@ const strings = new LocalizedStrings({
     MODIFY_SEARCH: 'تعديل البحث',
     FILTERS: 'الفلاتر',
     CLEAR_ALL: 'مسح الكل',
+    SEARCH_PROMPT_TITLE: 'ابحث عن مركبات',
+    SEARCH_PROMPT_MESSAGE: 'حدد موقع الاستلام والتواريخ للعثور على المركبات المتاحة.',
   },
   es: {
     SHOW_FILTERS: 'Mostrar filtros',
@@ -93,6 +99,8 @@ const strings = new LocalizedStrings({
     MODIFY_SEARCH: 'Modificar busqueda',
     FILTERS: 'Filtros',
     CLEAR_ALL: 'Borrar todo',
+    SEARCH_PROMPT_TITLE: 'Buscar vehiculos',
+    SEARCH_PROMPT_MESSAGE: 'Seleccione un lugar de recogida y las fechas para encontrar vehiculos disponibles.',
   },
 })
 

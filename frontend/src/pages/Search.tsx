@@ -5,6 +5,7 @@ import {
   DirectionsCar as CarIcon,
   EditOutlined as EditIcon,
   Close as CloseIcon,
+  SearchOutlined as SearchIcon,
 } from '@mui/icons-material'
 import * as bookcarsTypes from ':bookcars-types'
 import * as bookcarsHelper from ':bookcars-helper'
@@ -68,6 +69,7 @@ const Search = () => {
   const [activeTab, setActiveTab] = useState<string>('all')
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false)
   const [totalRecords, setTotalRecords] = useState(0)
+  const [emptySearch, setEmptySearch] = useState(false)
 
   const rangeTabs: RangeTab[] = useMemo(() => [
     { key: 'all', label: strings.ALL_VEHICLES, range: null },
@@ -200,6 +202,7 @@ const Search = () => {
     setDropOffLocation(filter.dropOffLocation)
     setFrom(filter.from)
     setTo(filter.to)
+    setEmptySearch(false)
   }
 
   const handleSupplierFilterChange = (newSuppliers: string[]) => {
@@ -256,7 +259,11 @@ const Search = () => {
   const onLoad = async (user?: bookcarsTypes.User) => {
     const { state } = location
     if (!state) {
-      setNoMatch(true)
+      setLoading(false)
+      setEmptySearch(true)
+      if (!user || (user && user.verified)) {
+        setVisible(true)
+      }
       return
     }
 
@@ -267,7 +274,10 @@ const Search = () => {
 
     if (!pickupLocationId || !dropOffLocationId || !_from || !_to) {
       setLoading(false)
-      setNoMatch(true)
+      setEmptySearch(true)
+      if (!user || (user && user.verified)) {
+        setVisible(true)
+      }
       return
     }
 
@@ -410,17 +420,19 @@ const Search = () => {
     </>
   )
 
+  const hasSearchResults = !emptySearch && supplierIds && pickupLocation && dropOffLocation && from && to
+
   return (
     <>
       <Layout onLoad={onLoad} strict={false}>
-        {visible && supplierIds && pickupLocation && dropOffLocation && from && to && (
+        {visible && (
           <div className="search-redesign">
             {/* Page Header */}
             <div className="search-page-header">
               <div className="search-page-header-inner">
                 <h1 className="search-page-title">
-                  {strings.FIND_PERFECT_CAR}
-                  {totalRecords > 0 && (
+                  {emptySearch ? strings.SEARCH_PROMPT_TITLE : strings.FIND_PERFECT_CAR}
+                  {!emptySearch && totalRecords > 0 && (
                     <span className="search-results-count">
                       {` - ${totalRecords} ${totalRecords === 1 ? strings.CAR_FOUND : strings.CARS_FOUND}`}
                     </span>
@@ -449,53 +461,85 @@ const Search = () => {
                     <CloseIcon />
                   </button>
                 </div>
-                {sidebarContent}
+                {emptySearch ? (
+                  <div className="search-sidebar-card">
+                    <div className="search-sidebar-heading">
+                      <div className="search-sidebar-heading-left">
+                        <EditIcon />
+                        <h3>{strings.MODIFY_SEARCH}</h3>
+                      </div>
+                    </div>
+
+                    <CarFilter
+                      className="filter"
+                      pickupLocation={{ _id: '', name: '' } as bookcarsTypes.Location}
+                      dropOffLocation={{ _id: '', name: '' } as bookcarsTypes.Location}
+                      from={new Date()}
+                      to={new Date(Date.now() + 24 * 60 * 60 * 1000)}
+                      onSubmit={handleCarFilterSubmit}
+                    />
+                  </div>
+                ) : sidebarContent}
               </aside>
 
               {/* Main Content */}
               <div className="search-main">
-                {/* Results Header with Category Tabs */}
-                <div className="search-results-header">
-                  <div className="search-category-tabs">
-                    {rangeTabs.map((tab) => (
-                      <button
-                        key={tab.key}
-                        type="button"
-                        className={`search-tab${activeTab === tab.key ? ' search-tab-active' : ''}`}
-                        onClick={() => handleTabChange(tab)}
-                      >
-                        {tab.key !== 'all' && <CarIcon className="search-tab-icon" />}
-                        <span>{tab.label}</span>
-                      </button>
-                    ))}
+                {emptySearch ? (
+                  <div className="search-empty-prompt">
+                    <div className="search-empty-prompt-icon">
+                      <SearchIcon />
+                    </div>
+                    <h2 className="search-empty-prompt-title">{strings.SEARCH_PROMPT_TITLE}</h2>
+                    <p className="search-empty-prompt-message">{strings.SEARCH_PROMPT_MESSAGE}</p>
                   </div>
-                </div>
+                ) : (
+                  <>
+                    {/* Results Header with Category Tabs */}
+                    <div className="search-results-header">
+                      <div className="search-category-tabs">
+                        {rangeTabs.map((tab) => (
+                          <button
+                            key={tab.key}
+                            type="button"
+                            className={`search-tab${activeTab === tab.key ? ' search-tab-active' : ''}`}
+                            onClick={() => handleTabChange(tab)}
+                          >
+                            {tab.key !== 'all' && <CarIcon className="search-tab-icon" />}
+                            <span>{tab.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
 
-                {/* Car Grid */}
-                <div className="search-grid-area">
-                  <CarList
-                    carSpecs={carSpecs}
-                    suppliers={supplierIds}
-                    carType={carType}
-                    gearbox={gearbox}
-                    mileage={mileage}
-                    fuelPolicy={fuelPolicy}
-                    deposit={deposit}
-                    pickupLocation={pickupLocation._id}
-                    dropOffLocation={dropOffLocation._id}
-                    loading={loading}
-                    from={from}
-                    to={to}
-                    ranges={ranges}
-                    multimedia={multimedia}
-                    rating={rating}
-                    seats={seats}
-                    hideSupplier={env.HIDE_SUPPLIERS}
-                    includeComingSoonCars
-                    variant="grid"
-                    onLoad={handleCarListLoad}
-                  />
-                </div>
+                    {/* Car Grid */}
+                    {hasSearchResults && (
+                      <div className="search-grid-area">
+                        <CarList
+                          carSpecs={carSpecs}
+                          suppliers={supplierIds}
+                          carType={carType}
+                          gearbox={gearbox}
+                          mileage={mileage}
+                          fuelPolicy={fuelPolicy}
+                          deposit={deposit}
+                          pickupLocation={pickupLocation._id}
+                          dropOffLocation={dropOffLocation._id}
+                          loading={loading}
+                          from={from}
+                          to={to}
+                          ranges={ranges}
+                          multimedia={multimedia}
+                          rating={rating}
+                          seats={seats}
+                          hideSupplier={env.HIDE_SUPPLIERS}
+                          includeComingSoonCars
+                          variant="grid"
+                          onLoad={handleCarListLoad}
+                        />
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
             </div>
 
@@ -512,17 +556,19 @@ const Search = () => {
             </div>
 
             {/* Mobile Filters FAB */}
-            <button
-              type="button"
-              className="search-mobile-filters-fab"
-              onClick={() => setMobileDrawerOpen(true)}
-            >
-              <FiltersIcon />
-              <span>{strings.FILTERS}</span>
-              {activeFilterCount > 0 && (
-                <span className="search-fab-badge">{activeFilterCount}</span>
-              )}
-            </button>
+            {!emptySearch && (
+              <button
+                type="button"
+                className="search-mobile-filters-fab"
+                onClick={() => setMobileDrawerOpen(true)}
+              >
+                <FiltersIcon />
+                <span>{strings.FILTERS}</span>
+                {activeFilterCount > 0 && (
+                  <span className="search-fab-badge">{activeFilterCount}</span>
+                )}
+              </button>
+            )}
           </div>
         )}
 
