@@ -544,7 +544,6 @@ const TrackingMap = ({
         gestureHandling="greedy"
         mapTypeId={mapType}
         style={{ width: '100%', height: '100%' }}
-        className="tracking-google-map"
       >
         <FitBoundsController
           vehicles={vehicles}
