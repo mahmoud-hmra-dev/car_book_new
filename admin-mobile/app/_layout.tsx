@@ -5,7 +5,14 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { Provider as PaperProvider } from 'react-native-paper'
 import * as SplashScreen from 'expo-splash-screen'
-import * as Notifications from 'expo-notifications'
+import type * as NotificationsType from 'expo-notifications'
+
+let Notifications: typeof NotificationsType | null = null
+try {
+  Notifications = require('expo-notifications') as typeof NotificationsType
+} catch {
+  // expo-notifications not available in Expo Go (SDK 53+)
+}
 import { StatusBar as ExpoStatusBar } from 'expo-status-bar'
 import Toast from 'react-native-toast-message'
 
@@ -16,21 +23,23 @@ import { AuthProvider } from '@/context/AuthContext'
 import { GlobalProvider } from '@/context/GlobalContext'
 import { SettingProvider } from '@/context/SettingContext'
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-    shouldShowList: true,
-  }),
-})
+if (Notifications) {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowBanner: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+      shouldShowList: true,
+    }),
+  })
+}
 
 SplashScreen.preventAutoHideAsync()
 
 const RootLayout = () => {
   const router = useRouter()
   const [appIsReady, setAppIsReady] = useState(false)
-  const responseListener = useRef<Notifications.EventSubscription | null>(null)
+  const responseListener = useRef<NotificationsType.EventSubscription | null>(null)
 
   useEffect(() => {
     const register = async () => {
@@ -51,21 +60,23 @@ const RootLayout = () => {
 
     register()
 
-    responseListener.current = Notifications.addNotificationResponseReceivedListener(async (response) => {
-      try {
-        const { data } = response.notification.request.content
-        if (data?.booking) {
-          if (data.user && data.notification) {
-            await NotificationService.markAsRead(data.user as string, [data.notification as string])
+    if (Notifications) {
+      responseListener.current = Notifications.addNotificationResponseReceivedListener(async (response) => {
+        try {
+          const { data } = response.notification.request.content
+          if (data?.booking) {
+            if (data.user && data.notification) {
+              await NotificationService.markAsRead(data.user as string, [data.notification as string])
+            }
+            router.push({ pathname: '/update-booking', params: { id: data.booking as string } })
+          } else {
+            router.push('/notifications')
           }
-          router.push({ pathname: '/update-booking', params: { id: data.booking as string } })
-        } else {
-          router.push('/notifications')
+        } catch (err) {
+          helper.error(err, false)
         }
-      } catch (err) {
-        helper.error(err, false)
-      }
-    })
+      })
+    }
 
     return () => {
       responseListener.current?.remove()

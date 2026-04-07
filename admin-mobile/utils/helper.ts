@@ -1,6 +1,13 @@
 import { Platform } from 'react-native'
 import * as Device from 'expo-device'
-import * as Notifications from 'expo-notifications'
+import type * as NotificationsType from 'expo-notifications'
+
+let Notifications: typeof NotificationsType | null = null
+try {
+  Notifications = require('expo-notifications') as typeof NotificationsType
+} catch {
+  // expo-notifications not available in Expo Go (SDK 53+)
+}
 import Constants from 'expo-constants'
 import { router } from 'expo-router'
 import mime from 'mime'
@@ -29,6 +36,11 @@ export const getMimeType = (fileName: string) => mime.getType(fileName)
 export const registerPushToken = async (userId: string) => {
   const registerForPushNotificationsAsync = async () => {
     let token
+
+    if (!Notifications) {
+      console.warn('expo-notifications is not available (Expo Go SDK 53+)')
+      return undefined
+    }
 
     try {
       if (android()) {
