@@ -7,8 +7,6 @@ import { strings } from '@/lang/bank-details-form'
 import Layout from '@/components/Layout'
 import NoMatch from './NoMatch'
 
-import '@/assets/css/bank-details.css'
-
 const BankDetails = () => {
   const [bankDetails, setBankDetails] = useState<bookcarsTypes.BankDetails | null>(null)
   const [noMatch, setNoMatch] = useState(false)
@@ -27,11 +25,11 @@ const BankDetails = () => {
 
   return (
     <Layout onLoad={onLoad} strict>
-      <div className="bank-details">
+      <div className="flex flex-col flex-1 justify-center items-center">
 
         {bankDetails && !noMatch && (
-          <Paper className="bank-details-form bank-details-form-wrapper" elevation={10}>
-            <h1 className="bank-details-form-title">{strings.BANK_DETAILS}</h1>
+          <Paper className="w-[360px] md:w-[550px] my-[100px] p-[62px]" elevation={10}>
+            <h1 className="text-center capitalize text-[#121212] -mt-[18px]">{strings.BANK_DETAILS}</h1>
 
             <FormControl fullWidth margin="dense">
               <InputLabel>{strings.ACCOUNT_HOLDER}</InputLabel>

@@ -33,7 +33,6 @@ import Pager from './Pager'
 import { UserContextType, useUserContext } from '@/context/UserContext'
 import Progress from '@/components/Progress'
 
-import '@/assets/css/country-list.css'
 
 interface CountryListProps {
   keyword?: string

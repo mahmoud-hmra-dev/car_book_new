@@ -32,7 +32,6 @@ import { strings } from '@/lang/user-list'
 import * as helper from '@/utils/helper'
 import * as UserService from '@/services/UserService'
 
-import '@/assets/css/user-list.css'
 
 interface UserListProps {
   types?: bookcarsTypes.UserType[]
@@ -217,8 +216,8 @@ const UserList = ({
           }
 
           return (
-            <Link href={`/user?u=${row._id}`} className="us-user">
-              <span className="us-avatar">{userAvatar}</span>
+            <Link href={`/user?u=${row._id}`} className="inline-flex">
+              <span className="mr-[5px] w-[60px] h-[30px]">{userAvatar}</span>
               <span>{value}</span>
             </Link>
           )
@@ -241,7 +240,14 @@ const UserList = ({
         field: 'type',
         headerName: commonStrings.TYPE,
         flex: 1,
-        renderCell: ({ value }: GridRenderCellParams<bookcarsTypes.User, bookcarsTypes.UserType>) => <span className={`bs us-${value?.toLowerCase()}`}>{helper.getUserType(value)}</span>,
+        renderCell: ({ value }: GridRenderCellParams<bookcarsTypes.User, bookcarsTypes.UserType>) => {
+          const typeColors: Record<string, string> = {
+            admin: 'bg-[#121212]',
+            supplier: 'bg-[#e98003]',
+            user: 'bg-[#22bba7]',
+          }
+          return <span className={`p-[3px] w-20 text-center text-white inline-flex h-[26px] justify-center items-center ${typeColors[value?.toLowerCase() || ''] || ''}`}>{helper.getUserType(value)}</span>
+        },
         valueGetter: (value: string) => value,
       },
       {
@@ -354,7 +360,7 @@ const UserList = ({
   }
 
   return (
-    <div className="us-list">
+    <div className="w-full h-full m-0 p-0">
       {user && columns.length > 0 && (
         <DataGrid
           checkboxSelection={checkboxSelection}

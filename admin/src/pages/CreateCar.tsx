@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Input,
@@ -11,7 +11,12 @@ import {
   TextField,
   FormHelperText,
 } from '@mui/material'
-import { Info as InfoIcon } from '@mui/icons-material'
+import {
+  Info as InfoIcon,
+  Close as CloseIcon,
+  Add as AddIcon,
+  PlayArrow as PlayArrowIcon,
+} from '@mui/icons-material'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as bookcarsTypes from ':bookcars-types'
@@ -39,9 +44,6 @@ import { UserContextType, useUserContext } from '@/context/UserContext'
 import { Option, Supplier } from '@/models/common'
 import { schema, FormFields, DateBasedPrice } from '@/models/CarForm'
 
-import '@/assets/css/create-car.css'
-import '@/assets/css/car-image-gallery.css'
-
 const CreateCar = () => {
   const navigate = useNavigate()
   const { user } = useUserContext() as UserContextType
@@ -52,6 +54,9 @@ const CreateCar = () => {
   const [imageError, setImageError] = useState(false)
   const [imageSizeError, setImageSizeError] = useState(false)
   const [image, setImage] = useState('')
+  const [pendingImages, setPendingImages] = useState<File[]>([])
+  const [pendingPreviews, setPendingPreviews] = useState<string[]>([])
+  const additionalFileInputRef = useRef<HTMLInputElement>(null)
 
   // Initialize react-hook-form
   const {
@@ -130,6 +135,14 @@ const CreateCar = () => {
   const fuelPolicy = useWatch({ control, name: 'fuelPolicy' })
   const aircon = useWatch({ control, name: 'aircon' })
 
+
+  const videoExtensions = ['.mp4', '.webm', '.mov']
+  const isPendingVideo = (file: File): boolean => videoExtensions.some((ext) => file.name.toLowerCase().endsWith(ext))
+
+  // Clean up object URLs on unmount
+  useEffect(() => () => {
+    pendingPreviews.forEach((url) => URL.revokeObjectURL(url))
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleBeforeUpload = () => {
     setLoading(true)
@@ -229,6 +242,13 @@ const CreateCar = () => {
       const car = await CarService.create(payload)
 
       if (car && car._id) {
+        if (pendingImages.length > 0) {
+          try {
+            await CarService.addImages(car._id, pendingImages)
+          } catch (err) {
+            helper.error(err)
+          }
+        }
         navigate('/cars')
       } else {
         helper.error()
@@ -264,14 +284,15 @@ const CreateCar = () => {
     if (image) {
       await CarService.deleteTempImage(image)
     }
+    pendingPreviews.forEach((url) => URL.revokeObjectURL(url))
     navigate('/cars')
   }
 
   return (
     <Layout onLoad={onLoad} strict>
-      <div className="create-car">
-        <Paper className="car-form car-form-wrapper" elevation={10} style={visible ? {} : { display: 'none' }}>
-          <h1 className="car-form-title">{strings.NEW_CAR_HEADING}</h1>
+      <div className="flex flex-col flex-1 items-center my-11 translate-z-0">
+        <Paper className="car-form my-8 w-[360px] p-[30px] md:w-[550px]" elevation={10} style={visible ? {} : { display: 'none' }}>
+          <h1 className="text-center capitalize text-[#121212]">{strings.NEW_CAR_HEADING}</h1>
           <form onSubmit={handleSubmit(onSubmit, onError)}>
             <Avatar
               type={bookcarsTypes.RecordType.Car}
@@ -291,9 +312,61 @@ const CreateCar = () => {
               <span>{strings.RECOMMENDED_IMAGE_SIZE}</span>
             </div>
 
-            <p className="car-image-gallery-note">
-              You can add more images after creating the car.
-            </p>
+            <div className="mt-2 mb-4">
+              <h3 className="my-4 mb-2 text-base font-medium text-black/60">Additional Images &amp; Videos</h3>
+              <div className="grid grid-cols-4 gap-3 max-md:grid-cols-3 max-sm:grid-cols-2">
+                {pendingPreviews.map((preview, index) => {
+                  const video = isPendingVideo(pendingImages[index])
+                  return (
+                    <div key={preview} className="relative rounded-xl overflow-hidden aspect-[4/3] bg-[#f1f5f9] cursor-grab transition-[opacity,border-color] duration-200 border-2 border-transparent active:cursor-grabbing">
+                      {video ? (
+                        <>
+                          <video src={preview} muted preload="metadata" className="w-full h-full object-cover block" />
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/20 pointer-events-none">
+                            <PlayArrowIcon className="!w-10 !h-10 text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.4)]" />
+                          </div>
+                        </>
+                      ) : (
+                        <img src={preview} alt={`Pending image ${index + 1}`} className="w-full h-full object-cover block" />
+                      )}
+                      <button
+                        type="button"
+                        className="absolute top-2 right-2 bg-black/60 text-white rounded-full w-7 h-7 border-none cursor-pointer flex items-center justify-center p-0 transition-colors duration-200 z-[2] hover:bg-black/80 [&_svg]:w-4 [&_svg]:h-4"
+                        onClick={() => {
+                          URL.revokeObjectURL(preview)
+                          setPendingImages((prev) => prev.filter((_, i) => i !== index))
+                          setPendingPreviews((prev) => prev.filter((_, i) => i !== index))
+                        }}
+                        aria-label="Remove image"
+                      >
+                        <CloseIcon />
+                      </button>
+                    </div>
+                  )
+                })}
+                <button
+                  type="button"
+                  className="border-2 border-dashed border-[#cbd5e1] rounded-xl flex flex-col items-center justify-center cursor-pointer aspect-[4/3] bg-transparent transition-[border-color,background] duration-200 gap-1 p-0 hover:border-primary hover:bg-primary/[0.04] [&_svg]:w-8 [&_svg]:h-8 [&_svg]:text-text-muted [&_span]:text-xs [&_span]:text-text-muted"
+                  onClick={() => additionalFileInputRef.current?.click()}
+                >
+                  <AddIcon />
+                  <span>Add images</span>
+                </button>
+                <input
+                  ref={additionalFileInputRef}
+                  type="file"
+                  accept="image/*,video/mp4,video/webm,video/quicktime"
+                  multiple
+                  style={{ display: 'none' }}
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files || [])
+                    setPendingImages((prev) => [...prev, ...files])
+                    setPendingPreviews((prev) => [...prev, ...files.map((f) => URL.createObjectURL(f))])
+                    e.target.value = ''
+                  }}
+                />
+              </div>
+            </div>
 
             <FormControl fullWidth margin="dense">
               <InputLabel className="required">{strings.NAME}</InputLabel>
@@ -387,7 +460,7 @@ const CreateCar = () => {
               />
             </FormControl>
 
-            <FormControl fullWidth margin="dense" className="checkbox-fc">
+            <FormControl fullWidth margin="dense" className="!my-3">
               <FormControlLabel
                 control={(
                   <Switch
@@ -627,7 +700,7 @@ const CreateCar = () => {
               />
             </FormControl>
 
-            <FormControl fullWidth margin="dense" className="checkbox-fc">
+            <FormControl fullWidth margin="dense" className="!my-3">
               <FormControlLabel
                 control={
                   <Switch
@@ -681,7 +754,7 @@ const CreateCar = () => {
               </>
             )}
 
-            <FormControl fullWidth margin="dense" className="checkbox-fc">
+            <FormControl fullWidth margin="dense" className="!my-3">
               <FormControlLabel
                 control={
                   <Switch
@@ -695,7 +768,7 @@ const CreateCar = () => {
               />
             </FormControl>
 
-            <FormControl fullWidth margin="dense" className="checkbox-fc">
+            <FormControl fullWidth margin="dense" className="!my-3">
               <FormControlLabel
                 control={(
                   <Switch
@@ -709,7 +782,7 @@ const CreateCar = () => {
               />
             </FormControl>
 
-            <FormControl fullWidth margin="dense" className="checkbox-fc">
+            <FormControl fullWidth margin="dense" className="!my-3">
               <FormControlLabel
                 control={(
                   <Switch
@@ -723,7 +796,7 @@ const CreateCar = () => {
               />
             </FormControl>
 
-            <FormControl fullWidth margin="dense" className="checkbox-fc">
+            <FormControl fullWidth margin="dense" className="!my-3">
               <FormControlLabel
                 control={(
                   <Switch
@@ -793,7 +866,7 @@ const CreateCar = () => {
               <span>{commonStrings.OPTIONAL}</span>
             </div>
 
-            <FormControl fullWidth margin="dense" className="checkbox-fc">
+            <FormControl fullWidth margin="dense" className="!my-3">
               <FormControlLabel
                 control={
                   <Switch

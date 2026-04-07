@@ -5,7 +5,6 @@ import { strings as commonStrings } from '@/lang/common'
 import { strings } from '@/lang/cars'
 import Accordion from './Accordion'
 
-import '@/assets/css/fuel-policy-filter.css'
 
 interface FuelPolicyFilterProps {
   className?: string
@@ -212,53 +211,57 @@ const FuelPolicyFilter = ({
   }
 
   return (
-    <Accordion title={strings.FUEL_POLICY} collapse={collapse} className={`${className ? `${className} ` : ''}fuel-policy-filter`}>
-      <div className="filter-elements">
-        <div className="filter-element">
-          <input ref={freeTankRef} type="checkbox" className="fuel-policy-checkbox" onChange={handleCheckFreeTankChange} />
+    <Accordion title={strings.FUEL_POLICY} collapse={collapse} className={className}>
+      <div className="px-1.5 py-2">
+        <div className="flex items-center gap-2 py-1.5 px-1">
+          <input ref={freeTankRef} type="checkbox" className="cursor-pointer" onChange={handleCheckFreeTankChange} />
           <span
             onClick={handleFreeTankClick}
             role="button"
             tabIndex={0}
+            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
           >
             {strings.FUEL_POLICY_FREE_TANK}
           </span>
         </div>
-        <div className="filter-element">
-          <input ref={likeForLikeRef} type="checkbox" className="fuel-policy-checkbox" onChange={handleCheckLikeForLikeChange} />
+        <div className="flex items-center gap-2 py-1.5 px-1">
+          <input ref={likeForLikeRef} type="checkbox" className="cursor-pointer" onChange={handleCheckLikeForLikeChange} />
           <span
             onClick={handleLikeForLikeClick}
             role="button"
             tabIndex={0}
+            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
           >
             {strings.FUEL_POLICY_LIKE_FOR_LIKE}
           </span>
         </div>
-        <div className="filter-element">
-          <input ref={fullToFullRef} type="checkbox" className="fuel-policy-checkbox" onChange={handleCheckFullToFullChange} />
+        <div className="flex items-center gap-2 py-1.5 px-1">
+          <input ref={fullToFullRef} type="checkbox" className="cursor-pointer" onChange={handleCheckFullToFullChange} />
           <span
             onClick={handleFullToFullClick}
             role="button"
             tabIndex={0}
+            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
           >
             {strings.FUEL_POLICY_FULL_TO_FULL}
           </span>
         </div>
-        <div className="filter-element">
-          <input ref={fullToEmptyRef} type="checkbox" className="fuel-policy-checkbox" onChange={handleCheckFullToEmptyChange} />
+        <div className="flex items-center gap-2 py-1.5 px-1">
+          <input ref={fullToEmptyRef} type="checkbox" className="cursor-pointer" onChange={handleCheckFullToEmptyChange} />
           <span
             onClick={handleFullToEmptyClick}
             role="button"
             tabIndex={0}
+            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
           >
             {strings.FUEL_POLICY_FULL_TO_EMPTY}
           </span>
         </div>
       </div>
-      <div className="filter-actions">
+      <div className="text-center pb-2.5">
         <span
           onClick={handleUncheckAllChange}
-          className="uncheckall"
+          className="text-xs text-primary underline cursor-pointer"
           role="button"
           tabIndex={0}
         >

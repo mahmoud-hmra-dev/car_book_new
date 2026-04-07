@@ -33,8 +33,6 @@ import DatePicker from '@/components/DatePicker'
 import DriverLicense from '@/components/DriverLicense'
 import { schema, FormFields } from '@/models/UserForm'
 
-import '@/assets/css/update-user.css'
-
 const UpdateUser = () => {
   const navigate = useNavigate()
 
@@ -268,9 +266,9 @@ const UpdateUser = () => {
   return (
     <Layout onLoad={onLoad} strict>
       {loggedUser && user && visible && (
-        <div className="update-user">
-          <Paper className="user-form user-form-wrapper" elevation={10}>
-            <h1 className="user-form-title">{strings.UPDATE_USER_HEADING}</h1>
+        <div className="flex flex-col flex-1 items-center my-11">
+          <Paper className="w-[360px] p-[30px] md:w-[550px] my-8" elevation={10}>
+            <h1 className="text-center capitalize text-[#121212]">{strings.UPDATE_USER_HEADING}</h1>
             <form onSubmit={handleSubmit(onSubmit)}>
               <Avatar
                 type={type}
@@ -386,7 +384,7 @@ const UpdateUser = () => {
                     <FormHelperText error={!!errors.birthDate}>{errors.birthDate?.message || ''}</FormHelperText>
                   </FormControl>
 
-                  <DriverLicense user={user} className="driver-license-field" />
+                  <DriverLicense user={user} className="mt-[15px]" />
                 </>
               )}
 
@@ -541,7 +539,7 @@ const UpdateUser = () => {
               </FormControl>
 
               {activate && (
-                <FormControl fullWidth margin="dense" className="resend-activation-link">
+                <FormControl fullWidth margin="dense" className="cursor-pointer mt-5 mb-2.5">
                   <Button
                     variant="outlined"
                     onClick={handleResendActivationLink}

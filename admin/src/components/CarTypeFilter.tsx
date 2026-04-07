@@ -5,7 +5,6 @@ import { strings as commonStrings } from '@/lang/common'
 import { strings } from '@/lang/cars'
 import Accordion from './Accordion'
 
-import '@/assets/css/car-type-filter.css'
 
 interface CarTypeProps {
   className?: string
@@ -284,74 +283,79 @@ const CarType = ({
   }
 
   return (
-    <Accordion title={strings.ENGINE} collapse={collapse} className={`${className ? `${className} ` : ''}car-type-filter`}>
-      <div className="filter-elements">
-        <div className="filter-element">
-          <input ref={dieselRef} type="checkbox" className="car-type-checkbox" onChange={handleCheckDieselChange} />
+    <Accordion title={strings.ENGINE} collapse={collapse} className={className}>
+      <div className="px-1.5 py-2">
+        <div className="flex items-center gap-2 py-1.5 px-1">
+          <input ref={dieselRef} type="checkbox" className="cursor-pointer" onChange={handleCheckDieselChange} />
           <span
             onClick={handleDieselClick}
             role="button"
             tabIndex={0}
+            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
           >
             {strings.DIESEL}
           </span>
         </div>
-        <div className="filter-element">
-          <input ref={gasolineRef} type="checkbox" className="car-type-checkbox" onChange={handleCheckGasolineChange} />
+        <div className="flex items-center gap-2 py-1.5 px-1">
+          <input ref={gasolineRef} type="checkbox" className="cursor-pointer" onChange={handleCheckGasolineChange} />
           <span
             onClick={handleGasolineClick}
             role="button"
             tabIndex={0}
+            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
           >
             {strings.GASOLINE}
           </span>
         </div>
-
-        <div className="filter-element">
-          <input ref={electricRef} type="checkbox" className="car-type-checkbox" onChange={handleCheckElectricChange} />
+        <div className="flex items-center gap-2 py-1.5 px-1">
+          <input ref={electricRef} type="checkbox" className="cursor-pointer" onChange={handleCheckElectricChange} />
           <span
             onClick={handleElectricClick}
             role="button"
             tabIndex={0}
+            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
           >
             {strings.ELECTRIC}
           </span>
         </div>
-        <div className="filter-element">
-          <input ref={hybridRef} type="checkbox" className="car-type-checkbox" onChange={handleCheckHybridChange} />
+        <div className="flex items-center gap-2 py-1.5 px-1">
+          <input ref={hybridRef} type="checkbox" className="cursor-pointer" onChange={handleCheckHybridChange} />
           <span
             onClick={handleHybridClick}
             role="button"
             tabIndex={0}
+            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
           >
             {strings.HYBRID}
           </span>
         </div>
-        <div className="filter-element">
-          <input ref={plugInHybridRef} type="checkbox" className="car-type-checkbox" onChange={handleCheckPlugInHybridChange} />
+        <div className="flex items-center gap-2 py-1.5 px-1">
+          <input ref={plugInHybridRef} type="checkbox" className="cursor-pointer" onChange={handleCheckPlugInHybridChange} />
           <span
             onClick={handlePlugInHybridClick}
             role="button"
             tabIndex={0}
+            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
           >
             {strings.PLUG_IN_HYBRID}
           </span>
         </div>
-        <div className="filter-element">
-          <input ref={unknownRef} type="checkbox" className="car-type-checkbox" onChange={handleCheckUnknownChange} />
+        <div className="flex items-center gap-2 py-1.5 px-1">
+          <input ref={unknownRef} type="checkbox" className="cursor-pointer" onChange={handleCheckUnknownChange} />
           <span
             onClick={handleUnknownClick}
             role="button"
             tabIndex={0}
+            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
           >
             {strings.UNKNOWN}
           </span>
         </div>
       </div>
-      <div className="filter-actions">
+      <div className="text-center pb-2.5">
         <span
           onClick={handleUncheckAllChange}
-          className="uncheckall"
+          className="text-xs text-primary underline cursor-pointer"
           role="button"
           tabIndex={0}
         >

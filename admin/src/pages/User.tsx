@@ -26,8 +26,6 @@ import BookingList from '@/components/BookingList'
 import NoMatch from './NoMatch'
 import * as SupplierService from '@/services/SupplierService'
 
-import '@/assets/css/user.css'
-
 const User = () => {
   const navigate = useNavigate()
 
@@ -155,9 +153,9 @@ const User = () => {
   return (
     <Layout onLoad={onLoad} strict>
       {loggedUser && user && visible && (
-        <div className="user">
-          <div className="col-1">
-            <section className="user-avatar-sec">
+        <div className="user absolute bottom-0 right-0 left-0 max-md:top-[56px] max-md:overflow-auto md:top-[64px] md:overflow-auto">
+          <div className="max-md:pt-2.5 max-md:pb-[15px] max-md:bg-[#fefefe] max-md:border-b max-md:border-[#eee] md:absolute md:top-0 md:bottom-0 md:left-0 md:w-[300px] md:pt-5 md:bg-[#fefefe] md:border-r md:border-[#eee]">
+            <section className="max-md:flex max-md:justify-center md:relative md:left-1/2 md:-translate-x-[30%]">
               <Avatar
                 record={user}
                 type={user.type}
@@ -172,33 +170,33 @@ const User = () => {
                 verified
               />
             </section>
-            <Typography variant="h4" className="user-name">
+            <Typography variant="h4" className="text-center font-semibold mt-[15px]">
               {user.fullName}
             </Typography>
             {user.bio && (
-              <Typography variant="h6" className="user-info">
+              <Typography variant="h6" className="text-center font-normal mt-2.5 text-[#676767]">
                 {user.bio}
               </Typography>
             )}
             {user.location && (
-              <Typography variant="h6" className="user-info">
+              <Typography variant="h6" className="text-center font-normal mt-2.5 text-[#676767]">
                 {user.location}
               </Typography>
             )}
             {user.phone && (
-              <Typography variant="h6" className="user-info">
+              <Typography variant="h6" className="text-center font-normal mt-2.5 text-[#676767]">
                 {user.phone}
               </Typography>
             )}
             {user.license && (
-              <div className="license">
-                <span>{commonStrings.LICENSE}</span>
+              <div className="flex flex-col p-[5px]">
+                <span className="text-[#676767]">{commonStrings.LICENSE}</span>
                 <Link href={bookcarsHelper.joinURL(env.CDN_LICENSES, user.license)} target="_blank">
                   {user.license}
                 </Link>
               </div>
             )}
-            <div className="user-actions">
+            <div className="text-center">
               {edit && (
                 <Tooltip title={commonStrings.UPDATE}>
                   <IconButton onClick={() => navigate(`/update-user?u=${user._id}`)}>
@@ -215,7 +213,7 @@ const User = () => {
               )}
             </div>
           </div>
-          <div className="col-2">
+          <div className="max-md:flex max-md:flex-col max-md:items-center md:absolute md:inset-[0_0_0_300px] md:overflow-auto">
             {_suppliers.length > 0 && (
               <BookingList
                 containerClassName="user"

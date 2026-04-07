@@ -26,8 +26,6 @@ import { schema, ParkingSpot, FormFields } from '@/models/LocationForm'
 import LocationSelectList from '@/components/LocationSelectList'
 import { Option } from '@/models/common'
 
-import '@/assets/css/create-location.css'
-
 const CreateLocation = () => {
   const { user } = useUserContext() as UserContextType
   const [visible, setVisible] = useState(false)
@@ -160,9 +158,9 @@ const CreateLocation = () => {
 
   return (
     <Layout onLoad={onLoad} strict>
-      <div className="create-location">
-        <Paper className="location-form location-form-wrapper" elevation={10} style={visible ? {} : { display: 'none' }}>
-          <h1 className="location-form-title">{strings.NEW_LOCATION_HEADING}</h1>
+      <div className="flex flex-col flex-1 items-center my-11">
+        <Paper className="w-[360px] p-[30px] md:w-[550px] my-8" elevation={10} style={visible ? {} : { display: 'none' }}>
+          <h1 className="text-center capitalize text-[#121212]">{strings.NEW_LOCATION_HEADING}</h1>
           <form onSubmit={handleSubmit(onSubmit)}>
             <Avatar
               type={bookcarsTypes.RecordType.Location}

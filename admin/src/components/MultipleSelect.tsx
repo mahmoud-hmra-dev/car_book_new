@@ -20,7 +20,6 @@ import * as bookcarsHelper from ':bookcars-helper'
 import env from '@/config/env.config'
 import * as helper from '@/utils/helper'
 
-import '@/assets/css/multiple-select.css'
 
 interface MultipleSelectProps {
   label?: string
@@ -95,7 +94,7 @@ const MultipleSelect = ({
   }, [selectedOptions, type])
 
   return (
-    <div className="multiple-select">
+    <div>
       <Autocomplete
         readOnly={readOnly}
         options={options}
@@ -158,9 +157,9 @@ const MultipleSelect = ({
                       <>
                         <InputAdornment position="start">
                           {option.image ? (
-                            <Avatar src={bookcarsHelper.joinURL(env.CDN_USERS, option.image)} className="avatar-small suo" />
+                            <Avatar src={bookcarsHelper.joinURL(env.CDN_USERS, option.image)} className="avatar-small mb-1" />
                           ) : (
-                            <AccountCircle className="avatar-small suo" color="disabled" />
+                            <AccountCircle className="avatar-small mb-1" color="disabled" />
                           )}
                         </InputAdornment>
                         {params.InputProps.startAdornment}
@@ -187,8 +186,8 @@ const MultipleSelect = ({
                     startAdornment: (
                       <>
                         <InputAdornment position="start">
-                          <div className="supplier-ia">
-                            <img src={helper.supplierImageURL(option.image)} alt={option.name} />
+                          <div className="flex flex-col justify-center items-center w-[60px] h-[34px]">
+                            <img src={helper.supplierImageURL(option.image)} alt={option.name} className="max-w-full max-h-full" />
                           </div>
                         </InputAdornment>
                         {params.InputProps.startAdornment}
@@ -307,67 +306,68 @@ const MultipleSelect = ({
 
           if (type === bookcarsTypes.RecordType.User) {
             return (
-              <li {..._props} key={option._id} className={`${props.className} ms-option`}>
-                <span className="option-image">
+              <li {..._props} key={option._id} className={`${props.className} flex items-center w-full hover:bg-[#fafafa] hover:cursor-pointer`}>
+                <span className="mt-1.5">
                   {option.image ? <Avatar src={bookcarsHelper.joinURL(env.CDN_USERS, option.image)} className="avatar-medium" /> : <AccountCircle className="avatar-medium" color="disabled" />}
                 </span>
-                <span className="option-name">{option.name}</span>
+                <span className="text-[#333] inline-block text-[0.9em] leading-[1em] whitespace-nowrap ml-1.5 mb-1.5">{option.name}</span>
               </li>
             )
           }
 
           if (type === bookcarsTypes.RecordType.Supplier) {
             return (
-              <li {..._props} key={option._id} className={`${props.className} ms-option`}>
-                <span className="option-image supplier-ia">
-                  <img src={helper.supplierImageURL(option.image)} alt={option.name} />
+              <li {..._props} key={option._id} className={`${props.className} flex items-center w-full hover:bg-[#fafafa] hover:cursor-pointer`}>
+                <span className="mt-1.5 flex flex-col justify-center items-center w-[60px] h-[34px]">
+                  <img src={helper.supplierImageURL(option.image)} alt={option.name} className="max-w-full max-h-full" />
                 </span>
-                <span className="option-name">{option.name}</span>
+                <span className="text-[#333] inline-block text-[0.9em] leading-[1em] whitespace-nowrap ml-1.5 mb-1.5">{option.name}</span>
               </li>
             )
           }
 
           if (type === bookcarsTypes.RecordType.Location) {
             return (
-              <li {..._props} key={option._id} className={`${props.className} ms-option`}>
-                <span className="option-image">
+              <li {..._props} key={option._id} className={`${props.className} flex items-center w-full hover:bg-[#fafafa] hover:cursor-pointer`}>
+                <span className="mt-1.5">
                   <LocationIcon />
                 </span>
-                <span className="option-name">{option.name}</span>
+                <span className="text-[#333] inline-block text-[0.9em] leading-[1em] whitespace-nowrap ml-1.5 mb-1.5">{option.name}</span>
               </li>
             )
           }
 
           if (type === bookcarsTypes.RecordType.Country) {
             return (
-              <li {..._props} key={option._id} className={`${props.className} ms-option`}>
-                <span className="option-image">
+              <li {..._props} key={option._id} className={`${props.className} flex items-center w-full hover:bg-[#fafafa] hover:cursor-pointer`}>
+                <span className="mt-1.5">
                   <CountryIcon />
                 </span>
-                <span className="option-name">{option.name}</span>
+                <span className="text-[#333] inline-block text-[0.9em] leading-[1em] whitespace-nowrap ml-1.5 mb-1.5">{option.name}</span>
               </li>
             )
           }
 
           if (type === bookcarsTypes.RecordType.Car) {
             return (
-              <li {..._props} key={option._id} className={`${props.className} ms-option`}>
-                <span className="option-image car-ia">
+              <li {..._props} key={option._id} className={`${props.className} flex items-center w-full hover:bg-[#fafafa] hover:cursor-pointer`}>
+                <span className="mt-1.5 flex flex-col justify-center items-center w-[160px] h-[100px]">
                   <img
                     src={helper.carImageURL(option.image)}
                     alt={option.name}
+                    className="max-w-full max-h-full"
                     style={{
                       height: env.CAR_OPTION_IMAGE_HEIGHT,
                     }}
                   />
                 </span>
-                <span className="car-option-name">{option.name}</span>
+                <span className="text-[#333] inline-block text-base font-semibold whitespace-nowrap ml-1.5 mb-1.5">{option.name}</span>
               </li>
             )
           }
 
           return (
-            <li {..._props} key={option._id} className={`${props.className} ms-option`}>
+            <li {..._props} key={option._id} className={`${props.className} flex items-center w-full hover:bg-[#fafafa] hover:cursor-pointer`}>
               <span>{option.name}</span>
             </li>
           )

@@ -8,8 +8,6 @@ import * as UserService from '@/services/UserService'
 import * as helper from '@/utils/helper'
 import env from '@/config/env.config'
 
-import '@/assets/css/driver-license.css'
-
 interface DriverLicenseProps {
   user?: bookcarsTypes.User
   variant?: 'standard' | 'outlined'
@@ -80,23 +78,23 @@ const DriverLicense = ({
   }
 
   return (
-    <div className={`driver-license ${className || ''}`}>
+    <div className={`flex flex-row items-center ${className || ''}`}>
       {variant === 'standard' ? (
         <Input
           value={license || commonStrings.UPLOAD_DRIVER_LICENSE}
           readOnly
           onClick={handleClick}
-          className="filename"
+          className="w-full max-md:w-[210px] mr-[5px] text-[#666]"
         />
       ) : (
         <OutlinedInput
           value={license || commonStrings.UPLOAD_DRIVER_LICENSE}
           readOnly
           onClick={handleClick}
-          className="filename"
+          className="w-full max-md:w-[210px] mr-[5px] text-[#666]"
         />
       )}
-      <div className="actions">
+      <div className="flex flex-row">
         <IconButton
           size="small"
           onClick={handleClick}

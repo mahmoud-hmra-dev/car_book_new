@@ -43,7 +43,6 @@ import CO2MinIcon from '@/assets/img/co2-min-icon.png'
 import CO2MiddleIcon from '@/assets/img/co2-middle-icon.png'
 import CO2MaxIcon from '@/assets/img/co2-max-icon.png'
 
-import '@/assets/css/car-list.css'
 
 interface CarListProps {
   suppliers?: string[]

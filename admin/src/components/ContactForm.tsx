@@ -20,8 +20,6 @@ import { useRecaptchaContext, RecaptchaContextType } from '@/context/RecaptchaCo
 import * as helper from '@/utils/helper'
 import { schema, FormFields } from '@/models/ContactForm'
 
-import '@/assets/css/contact-form.css'
-
 interface ContactFormProps {
   user?: bookcarsTypes.User
   className?: string
@@ -88,8 +86,8 @@ const ContactForm = ({ user, className }: ContactFormProps) => {
   }
 
   return (
-    <Paper className={`${className ? `${className} ` : ''}contact-form`} elevation={10}>
-      <h1 className="contact-form-title">{strings.CONTACT_HEADING}</h1>
+    <Paper className={`${className ? `${className} ` : ''}p-[30px] max-md:w-[350px] md:w-[550px]`} elevation={10}>
+      <h1 className="text-center capitalize text-[#232323]">{strings.CONTACT_HEADING}</h1>
       <form onSubmit={handleSubmit(onSubmit)}>
         {!isAuthenticated && (
           <FormControl fullWidth margin="dense" error={!!errors.email}>

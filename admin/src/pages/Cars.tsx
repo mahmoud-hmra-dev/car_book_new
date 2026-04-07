@@ -26,8 +26,6 @@ import CarMultimediaFilter from '@/components/CarMultimediaFilter'
 import CarRatingFilter from '@/components/CarRatingFilter'
 import CarSeatsFilter from '@/components/CarSeatsFilter'
 
-import '@/assets/css/cars.css'
-
 const Cars = () => {
   const navigate = useNavigate()
 
@@ -138,30 +136,30 @@ const Cars = () => {
   return (
     <Layout onLoad={onLoad} strict>
       {user && (
-        <div className="cars">
-          <div className="page-header">
+        <div className="cars flex flex-col gap-6 min-h-0">
+          <div className="bg-white rounded-xl shadow-sm px-6 py-5 flex items-center justify-between flex-wrap gap-4">
             <div>
-              <h1 className="page-title">
+              <h1 className="text-2xl font-bold text-text m-0 leading-tight">
                 {headerStrings.CARS}
                 {rowCount > 0 && (
-                  <span className="page-count">
+                  <span className="text-sm font-normal text-text-secondary ml-3">
                     {`(${bookcarsHelper.formatNumber(rowCount, language)} ${rowCount > 1 ? commonStrings.CARS : commonStrings.CAR})`}
                   </span>
                 )}
               </h1>
             </div>
-            <Button type="submit" variant="contained" className="btn-primary new-car" size="small" onClick={() => navigate('/create-car')}>
+            <Button type="submit" variant="contained" className="btn-primary !rounded-lg !normal-case !font-semibold !text-sm !px-5 !py-2 !shadow-none" size="small" onClick={() => navigate('/create-car')}>
               {strings.NEW_CAR}
             </Button>
           </div>
-          <div className="col-1">
-            <div className="col-1-container">
-              <Search onSubmit={handleSearch} className="search" />
+          <div className="col-1 bg-white rounded-xl shadow-sm px-6 py-5 w-full">
+            <div className="flex flex-wrap gap-3 items-start w-full">
+              <Search onSubmit={handleSearch} className="search w-full max-w-[400px] flex justify-start max-md:max-w-full" />
 
               {admin && (
                 loadingSuppliers ? (
-                  <div className="filter-progress-wrapper">
-                    <CircularProgress className="filter-progress" size="1.3rem" />
+                  <div className="w-full h-[30px] flex flex-col items-center justify-center my-2.5">
+                    <CircularProgress className="text-primary" size="1.3rem" />
                   </div>
                 )
                   : <SupplierFilter suppliers={allSuppliers} onChange={handleSupplierFilterChange} className="filter" />
@@ -184,7 +182,7 @@ const Cars = () => {
               )}
             </div>
           </div>
-          <div className="col-2">
+          <div className="bg-white rounded-xl shadow-sm p-4 min-h-[300px] flex flex-col items-center flex-1">
             <CarList
               user={user}
               suppliers={suppliers}

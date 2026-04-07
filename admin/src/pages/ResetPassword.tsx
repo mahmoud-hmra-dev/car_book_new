@@ -18,8 +18,6 @@ import NoMatch from './NoMatch'
 import { schema, FormFields } from '@/models/ResetPasswordForm'
 import PasswordInput from '@/components/PasswordInput'
 
-import '@/assets/css/reset-password.css'
-
 const ResetPassword = () => {
   const navigate = useNavigate()
 
@@ -106,8 +104,8 @@ const ResetPassword = () => {
   return (
     <Layout onLoad={onLoad} strict={false}>
       <div className={visible ? '' : 'hidden'}>
-        <div className="reset-password">
-          <Paper className="reset-password-form" elevation={10}>
+        <div className="flex flex-col items-center pb-10">
+          <Paper className="mt-10 w-[330px] md:w-[450px] min-h-[440px] md:min-h-[390px] p-[30px]" elevation={10}>
             <h1>{rpStrings.RESET_PASSWORD_HEADING}</h1>
             <form onSubmit={handleSubmit(onSubmit)}>
 

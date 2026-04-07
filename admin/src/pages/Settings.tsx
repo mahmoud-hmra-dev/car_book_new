@@ -38,8 +38,6 @@ import BankDetailsForm from '@/components/BankDetailsForm'
 import { schema, FormFields } from '@/models/SettingsForm'
 import SettingForm from '@/components/SettingForm'
 
-import '@/assets/css/settings.css'
-
 const Settings = () => {
   const navigate = useNavigate()
 
@@ -170,9 +168,9 @@ const Settings = () => {
   return (
     <Layout onLoad={onLoad} strict>
       {visible && user && (
-        <div className="settings">
+        <div className="flex flex-col flex-1 justify-center items-center my-11 translate-z-0">
 
-          <Paper className="settings-form settings-form-wrapper" elevation={10}>
+          <Paper className="my-8 w-[360px] p-[30px] md:w-[550px]" elevation={10}>
             <form onSubmit={handleSubmit(onSubmit)}>
               <Avatar
                 type={user.type}
@@ -230,8 +228,8 @@ const Settings = () => {
             </form>
           </Paper>
 
-          <Paper className="settings-net settings-net-wrapper" elevation={10}>
-            <h1 className="settings-form-title">{strings.NETWORK_SETTINGS}</h1>
+          <Paper className="my-8 w-[360px] p-[30px] md:w-[550px]" elevation={10}>
+            <h1 className="text-center capitalize text-[#121212]">{strings.NETWORK_SETTINGS}</h1>
             <FormControl component="fieldset">
               <FormControlLabel
                 control={(
@@ -260,8 +258,8 @@ const Settings = () => {
           )}
 
           {user.type === bookcarsTypes.UserType.Admin && (
-            <Paper className="settings-net settings-net-wrapper" elevation={10} style={{ marginTop: 20 }}>
-              <h1 className="settings-form-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Paper className="my-8 w-[360px] p-[30px] md:w-[550px] mt-5" elevation={10}>
+              <h1 className="text-center capitalize text-[#121212] flex items-center gap-2">
                 <SeedIcon color="success" />
                 Demo Data
               </h1>

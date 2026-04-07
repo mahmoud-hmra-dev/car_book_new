@@ -32,8 +32,6 @@ import DatePicker from '@/components/DatePicker'
 import DriverLicense from '@/components/DriverLicense'
 import { schema, FormFields } from '@/models/UserForm'
 
-import '@/assets/css/create-user.css'
-
 const CreateUser = () => {
   const navigate = useNavigate()
   const [user, setUser] = useState<bookcarsTypes.User>()
@@ -203,9 +201,9 @@ const CreateUser = () => {
   return (
     <Layout onLoad={onLoad} strict>
       {user && (
-        <div className="create-user">
-          <Paper className="user-form user-form-wrapper" elevation={10} style={visible ? {} : { display: 'none' }}>
-            <h1 className="user-form-title">{strings.CREATE_USER_HEADING}</h1>
+        <div className="flex flex-col flex-1 items-center">
+          <Paper className="w-[360px] p-[30px] md:w-[550px] my-8" elevation={10} style={visible ? {} : { display: 'none' }}>
+            <h1 className="text-center capitalize text-[#121212]">{strings.CREATE_USER_HEADING}</h1>
             <form onSubmit={handleSubmit(onSubmit)}>
               <Avatar
                 type={type}
@@ -316,7 +314,7 @@ const CreateUser = () => {
                   </FormControl>
 
                   <DriverLicense
-                    className="driver-license-field"
+                    className="mt-[15px]"
                     onUpload={(filename: string) => {
                       setLicense(filename)
                     }}

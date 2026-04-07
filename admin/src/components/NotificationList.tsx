@@ -33,7 +33,6 @@ import env from '@/config/env.config'
 import Backdrop from '@/components/SimpleBackdrop'
 import { useNotificationContext, NotificationContextType } from '@/context/NotificationContext'
 
-import '@/assets/css/notification-list.css'
 
 interface NotificationListProps {
   user?: bookcarsTypes.User

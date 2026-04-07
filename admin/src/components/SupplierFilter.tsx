@@ -6,7 +6,6 @@ import { strings as commonStrings } from '@/lang/common'
 import * as helper from '@/utils/helper'
 import Accordion from './Accordion'
 
-import '@/assets/css/supplier-filter.css'
 
 interface SupplierFilterProps {
   suppliers: bookcarsTypes.User[]

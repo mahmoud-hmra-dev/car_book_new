@@ -4,7 +4,6 @@ import * as bookcarsHelper from ':bookcars-helper'
 import { strings as commonStrings } from '@/lang/common'
 import * as helper from '@/utils/helper'
 
-import '@/assets/css/user-type-filter.css'
 
 interface UserTypeFilterProps {
   className?: string

@@ -32,8 +32,6 @@ import PasswordInput from '@/components/PasswordInput'
 import { UserContextType, useUserContext } from '@/context/UserContext'
 import { schema, FormFields } from '@/models/SupplierForm'
 
-import '@/assets/css/create-supplier.css'
-
 const CreateSupplier = () => {
   const navigate = useNavigate()
 
@@ -186,9 +184,9 @@ const CreateSupplier = () => {
 
   return (
     <Layout onLoad={onLoad} strict admin>
-      <div className="create-supplier">
-        <Paper className="supplier-form" elevation={10} style={visible ? {} : { display: 'none' }}>
-          <h1 className="supplier-form-title">{strings.CREATE_SUPPLIER_HEADING}</h1>
+      <div className="flex flex-col flex-1 items-center my-11">
+        <Paper className="w-[360px] p-[30px] md:w-[550px]" elevation={10} style={visible ? {} : { display: 'none' }}>
+          <h1 className="text-center capitalize text-[#121212]">{strings.CREATE_SUPPLIER_HEADING}</h1>
           <form onSubmit={handleSubmit(onSubmit, onError)}>
             <Avatar
               type={bookcarsTypes.RecordType.Supplier}

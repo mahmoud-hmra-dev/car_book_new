@@ -12,8 +12,6 @@ import DatePicker from './DatePicker'
 import Accordion from '@/components/Accordion'
 import { schema, FormFields } from '@/models/BookingFilterForm'
 
-import '@/assets/css/booking-filter.css'
-
 interface BookingFilterProps {
   collapse?: boolean
   className?: string
@@ -67,7 +65,7 @@ const BookingFilter = ({
     <Accordion
       title={commonStrings.SEARCH}
       collapse={collapse}
-      className={`${className ? `${className} ` : ''}booking-filter`}
+      className={`${className ? `${className} ` : ''}bg-[#fafafa] mt-2.5 mr-2.5 mb-0 ml-0 border border-[#dadada] text-[13px]`}
     >
       <form autoComplete="off" onSubmit={handleSubmit(handleFormSubmit)}>
         <input autoComplete="false" name="hidden" type="text" style={{ display: 'none' }} />
@@ -146,10 +144,10 @@ const BookingFilter = ({
                 ),
               }
             }}
-            className="bf-search"
+            className="mt-[7px]"
           />
         </FormControl>
-        <Button type="submit" variant="contained" className="btn-primary btn-search" fullWidth disabled={isSubmitting}>
+        <Button type="submit" variant="contained" className="btn-primary my-5" fullWidth disabled={isSubmitting}>
           {commonStrings.SEARCH}
         </Button>
       </form>

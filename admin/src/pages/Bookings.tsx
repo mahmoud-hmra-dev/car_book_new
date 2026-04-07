@@ -14,8 +14,6 @@ import StatusFilter from '@/components/StatusFilter'
 import BookingFilter from '@/components/BookingFilter'
 import * as SupplierService from '@/services/SupplierService'
 
-import '@/assets/css/bookings.css'
-
 const Bookings = () => {
   const navigate = useNavigate()
 
@@ -28,13 +26,11 @@ const Bookings = () => {
   const [filter, setFilter] = useState<bookcarsTypes.Filter | null>()
   const [loadingSuppliers, setLoadingSuppliers] = useState(true)
   const [offset, setOffset] = useState(0)
+  const col1Ref = React.useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (user && user.verified) {
-      const col1 = document.querySelector('div.bookings div.col-1')
-      if (col1) {
-        setOffset(col1.clientHeight)
-      }
+    if (user && user.verified && col1Ref.current) {
+      setOffset(col1Ref.current.clientHeight)
     }
   }, [user])
 
@@ -70,14 +66,14 @@ const Bookings = () => {
   return (
     <Layout onLoad={onLoad} strict>
       {user && (
-        <div className="bookings">
-          <div className="page-header">
-            <h1 className="page-title">{headerStrings.DASHBOARD}</h1>
-            <Button variant="contained" className="btn-primary cl-new-booking" size="small" onClick={() => navigate('/create-booking')}>
+        <div className="bookings flex flex-col gap-6 min-h-0">
+          <div className="bg-white rounded-xl shadow-sm px-6 py-5 flex items-center justify-between flex-wrap gap-4">
+            <h1 className="text-2xl font-bold text-text m-0 leading-tight">{headerStrings.DASHBOARD}</h1>
+            <Button variant="contained" className="btn-primary !rounded-lg !normal-case !font-semibold !text-sm !px-5 !py-2 !shadow-none" size="small" onClick={() => navigate('/create-booking')}>
               {strings.NEW_BOOKING}
             </Button>
           </div>
-          <div className="col-1">
+          <div ref={col1Ref} className="col-1 bg-white rounded-xl shadow-sm px-6 py-5">
             {leftPanel && (
               <>
                 {admin
@@ -85,23 +81,23 @@ const Bookings = () => {
                     <SupplierFilter
                       suppliers={allSuppliers}
                       onChange={handleSupplierFilterChange}
-                      className="cl-supplier-filter"
+                      className="cl-supplier-filter m-0 bg-transparent border-none [&_label.accordion]:bg-transparent"
                     />
                   )}
                 <StatusFilter
                   onChange={handleStatusFilterChange}
-                  className="cl-status-filter"
+                  className="cl-status-filter m-0 bg-transparent border-none [&_label.accordion]:bg-transparent mt-3 pt-3 border-t border-t-[var(--bc-gray-100)]"
                 />
                 <BookingFilter
                   onSubmit={handleBookingFilterSubmit}
                   language={(user && user.language) || env.DEFAULT_LANGUAGE}
-                  className="cl-booking-filter"
+                  className="cl-booking-filter m-0 bg-transparent border-none [&_label.accordion]:bg-transparent mt-3 pt-3 border-t border-t-[var(--bc-gray-100)] [&_.panel]:px-0 [&_.panel-collapse]:px-0"
                   collapse={!env.isMobile}
                 />
               </>
             )}
           </div>
-          <div className="col-2">
+          <div className="bg-white rounded-xl shadow-sm min-h-[300px]">
             <BookingList
               containerClassName="bookings"
               offset={offset}

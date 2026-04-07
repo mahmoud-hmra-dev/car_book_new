@@ -5,7 +5,6 @@ import { strings as commonStrings } from '@/lang/common'
 import { strings } from '@/lang/cars'
 import Accordion from './Accordion'
 
-import '@/assets/css/mileage-filter.css'
 
 interface MileageFilterProps {
   className?: string
@@ -134,32 +133,34 @@ const MileageFilter = ({
   }
 
   return (
-    <Accordion title={strings.MILEAGE} collapse={collapse} className={`${className ? `${className} ` : ''}mileage-filter`}>
-      <div className="filter-elements">
-        <div className="filter-element">
-          <input ref={limitedRef} type="checkbox" className="mileage-checkbox" onChange={handleLimitedMileageChange} />
+    <Accordion title={strings.MILEAGE} collapse={collapse} className={className}>
+      <div className="px-1.5 py-2">
+        <div className="flex items-center gap-2 py-1.5 px-1">
+          <input ref={limitedRef} type="checkbox" className="cursor-pointer" onChange={handleLimitedMileageChange} />
           <span
             onClick={handleLimitedMileageClick}
             role="button"
             tabIndex={0}
+            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
           >
             {strings.LIMITED}
           </span>
         </div>
-        <div className="filter-element">
-          <input ref={unlimitedRef} type="checkbox" className="mileage-checkbox" onChange={handleUnlimitedMileageChange} />
+        <div className="flex items-center gap-2 py-1.5 px-1">
+          <input ref={unlimitedRef} type="checkbox" className="cursor-pointer" onChange={handleUnlimitedMileageChange} />
           <span
             onClick={handleUnlimitedMileageClick}
             role="button"
             tabIndex={0}
+            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
           >
             {strings.UNLIMITED}
           </span>
         </div>
-        <div className="filter-actions">
+        <div className="text-center pb-2.5">
           <span
             onClick={handleUncheckAllChange}
-            className="uncheckall"
+            className="text-xs text-primary underline cursor-pointer"
             role="button"
             tabIndex={0}
           >

@@ -6,8 +6,6 @@ import { Search as SearchIcon, Clear as ClearIcon } from '@mui/icons-material'
 import { strings as commonStrings } from '@/lang/common'
 import { schema, FormFields } from '@/models/SearchForm'
 
-import '@/assets/css/search.css'
-
 interface SearchProps {
   className?: string
   onSubmit?: (value: string) => void
@@ -58,7 +56,7 @@ const Search = ({
               ) : null
             }
           }}
-          className="sc-search"
+          className="w-[235px]"
           id="search"
         />
         <IconButton type="submit">

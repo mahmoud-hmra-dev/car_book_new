@@ -8,7 +8,6 @@ import * as helper from '@/utils/helper'
 import { strings } from '@/lang/contract-list'
 import * as SupplierService from '@/services/SupplierService'
 
-import '@/assets/css/contract-list.css'
 
 interface ContractListProps {
   supplier?: bookcarsTypes.User
@@ -89,12 +88,12 @@ const ContractList: React.FC<ContractListProps> = ({ supplier, onUpload, onDelet
   }
 
   return (
-    <div className="contracts">
-      <div className="title">{strings.TITLE}</div>
+    <div className="flex flex-col">
+      <div className="text-[#666] my-2.5 px-4 border-b border-[#949494]">{strings.TITLE}</div>
       {languages.map((lang) => (
-        <div key={lang.code} className="contract">
-          <span className="label">{lang.label}</span>
-          <span className="filename">
+        <div key={lang.code} className="flex flex-row my-1.5 max-md:flex-col">
+          <span className="text-[#666] mr-1.5 min-w-[80px]">{lang.label}</span>
+          <span className="min-w-[260px] max-md:min-w-0 max-md:pl-1.5">
             {lang.filename ? <a href={`${bookcarsHelper.trimEnd(supplier ? env.CDN_CONTRACTS : env.CDN_TEMP_CONTRACTS, '/')}/${lang.filename}`}>{lang.filename}</a> : '-'}
           </span>
           <div className="actions">

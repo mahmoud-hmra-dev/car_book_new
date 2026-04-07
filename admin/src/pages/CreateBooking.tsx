@@ -39,8 +39,6 @@ import DatePicker from '@/components/DatePicker'
 import { Option, Supplier } from '@/models/common'
 import { schema, FormFields } from '@/models/BookingForm'
 
-import '@/assets/css/create-booking.css'
-
 const CreateBooking = () => {
   const navigate = useNavigate()
 
@@ -174,9 +172,9 @@ const CreateBooking = () => {
 
   return (
     <Layout onLoad={onLoad} strict>
-      <div className="create-booking">
-        <Paper className="booking-form booking-form-wrapper" elevation={10} style={visible ? {} : { display: 'none' }}>
-          <h1 className="booking-form-title">{strings.NEW_BOOKING_HEADING}</h1>
+      <div className="flex flex-col flex-1 items-center my-11">
+        <Paper className="w-[360px] p-[30px] md:w-[550px] inline-block my-8" elevation={10} style={visible ? {} : { display: 'none' }}>
+          <h1 className="text-center capitalize text-[#121212]">{strings.NEW_BOOKING_HEADING}</h1>
           <form onSubmit={handleSubmit(onSubmit)}>
             {!isSupplier && (
               <FormControl fullWidth margin="dense">
@@ -289,7 +287,7 @@ const CreateBooking = () => {
               <span>{commonStrings.OPTIONAL}</span>
             </div>
 
-            <FormControl fullWidth margin="dense" className="checkbox-fc">
+            <FormControl fullWidth margin="dense" className="!my-3">
               <FormControlLabel
                 control={
                   <Switch
@@ -299,11 +297,11 @@ const CreateBooking = () => {
                   />
                 }
                 label={csStrings.CANCELLATION}
-                className="checkbox-fcl"
+                className="text-black/60 text-[0.9em] leading-[1em]"
               />
             </FormControl>
 
-            <FormControl fullWidth margin="dense" className="checkbox-fc">
+            <FormControl fullWidth margin="dense" className="!my-3">
               <FormControlLabel
                 control={
                   <Switch
@@ -313,11 +311,11 @@ const CreateBooking = () => {
                   />
                 }
                 label={csStrings.AMENDMENTS}
-                className="checkbox-fcl"
+                className="text-black/60 text-[0.9em] leading-[1em]"
               />
             </FormControl>
 
-            <FormControl fullWidth margin="dense" className="checkbox-fc">
+            <FormControl fullWidth margin="dense" className="!my-3">
               <FormControlLabel
                 control={
                   <Switch
@@ -327,11 +325,11 @@ const CreateBooking = () => {
                   />
                 }
                 label={csStrings.THEFT_PROTECTION}
-                className="checkbox-fcl"
+                className="text-black/60 text-[0.9em] leading-[1em]"
               />
             </FormControl>
 
-            <FormControl fullWidth margin="dense" className="checkbox-fc">
+            <FormControl fullWidth margin="dense" className="!my-3">
               <FormControlLabel
                 control={
                   <Switch
@@ -341,11 +339,11 @@ const CreateBooking = () => {
                   />
                 }
                 label={csStrings.COLLISION_DAMAGE_WAVER}
-                className="checkbox-fcl"
+                className="text-black/60 text-[0.9em] leading-[1em]"
               />
             </FormControl>
 
-            <FormControl fullWidth margin="dense" className="checkbox-fc">
+            <FormControl fullWidth margin="dense" className="!my-3">
               <FormControlLabel
                 control={
                   <Switch
@@ -355,11 +353,11 @@ const CreateBooking = () => {
                   />
                 }
                 label={csStrings.FULL_INSURANCE}
-                className="checkbox-fcl"
+                className="text-black/60 text-[0.9em] leading-[1em]"
               />
             </FormControl>
 
-            <FormControl fullWidth margin="dense" className="checkbox-fc">
+            <FormControl fullWidth margin="dense" className="!my-3">
               <FormControlLabel
                 control={
                   <Switch
@@ -369,7 +367,7 @@ const CreateBooking = () => {
                   />
                 }
                 label={csStrings.ADDITIONAL_DRIVER}
-                className="checkbox-fcl"
+                className="text-black/60 text-[0.9em] leading-[1em]"
               />
             </FormControl>
 

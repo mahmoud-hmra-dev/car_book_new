@@ -7,7 +7,6 @@ import { strings } from '@/lang/date-based-price-edit-list'
 import DatePicker from './DatePicker'
 import * as UserService from '@/services/UserService'
 
-import '@/assets/css/date-based-price-edit-list.css'
 
 interface DateBasedPriceEditListProps {
   title?: string
@@ -35,16 +34,16 @@ const DateBasedPriceEditList = (
   }, [_values])
 
   return (
-    <div className="date-based-price-edit-list">
-      {title && <span className="title">{title}</span>}
+    <div className="p-5 bg-[#f7f7f7]">
+      {title && <span className="text-[#919191]">{title}</span>}
 
-      <div className="rows">
+      <div>
         {
           values.map((dateBasedPrice, index) => (
-            <div key={dateBasedPrice._id || index} className="row">
+            <div key={dateBasedPrice._id || index}>
 
-              <div className="date-range">
-                <FormControl margin="dense" className="date">
+              <div className="flex flex-row">
+                <FormControl margin="dense" className="pr-6">
                   <DatePicker
                     label={commonStrings.START_DATE}
                     required
@@ -72,7 +71,7 @@ const DateBasedPriceEditList = (
                   />
                 </FormControl>
 
-                <FormControl margin="dense" className="date">
+                <FormControl margin="dense" className="pr-6">
                   <DatePicker
                     label={commonStrings.END_DATE}
                     required
@@ -122,10 +121,10 @@ const DateBasedPriceEditList = (
                 autoComplete="off"
                 value={dateBasedPrice.dailyPrice.toString()}
                 fullWidth
-                className="price"
+                className="pr-6"
               />
 
-              <div className="row-actions">
+              <div className="flex flex-row justify-end my-2.5">
                 <Button
                   variant="outlined"
                   className="btn-margin-bottom"
@@ -148,7 +147,7 @@ const DateBasedPriceEditList = (
         }
       </div>
 
-      <div className="global-actions">
+      <div className="flex flex-row justify-end mt-2.5">
         <Button
           variant="outlined"
           className="btn-margin-bottom"

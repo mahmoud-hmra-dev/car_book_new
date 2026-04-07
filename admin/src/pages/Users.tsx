@@ -11,8 +11,6 @@ import UserTypeFilter from '@/components/UserTypeFilter'
 import Search from '@/components/Search'
 import UserList from '@/components/UserList'
 
-import '@/assets/css/users.css'
-
 const Users = () => {
   const navigate = useNavigate()
 
@@ -43,27 +41,27 @@ const Users = () => {
   return (
     <Layout onLoad={onLoad} strict>
       {user && (
-        <div className="users">
-          <div className="page-header">
-            <h1 className="page-title">{headerStrings.USERS}</h1>
-            <Button variant="contained" className="btn-primary new-user" size="small" onClick={() => navigate('/create-user')}>
+        <div className="flex flex-col gap-6 min-h-0">
+          <div className="bg-white rounded-xl shadow-sm py-5 px-6 flex items-center justify-between flex-wrap gap-4">
+            <h1 className="text-2xl font-bold text-text m-0 leading-snug">{headerStrings.USERS}</h1>
+            <Button variant="contained" className="btn-primary !rounded-lg !normal-case !font-semibold !text-sm !py-2 !px-5 !shadow-none" size="small" onClick={() => navigate('/create-user')}>
               {strings.NEW_USER}
             </Button>
           </div>
-          <div className="col-1">
-            <div className="col-1-container">
-              <Search onSubmit={handleSearch} className="search" />
+          <div className="bg-white rounded-xl shadow-sm py-5 px-6 w-full">
+            <div className="flex flex-wrap gap-3 items-center w-full max-md:flex-col">
+              <Search onSubmit={handleSearch} className="w-full max-w-[400px] max-md:max-w-full" />
 
               {admin
                 && (
                   <UserTypeFilter
-                    className="user-type-filter"
+                    className="bg-gray-100 border-border rounded-lg m-0 max-md:hidden"
                     onChange={handleUserTypeFilterChange}
                   />
                 )}
             </div>
           </div>
-          <div className="col-2">
+          <div className="bg-white rounded-xl shadow-sm min-h-[300px] flex-1 overflow-hidden">
             <UserList
               user={user}
               types={types}

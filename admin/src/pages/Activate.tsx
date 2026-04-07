@@ -20,8 +20,6 @@ import Error from './Error'
 import { schema, FormFields } from '@/models/ActivateForm'
 import PasswordInput from '@/components/PasswordInput'
 
-import '@/assets/css/activate.css'
-
 const Activate = () => {
   const navigate = useNavigate()
 
@@ -131,15 +129,15 @@ const Activate = () => {
   return (
     <Layout onLoad={onLoad} strict={false}>
       {resend && (
-        <div className="resend">
-          <Paper className="resend-form" elevation={10}>
-            <h1>{strings.ACTIVATE_HEADING}</h1>
-            <div className="resend-form-content">
-              <span>{strings.TOKEN_EXPIRED}</span>
-              <Button type="button" variant="contained" size="small" className="btn-primary btn-resend" onClick={handleResend}>
+        <div className="flex flex-col items-center my-11 flex-1 pb-10">
+          <Paper className="mt-10 w-[330px] md:w-[430px] min-h-[330px] md:min-h-[270px] p-[30px]" elevation={10}>
+            <h1 className="text-center">{strings.ACTIVATE_HEADING}</h1>
+            <div className="flex flex-1 flex-col items-center">
+              <span className="float-left">{strings.TOKEN_EXPIRED}</span>
+              <Button type="button" variant="contained" size="small" className="btn-primary btn-resend float-left clear-left w-[90px] mt-4" onClick={handleResend}>
                 {mStrings.RESEND}
               </Button>
-              <p className="go-to-home">
+              <p className="flex flex-1 flex-col items-center">
                 <Button variant="text" onClick={() => navigate('/')} className="btn-lnk">{commonStrings.GO_TO_HOME}</Button>
               </p>
             </div>
@@ -147,9 +145,9 @@ const Activate = () => {
         </div>
       )}
       {visible && (
-        <div className="activate">
-          <Paper className="activate-form" elevation={10}>
-            <h1>{reset ? rpStrings.RESET_PASSWORD_HEADING : strings.ACTIVATE_HEADING}</h1>
+        <div className="flex flex-row flex-1 justify-center my-11">
+          <Paper className="mt-10 w-[330px] md:w-[450px] min-h-[440px] md:min-h-[390px] p-[30px]" elevation={10}>
+            <h1 className="text-center">{reset ? rpStrings.RESET_PASSWORD_HEADING : strings.ACTIVATE_HEADING}</h1>
             <form onSubmit={handleSubmit(onSubmit)}>
 
               <PasswordInput

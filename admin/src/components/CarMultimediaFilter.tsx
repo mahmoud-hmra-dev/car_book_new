@@ -5,7 +5,6 @@ import { strings as commonStrings } from '@/lang/common'
 import { strings } from '@/lang/car-multimedia-filter'
 import Accordion from './Accordion'
 
-import '@/assets/css/car-multimedia-filter.css'
 
 interface CarMultimediaFilterProps {
   className?: string
@@ -212,53 +211,57 @@ const CarMultimediaFilter = ({
   }
 
   return (
-    <Accordion title={strings.MULTIMEDIA} collapse={collapse} className={`${className ? `${className} ` : ''}multimedia-filter`}>
-      <div className="filter-elements">
-        <div className="filter-element">
-          <input ref={touchscreenRef} type="checkbox" className="multimedia-checkbox" onChange={handleCheckTouchscreenChange} />
+    <Accordion title={strings.MULTIMEDIA} collapse={collapse} className={className}>
+      <div className="px-1.5 py-2">
+        <div className="flex items-center gap-2 py-1.5 px-1">
+          <input ref={touchscreenRef} type="checkbox" className="cursor-pointer" onChange={handleCheckTouchscreenChange} />
           <span
             onClick={handleTouchscreenClick}
             role="button"
             tabIndex={0}
+            className="cursor-pointer text-xs font-normal capitalize text-text hover:text-primary"
           >
             {strings.TOUCHSCREEN}
           </span>
         </div>
-        <div className="filter-element">
-          <input ref={bluetoothRef} type="checkbox" className="multimedia-checkbox" onChange={handleCheckBluetoothChange} />
+        <div className="flex items-center gap-2 py-1.5 px-1">
+          <input ref={bluetoothRef} type="checkbox" className="cursor-pointer" onChange={handleCheckBluetoothChange} />
           <span
             onClick={handleBluetoothClick}
             role="button"
             tabIndex={0}
+            className="cursor-pointer text-xs font-normal capitalize text-text hover:text-primary"
           >
             {strings.BLUETOOTH}
           </span>
         </div>
-        <div className="filter-element">
-          <input ref={androidAutoRef} type="checkbox" className="multimedia-checkbox" onChange={handleCheckAndroidAutoChange} />
+        <div className="flex items-center gap-2 py-1.5 px-1">
+          <input ref={androidAutoRef} type="checkbox" className="cursor-pointer" onChange={handleCheckAndroidAutoChange} />
           <span
             onClick={handleAndroidAutoClick}
             role="button"
             tabIndex={0}
+            className="cursor-pointer text-xs font-normal capitalize text-text hover:text-primary"
           >
             {strings.ANDROID_AUTO}
           </span>
         </div>
-        <div className="filter-element">
-          <input ref={appleCarPlayRef} type="checkbox" className="multimedia-checkbox" onChange={handleCheckAppleCarPlayChange} />
+        <div className="flex items-center gap-2 py-1.5 px-1">
+          <input ref={appleCarPlayRef} type="checkbox" className="cursor-pointer" onChange={handleCheckAppleCarPlayChange} />
           <span
             onClick={handleAppleCarPlayClick}
             role="button"
             tabIndex={0}
+            className="cursor-pointer text-xs font-normal capitalize text-text hover:text-primary"
           >
             {strings.APPLE_CAR_PLAY}
           </span>
         </div>
       </div>
-      <div className="filter-actions">
+      <div className="text-center pb-2.5">
         <span
           onClick={handleUncheckAllChange}
-          className="uncheckall"
+          className="text-xs text-primary underline cursor-pointer"
           role="button"
           tabIndex={0}
         >

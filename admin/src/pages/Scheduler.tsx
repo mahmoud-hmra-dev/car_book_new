@@ -14,7 +14,6 @@ import VehicleSchedulerFilter from '@/components/VehicleSchedulerFilter'
 
 import Layout from '@/components/Layout'
 
-import '@/assets/css/scheduler.css'
 
 const Scheduler = () => {
   const navigate = useNavigate()
@@ -57,11 +56,16 @@ const Scheduler = () => {
   return (
     <Layout onLoad={onLoad} strict>
       {user && suppliers && (
-        <div className="scheduler">
-          <div className="col-1">
+        <div className="absolute bottom-0 right-0 left-0 top-14 max-md:top-14 max-md:overflow-y-auto md:top-16">
+          <div className="max-md:flex max-md:flex-col max-md:items-center md:absolute md:top-0 md:bottom-0 md:left-0 md:w-[320px] md:pt-3 md:pl-3 md:bg-[#fefefe] md:overflow-auto">
             {leftPanel && (
               <>
-                <Button variant="contained" className="btn-primary cl-new-booking" size="small" onClick={() => navigate('/create-booking')}>
+                <Button
+                  variant="contained"
+                  className="btn-primary cl-new-booking max-md:w-[calc(100%-20px)] max-md:max-w-[480px] max-md:mx-2.5 max-md:mt-[15px] max-md:mb-[5px] md:w-[290px] md:ml-[5px]"
+                  size="small"
+                  onClick={() => navigate('/create-booking')}
+                >
                   {strings.NEW_BOOKING}
                 </Button>
                 {admin
@@ -69,22 +73,22 @@ const Scheduler = () => {
                     <SupplierFilter
                       suppliers={allSuppliers}
                       onChange={handleSupplierFilterChange}
-                      className="cl-supplier-filter"
+                      className="cl-supplier-filter max-md:mx-2.5 max-md:my-[5px] max-md:bg-white max-md:max-w-[480px] max-md:w-[calc(100%-20px)] md:mx-0 md:my-2.5 md:mr-2.5 md:bg-[#fafafa] [&_label.accordion]:max-md:bg-white [&_label.accordion]:md:bg-[#fafafa]"
                     />
                   )}
                 <StatusFilter
                   onChange={handleStatusFilterChange}
-                  className="cl-status-filter"
+                  className="cl-status-filter max-md:mx-2.5 max-md:my-[5px] max-md:bg-white max-md:max-w-[480px] max-md:w-[calc(100%-20px)] md:mx-0 md:my-2.5 md:mr-2.5 md:mb-2.5 md:bg-[#fafafa] [&_label.accordion]:max-md:bg-white [&_label.accordion]:md:bg-[#fafafa]"
                 />
                 <VehicleSchedulerFilter
                   onSubmit={handleVehicleSchedulerFilterSubmit}
-                  className="cl-scheduler-filter"
+                  className="cl-scheduler-filter max-md:mx-2.5 max-md:my-[5px] max-md:bg-white max-md:max-w-[480px] max-md:w-[calc(100%-20px)] md:mx-0 md:my-2.5 md:mr-2.5 md:mb-2.5 md:bg-[#fafafa] [&_label.accordion]:max-md:bg-white [&_label.accordion]:md:bg-[#fafafa] [&_.panel]:px-[15px] [&_.panel-collapse]:px-[15px]"
                   collapse={!env.isMobile}
                 />
               </>
             )}
           </div>
-          <div className="col-2">
+          <div className="max-md:flex md:absolute md:top-0 md:right-0 md:bottom-0 md:left-[320px]">
             <VehicleScheduler
               suppliers={suppliers}
               statuses={statuses}

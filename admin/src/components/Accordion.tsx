@@ -1,7 +1,5 @@
 import React, { ReactNode, useEffect, useRef } from 'react'
 
-import '@/assets/css/accordion.css'
-
 interface AccordionProps {
   title?: string
   className?: string
@@ -50,17 +48,17 @@ const Accordion = ({
   }, [offsetHeight]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className={`${className ? `${className} ` : ''}accordion-container`}>
+    <div className={`${className ? `${className} ` : ''}bg-white my-2.5 border border-[#dadada] rounded-[5px] text-[13px] select-none`}>
       <span
         ref={accordionRef}
-        className="accordion"
+        className="cursor-pointer p-0.5 transition-all duration-400 inline-block w-full text-center text-black/60 font-normal text-[13px] leading-[2em] bg-white rounded-[5px] after:content-[''] after:border-t-[5px] after:border-t-transparent after:border-l-[5px] after:border-l-black after:border-b-[5px] after:border-b-transparent after:transition-transform after:duration-100 after:ease-in after:float-right after:mt-[7px] after:mx-[7px] [&.accordion-active]:border-b [&.accordion-active]:border-b-[#dadada] [&.accordion-active]:rounded-t-[5px] [&.accordion-active]:rounded-b-none [&.accordion-active]:after:rotate-90"
         onClick={handleAccordionClick}
         role="button"
         tabIndex={0}
       >
         {title}
       </span>
-      <div className={collapse ? 'panel-collapse' : 'panel'}>{children}</div>
+      <div className={collapse ? 'overflow-hidden' : 'max-h-0 overflow-hidden transition-[max-height] duration-[0.18s] ease-out'}>{children}</div>
     </div>
   )
 }

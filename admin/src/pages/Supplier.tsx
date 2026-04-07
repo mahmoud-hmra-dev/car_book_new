@@ -27,8 +27,6 @@ import InfoBox from '@/components/InfoBox'
 import Error from './Error'
 import NoMatch from './NoMatch'
 
-import '@/assets/css/supplier.css'
-
 const Supplier = () => {
   const navigate = useNavigate()
   const [user, setUser] = useState<bookcarsTypes.User>()
@@ -137,9 +135,9 @@ const Supplier = () => {
   return (
     <Layout onLoad={onLoad} strict>
       {visible && supplier && suppliers && (
-        <div className="supplier">
-          <div className="col-1">
-            <section className="supplier-avatar-sec">
+        <div className="flex flex-1 max-md:flex-col md:flex-row">
+          <div className="max-md:py-2.5 max-md:bg-[#fefefe] max-md:border-b max-md:border-[#eee] md:w-[300px] md:min-h-screen md:pt-5 md:bg-[#fefefe] md:border-r md:border-[#eee]">
+            <section className="max-md:flex max-md:justify-center md:relative md:left-1/2 md:-translate-x-[30%]">
               {edit ? (
                 <Avatar
                   record={supplier}
@@ -154,40 +152,40 @@ const Supplier = () => {
                   className="supplier-avatar"
                 />
               ) : (
-                <div className="car-supplier">
-                  <span className="car-supplier-logo">
+                <div className="flex items-center justify-start">
+                  <span className="flex overflow-hidden align-text-bottom">
                     <img src={helper.supplierImageURL(supplier.avatar)} alt={supplier.fullName} style={{ width: env.SUPPLIER_IMAGE_WIDTH }} />
                   </span>
-                  <span className="car-supplier-info">{supplier.fullName}</span>
+                  <span className="text-[#a8a8a8] inline-block text-[0.9em] leading-[1em] whitespace-nowrap ml-[5px]">{supplier.fullName}</span>
                 </div>
               )}
             </section>
             {edit && (
-              <Typography variant="h4" className="supplier-name">
+              <Typography variant="h4" className="text-center font-semibold mt-[15px] break-words">
                 {supplier.fullName}
               </Typography>
             )}
             {supplier.bio && (
               helper.isValidURL(supplier.bio)
                 ? (
-                  <Link href={supplier.bio} target="_blank" rel="noreferrer" className="supplier-bio-link">{supplier.bio}</Link>
+                  <Link href={supplier.bio} target="_blank" rel="noreferrer" className="overflow-hidden break-words line-clamp-2 text-center px-2.5">{supplier.bio}</Link>
                 ) : (
-                  <Typography variant="h6" className="supplier-info">
+                  <Typography variant="h6" className="text-center font-normal mt-2.5 text-[#676767] break-words">
                     {supplier.bio}
                   </Typography>
                 )
             )}
             {supplier.location && supplier.location !== '' && (
-              <Typography variant="h6" className="supplier-info">
+              <Typography variant="h6" className="text-center font-normal mt-2.5 text-[#676767] break-words">
                 {supplier.location}
               </Typography>
             )}
             {supplier.phone && supplier.phone !== '' && (
-              <Typography variant="h6" className="supplier-info">
+              <Typography variant="h6" className="text-center font-normal mt-2.5 text-[#676767] break-words">
                 {supplier.phone}
               </Typography>
             )}
-            <div className="supplier-actions">
+            <div className="text-center">
               {edit && (
                 <Tooltip title={commonStrings.UPDATE}>
                   <IconButton onClick={() => navigate(`/update-supplier?c=${supplier._id}`)}>
@@ -203,9 +201,9 @@ const Supplier = () => {
                 </Tooltip>
               )}
             </div>
-            {rowCount > 0 && <InfoBox value={`${rowCount} ${rowCount > 1 ? commonStrings.CARS : commonStrings.CAR}`} className="car-count" />}
+            {rowCount > 0 && <InfoBox value={`${rowCount} ${rowCount > 1 ? commonStrings.CARS : commonStrings.CAR}`} className="md:mx-2.5 md:mt-2.5" />}
           </div>
-          <div className="col-2">
+          <div className="flex flex-col max-md:flex-col md:items-center md:flex-1">
             <CarList
               user={user}
               suppliers={suppliers}

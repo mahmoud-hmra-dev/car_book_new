@@ -8,33 +8,54 @@ import {
 import * as bookcarsTypes from ':bookcars-types'
 import * as helper from '@/utils/helper'
 
-import '@/assets/css/booking-status.css'
-
 interface BookingStatusProps {
   value: bookcarsTypes.BookingStatus
   showIcon?: boolean,
   onClick?: (e: React.MouseEvent<HTMLElement>) => void
 }
 
+const iconColorMap: Record<string, string> = {
+  void: 'text-[#6E7C86]',
+  pending: 'text-[#EF6C00]',
+  deposit: 'text-[#3CB371]',
+  paid: 'text-[#77BC23]',
+  paidinfull: 'text-[#77BC23]',
+  reserved: 'text-[#1E88E5]',
+  cancelled: 'text-[#E53935]',
+}
+
+const badgeStyleMap: Record<string, string> = {
+  void: 'bg-[#D9D9D9] text-[#6E7C86]',
+  pending: 'bg-[#FBDCC2] text-[#EF6C00]',
+  deposit: 'bg-[#CDECDA] text-[#3CB371]',
+  paid: 'bg-[#D1F9D1] text-[#77BC23]',
+  paidinfull: 'bg-[#77BC23] text-white',
+  reserved: 'bg-[#D9E7F4] text-[#1E88E5]',
+  cancelled: 'bg-[#FBDFDE] text-[#E53935]',
+}
+
 const getIcon = (value: bookcarsTypes.BookingStatus) => {
+  const color = iconColorMap[value?.toLowerCase()] || ''
+  const iconCls = `max-w-[18px] max-h-[18px] mr-0.5 ${color}`
+
   if ([
     bookcarsTypes.BookingStatus.Deposit,
     bookcarsTypes.BookingStatus.Reserved,
     bookcarsTypes.BookingStatus.Paid,
     bookcarsTypes.BookingStatus.PaidInFull,
   ].includes(value)) {
-    return <CheckIcon className={`bs-icon bs-icon-${value?.toLowerCase()}`} />
+    return <CheckIcon className={iconCls} />
   }
 
   if (value === bookcarsTypes.BookingStatus.Void) {
-    return <VoidIcon className="bs-icon bs-icon-void" />
+    return <VoidIcon className={iconCls} />
   }
 
   if (value === bookcarsTypes.BookingStatus.Pending) {
-    return <PendingIcon className="bs-icon bs-icon-pending" />
+    return <PendingIcon className={iconCls} />
   }
 
-  return <CancelledIcon className="bs-icon bs-icon-cancelled" />
+  return <CancelledIcon className={iconCls} />
 }
 
 const BookingStatus = ({
@@ -43,7 +64,7 @@ const BookingStatus = ({
   value
 }: BookingStatusProps) => (
   <div
-    className="booking-status"
+    className="inline-flex flex-row items-center"
     onClick={(e) => {
       if (onClick) {
         onClick(e)
@@ -52,7 +73,7 @@ const BookingStatus = ({
     role="presentation"
   >
     {showIcon && getIcon(value)}
-    <span className={`bs bs-${value?.toLowerCase()}`}>{helper.getBookingStatus(value)}</span>
+    <span className={`p-[3px] w-[108px] text-center inline-flex h-[22px] text-xs font-normal justify-center items-center rounded-[18px] ${badgeStyleMap[value?.toLowerCase()] || ''}`}>{helper.getBookingStatus(value)}</span>
   </div>
 )
 

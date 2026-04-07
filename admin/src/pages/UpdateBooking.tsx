@@ -47,7 +47,6 @@ import DatePicker from '@/components/DatePicker'
 import { Option } from '@/models/common'
 import { schema, FormFields } from '@/models/BookingForm'
 
-import '@/assets/css/booking.css'
 
 // Create a separate component to avoid re-renders
 interface AdditionalDriverFormProps {
@@ -419,8 +418,8 @@ const UpdateBooking = () => {
   return (
     <Layout onLoad={onLoad} strict>
       {visible && booking && (
-        <div className="booking">
-          <div className="col-1">
+        <div className="flex flex-row">
+          <div className="bg-[#fefefe] p-5 max-md:border-b max-md:border-[#eee] md:border-r md:border-[#eee] md:p-[25px] md:flex-[0_1_30%]">
             <form onSubmit={handleSubmit(onSubmit)}>
               {!isSupplier && (
                 <FormControl fullWidth margin="dense">
@@ -628,7 +627,7 @@ const UpdateBooking = () => {
                 <span>{commonStrings.OPTIONAL}</span>
               </div>
 
-              <FormControl fullWidth margin="dense" className="checkbox-fc">
+              <FormControl fullWidth margin="dense" className="!my-3">
                 <FormControlLabel
                   control={
                     <Switch
@@ -659,11 +658,11 @@ const UpdateBooking = () => {
                     />
                   }
                   label={csStrings.CANCELLATION}
-                  className="checkbox-fcl"
+                  className="text-black/60 text-[0.9em] leading-[1em]"
                 />
               </FormControl>
 
-              <FormControl fullWidth margin="dense" className="checkbox-fc">
+              <FormControl fullWidth margin="dense" className="!my-3">
                 <FormControlLabel
                   control={
                     <Switch
@@ -694,11 +693,11 @@ const UpdateBooking = () => {
                     />
                   }
                   label={csStrings.AMENDMENTS}
-                  className="checkbox-fcl"
+                  className="text-black/60 text-[0.9em] leading-[1em]"
                 />
               </FormControl>
 
-              <FormControl fullWidth margin="dense" className="checkbox-fc">
+              <FormControl fullWidth margin="dense" className="!my-3">
                 <FormControlLabel
                   control={
                     <Switch
@@ -729,11 +728,11 @@ const UpdateBooking = () => {
                     />
                   }
                   label={csStrings.THEFT_PROTECTION}
-                  className="checkbox-fcl"
+                  className="text-black/60 text-[0.9em] leading-[1em]"
                 />
               </FormControl>
 
-              <FormControl fullWidth margin="dense" className="checkbox-fc">
+              <FormControl fullWidth margin="dense" className="!my-3">
                 <FormControlLabel
                   control={
                     <Switch
@@ -764,11 +763,11 @@ const UpdateBooking = () => {
                     />
                   }
                   label={csStrings.COLLISION_DAMAGE_WAVER}
-                  className="checkbox-fcl"
+                  className="text-black/60 text-[0.9em] leading-[1em]"
                 />
               </FormControl>
 
-              <FormControl fullWidth margin="dense" className="checkbox-fc">
+              <FormControl fullWidth margin="dense" className="!my-3">
                 <FormControlLabel
                   control={
                     <Switch
@@ -799,11 +798,11 @@ const UpdateBooking = () => {
                     />
                   }
                   label={csStrings.FULL_INSURANCE}
-                  className="checkbox-fcl"
+                  className="text-black/60 text-[0.9em] leading-[1em]"
                 />
               </FormControl>
 
-              <FormControl fullWidth margin="dense" className="checkbox-fc">
+              <FormControl fullWidth margin="dense" className="!my-3">
                 <FormControlLabel
                   control={
                     <Switch
@@ -834,7 +833,7 @@ const UpdateBooking = () => {
                     />
                   }
                   label={csStrings.ADDITIONAL_DRIVER}
-                  className="checkbox-fcl"
+                  className="text-black/60 text-[0.9em] leading-[1em]"
                 />
               </FormControl>
 
@@ -865,14 +864,14 @@ const UpdateBooking = () => {
               </div>
             </form>
           </div>
-          <div className="col-2">
+          <div className="max-md:hidden md:flex-1 md:pt-2.5">
             {
               days > 0 && (
-                <div className="col-2-header">
-                  <div className="price">
-                    <span className="price-days">{helper.getDays(days)}</span>
-                    <span className="price-main">{bookcarsHelper.formatPrice(price as number, commonStrings.CURRENCY, language)}</span>
-                    <span className="price-day">{`${csStrings.PRICE_PER_DAY} ${bookcarsHelper.formatPrice((price as number) / days, commonStrings.CURRENCY, language)}`}</span>
+                <div className="text-right md:pr-[25px] md:flex md:flex-row md:justify-end">
+                  <div className="w-fit">
+                    <span className="text-[13px] text-[#a1a1a1] table-row text-right">{helper.getDays(days)}</span>
+                    <span className="text-[#383838] text-[2em] font-bold leading-[1em] whitespace-nowrap table-row text-right">{bookcarsHelper.formatPrice(price as number, commonStrings.CURRENCY, language)}</span>
+                    <span className="text-[13px] text-[#a1a1a1] table-row text-right">{`${csStrings.PRICE_PER_DAY} ${bookcarsHelper.formatPrice((price as number) / days, commonStrings.CURRENCY, language)}`}</span>
                   </div>
                 </div>
               )

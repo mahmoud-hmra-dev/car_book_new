@@ -5,7 +5,6 @@ import { strings as commonStrings } from '@/lang/common'
 import { strings } from '@/lang/car-specs'
 import Accordion from './Accordion'
 
-import '@/assets/css/car-specs-filter.css'
 
 interface CarSpecsFilterProps {
   className?: string
@@ -170,43 +169,46 @@ const CarSpecsFilter = ({
   }
 
   return (
-    <Accordion title={strings.CAR_SPECS} collapse={collapse} className={`${className ? `${className} ` : ''}car-specs-filter`}>
-      <div className="filter-elements">
-        <div className="filter-element">
-          <input ref={airconRef} type="checkbox" className="car-specs-checkbox" onChange={handleCheckAirconChange} />
+    <Accordion title={strings.CAR_SPECS} collapse={collapse} className={className}>
+      <div className="px-1.5 py-2">
+        <div className="flex items-center gap-2 py-1.5 px-1">
+          <input ref={airconRef} type="checkbox" className="cursor-pointer" onChange={handleCheckAirconChange} />
           <span
             onClick={handleAirconClick}
             role="button"
             tabIndex={0}
+            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
           >
             {strings.AIRCON}
           </span>
         </div>
-        <div className="filter-element">
-          <input ref={moreThanFourDoorsRef} type="checkbox" className="car-specs-checkbox" onChange={handleCheckMoreThanFourDoorsChange} />
+        <div className="flex items-center gap-2 py-1.5 px-1">
+          <input ref={moreThanFourDoorsRef} type="checkbox" className="cursor-pointer" onChange={handleCheckMoreThanFourDoorsChange} />
           <span
             onClick={handleMoreThanFourDoorsClick}
             role="button"
             tabIndex={0}
+            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
           >
             {strings.MORE_THAN_FOOR_DOORS}
           </span>
         </div>
-        <div className="filter-element">
-          <input ref={moreThanFiveSeatsRef} type="checkbox" className="car-specs-checkbox" onChange={handleCheckMoreThanFiveSeatsChange} />
+        <div className="flex items-center gap-2 py-1.5 px-1">
+          <input ref={moreThanFiveSeatsRef} type="checkbox" className="cursor-pointer" onChange={handleCheckMoreThanFiveSeatsChange} />
           <span
             onClick={handleMoreThanFiveSeatsClick}
             role="button"
             tabIndex={0}
+            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
           >
             {strings.MORE_THAN_FIVE_SEATS}
           </span>
         </div>
       </div>
-      <div className="filter-actions">
+      <div className="text-center pb-2.5">
         <span
           onClick={handleUncheckAllChange}
-          className="uncheckall"
+          className="text-xs text-primary underline cursor-pointer"
           role="button"
           tabIndex={0}
         >

@@ -13,7 +13,6 @@ import { strings } from '@/lang/booking-filter'
 import LocationSelectList from './LocationSelectList'
 import Accordion from '@/components/Accordion'
 
-import '@/assets/css/vehicle-scheduler-filter.css'
 
 interface VehicleSchedulerFilterProps {
   collapse?: boolean
@@ -68,7 +67,7 @@ const VehicleSchedulerFilter = ({
   }
 
   return (
-    <Accordion title={commonStrings.SEARCH} collapse={collapse} className={`${className ? `${className} ` : ''}vehicle-scheduler-filter`}>
+    <Accordion title={commonStrings.SEARCH} collapse={collapse} className={`${className ? `${className} ` : ''}bg-[#fafafa] mt-2.5 mr-2.5 border border-[#dadada] text-[13px]`}>
       <form autoComplete="off" onSubmit={handleSubmit}>
         <input autoComplete="false" name="hidden" type="text" style={{ display: 'none' }} />
         <FormControl fullWidth margin="dense">
@@ -110,10 +109,10 @@ const VehicleSchedulerFilter = ({
                 ),
               }
             }}
-            className="bf-search"
+            className="mt-2"
           />
         </FormControl>
-        <Button type="submit" variant="contained" className="btn-primary btn-search" fullWidth>
+        <Button type="submit" variant="contained" className="btn-primary my-5" fullWidth>
           {commonStrings.SEARCH}
         </Button>
       </form>

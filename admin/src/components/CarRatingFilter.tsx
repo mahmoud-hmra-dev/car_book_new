@@ -4,7 +4,6 @@ import { strings as commonStrings } from '@/lang/common'
 import { strings } from '@/lang/car-rating-filter'
 import Accordion from './Accordion'
 
-import '@/assets/css/car-rating-filter.css'
 
 interface CarRatingFilterProps {
   className?: string
@@ -181,39 +180,39 @@ const CarRatingFilter = ({
   }
 
   return (
-    <Accordion title={strings.RATING} collapse={collapse} className={`${className ? `${className} ` : ''}rating-filter`}>
-      <div className="filter-elements">
-        <div className="filter-element">
-          <input ref={rating1Ref} type="radio" className="rating-checkbox" onChange={handleCheckRating1Change} />
-          <span onClick={handleRating1Click} role="presentation" className="ratings">
-            <Rating value={1} className="rating" readOnly />
+    <Accordion title={strings.RATING} collapse={collapse} className={className}>
+      <div className="px-1.5 py-2">
+        <div className="flex flex-row items-center w-fit m-1.5">
+          <input ref={rating1Ref} type="radio" className="cursor-pointer ml-1.5" onChange={handleCheckRating1Change} />
+          <span onClick={handleRating1Click} role="presentation" className="cursor-pointer inline-block px-1">
+            <Rating value={1} className="relative -bottom-1" readOnly />
           </span>
-          <span className="rating-text">{strings.RATING_1}</span>
+          <span className="text-xs text-text-muted mt-1">{strings.RATING_1}</span>
         </div>
-        <div className="filter-element">
-          <input ref={rating2Ref} type="radio" className="rating-checkbox" onChange={handleCheckRating2Change} />
-          <span onClick={handleRating2Click} role="presentation" className="ratings">
-            <Rating value={2} className="rating" readOnly />
+        <div className="flex flex-row items-center w-fit m-1.5">
+          <input ref={rating2Ref} type="radio" className="cursor-pointer ml-1.5" onChange={handleCheckRating2Change} />
+          <span onClick={handleRating2Click} role="presentation" className="cursor-pointer inline-block px-1">
+            <Rating value={2} className="relative -bottom-1" readOnly />
           </span>
-          <span className="rating-text">{strings.RATING_2}</span>
+          <span className="text-xs text-text-muted mt-1">{strings.RATING_2}</span>
         </div>
-        <div className="filter-element" role="presentation">
-          <input ref={rating3Ref} type="radio" className="rating-checkbox" onChange={handleCheckRating3Change} />
-          <span onClick={handleRating3Click} role="presentation" className="ratings">
-            <Rating value={3} className="rating" readOnly />
+        <div className="flex flex-row items-center w-fit m-1.5" role="presentation">
+          <input ref={rating3Ref} type="radio" className="cursor-pointer ml-1.5" onChange={handleCheckRating3Change} />
+          <span onClick={handleRating3Click} role="presentation" className="cursor-pointer inline-block px-1">
+            <Rating value={3} className="relative -bottom-1" readOnly />
           </span>
-          <span className="rating-text">{strings.RATING_3}</span>
+          <span className="text-xs text-text-muted mt-1">{strings.RATING_3}</span>
         </div>
-        <div className="filter-element" role="presentation">
-          <input ref={rating4Ref} type="radio" className="rating-checkbox" onChange={handleCheckRating4Change} />
-          <span onClick={handleRating4Click} role="presentation" className="ratings">
-            <Rating value={4} className="rating" readOnly />
+        <div className="flex flex-row items-center w-fit m-1.5" role="presentation">
+          <input ref={rating4Ref} type="radio" className="cursor-pointer ml-1.5" onChange={handleCheckRating4Change} />
+          <span onClick={handleRating4Click} role="presentation" className="cursor-pointer inline-block px-1">
+            <Rating value={4} className="relative -bottom-1" readOnly />
           </span>
-          <span className="rating-text">{strings.RATING_4}</span>
+          <span className="text-xs text-text-muted mt-1">{strings.RATING_4}</span>
         </div>
-        <div className="filter-element" role="presentation">
-          <input ref={ratingAnyRef} type="radio" className="rating-checkbox" onChange={handleCheckRatingAnyChange} />
-          <span onClick={handleRatingAnyClick} role="presentation" className="ratings">
+        <div className="flex flex-row items-center w-fit m-1.5" role="presentation">
+          <input ref={ratingAnyRef} type="radio" className="cursor-pointer ml-1.5" onChange={handleCheckRatingAnyChange} />
+          <span onClick={handleRatingAnyClick} role="presentation" className="cursor-pointer inline-block px-1">
             {commonStrings.ANY}
           </span>
         </div>

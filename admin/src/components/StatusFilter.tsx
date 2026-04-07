@@ -6,7 +6,6 @@ import * as helper from '@/utils/helper'
 import Accordion from '@/components/Accordion'
 import BookingStatus from './BookingStatus'
 
-import '@/assets/css/status-filter.css'
 
 interface StatusFilterProps {
   className?: string
@@ -91,27 +90,27 @@ const StatusFilter = ({
 
   return (
     (allStatuses.length > 0 && (
-      <Accordion title={commonStrings.STATUS} collapse={collapse} className={`${className ? `${className} ` : ''}status-filter`}>
-        <ul className="status-list">
+      <Accordion title={commonStrings.STATUS} collapse={collapse} className={`${className ? `${className} ` : ''}bg-[#fafafa] mt-2.5 mr-2.5 border border-[#dadada] text-[13px] text-center`}>
+        <ul className="list-none text-[13px] mt-4 mb-0 mx-0 p-0 inline-block w-[312px]">
           {statuses.map((status, index) => (
-            <li key={status.value}>
+            <li key={status.value} className="w-[42%] float-left mb-3 mx-[4%]">
               <input
                 ref={(ref) => {
                   refs.current[index] = ref
                 }}
                 type="checkbox"
                 data-value={status.value}
-                className="status-checkbox"
+                className="cursor-pointer"
                 onChange={handleCheckStatusChange}
               />
               <BookingStatus value={status.value} onClick={handleStatusClick} />
             </li>
           ))}
         </ul>
-        <div className="filter-actions">
+        <div className="text-center pb-2.5">
           <span
             onClick={handleUncheckAllChange}
-            className="uncheckall"
+            className="text-xs text-primary underline cursor-pointer"
             role="button"
             tabIndex={0}
           >

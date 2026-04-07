@@ -28,7 +28,6 @@ import * as helper from '@/utils/helper'
 import Pager from '@/components/Pager'
 import Progress from '@/components/Progress'
 
-import '@/assets/css/supplier-list.css'
 
 interface SupplierListProps {
   user?: bookcarsTypes.User

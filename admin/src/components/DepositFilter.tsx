@@ -4,7 +4,6 @@ import env from '@/config/env.config'
 import { strings } from '@/lang/cars'
 import Accordion from './Accordion'
 
-import '@/assets/css/deposit-filter.css'
 
 interface DepositFilterProps {
   className?: string
@@ -143,44 +142,48 @@ const DepositFilter = ({
   }
 
   return (
-    <Accordion title={strings.DEPOSIT} collapse={collapse} className={`${className ? `${className} ` : ''}deposit-filter`}>
-      <div className="filter-elements">
-        <div className="filter-element">
-          <input ref={depositValue1Ref} type="radio" className="deposit-radio" onChange={handleDepositLessThanValue1Change} />
+    <Accordion title={strings.DEPOSIT} collapse={collapse} className={className}>
+      <div className="px-1.5 py-2">
+        <div className="flex items-center gap-2 py-1.5 px-1">
+          <input ref={depositValue1Ref} type="radio" className="cursor-pointer" onChange={handleDepositLessThanValue1Change} />
           <span
             onClick={handleDepositLessThanValue1Click}
             role="button"
             tabIndex={0}
+            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
           >
             {strings.LESS_THAN_VALUE_1}
           </span>
         </div>
-        <div className="filter-element">
-          <input ref={depositValue2Ref} type="radio" className="deposit-radio" onChange={handleDepositLessThanValue2Change} />
+        <div className="flex items-center gap-2 py-1.5 px-1">
+          <input ref={depositValue2Ref} type="radio" className="cursor-pointer" onChange={handleDepositLessThanValue2Change} />
           <span
             onClick={handleDepositLessThanValue2Click}
             role="button"
             tabIndex={0}
+            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
           >
             {strings.LESS_THAN_VALUE_2}
           </span>
         </div>
-        <div className="filter-element">
-          <input ref={depositValue3Ref} type="radio" className="deposit-radio" onChange={handleDepositLessThanValue3Change} />
+        <div className="flex items-center gap-2 py-1.5 px-1">
+          <input ref={depositValue3Ref} type="radio" className="cursor-pointer" onChange={handleDepositLessThanValue3Change} />
           <span
             onClick={handleDepositLessThanValue3Click}
             role="button"
             tabIndex={0}
+            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
           >
             {strings.LESS_THAN_VALUE_3}
           </span>
         </div>
-        <div className="filter-element">
-          <input ref={depositAllRef} type="radio" className="deposit-radio" onChange={handleAllDepositChange} />
+        <div className="flex items-center gap-2 py-1.5 px-1">
+          <input ref={depositAllRef} type="radio" className="cursor-pointer" onChange={handleAllDepositChange} />
           <span
             onClick={handleAllDepositClick}
             role="button"
             tabIndex={0}
+            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
           >
             {commonStrings.ALL}
           </span>

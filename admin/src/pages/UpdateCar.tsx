@@ -41,8 +41,6 @@ import CarImageGallery from '@/components/CarImageGallery'
 import { Option, Supplier } from '@/models/common'
 import { schema, FormFields, DateBasedPrice } from '@/models/CarForm'
 
-import '@/assets/css/create-car.css'
-
 const UpdateCar = () => {
   const navigate = useNavigate()
 
@@ -368,8 +366,8 @@ const UpdateCar = () => {
   return (
     <Layout onLoad={onLoad} strict>
       {!formError && !noMatch && (
-        <div className="create-car">
-          <Paper className="car-form car-form-wrapper" elevation={10} style={visible ? {} : { display: 'none' }}>
+        <div className="flex flex-col flex-1 items-center my-11 translate-z-0">
+          <Paper className="my-8 w-[360px] p-[30px] md:w-[550px]" elevation={10} style={visible ? {} : { display: 'none' }}>
             <form onSubmit={handleSubmit(onSubmit, onError)}>
               <Avatar
                 type={bookcarsTypes.RecordType.Car}
@@ -492,7 +490,7 @@ const UpdateCar = () => {
                 />
               </FormControl>
 
-              <FormControl fullWidth margin="dense" className="checkbox-fc">
+              <FormControl fullWidth margin="dense" className="!my-3">
                 <FormControlLabel
                   control={(
                     <Switch
@@ -502,7 +500,7 @@ const UpdateCar = () => {
                     />
                   )}
                   label={strings.IS_DATE_BASED_PRICE}
-                  className="checkbox-fcl"
+                  className="text-black/60 text-[0.9em] leading-[1em]"
                 />
               </FormControl>
 
@@ -731,7 +729,7 @@ const UpdateCar = () => {
                 />
               </FormControl>
 
-              <FormControl fullWidth margin="dense" className="checkbox-fc">
+              <FormControl fullWidth margin="dense" className="!my-3">
                 <FormControlLabel
                   control={
                     <Switch
@@ -741,7 +739,7 @@ const UpdateCar = () => {
                     />
                   }
                   label="Enable Traccar tracking"
-                  className="checkbox-fcl"
+                  className="text-black/60 text-[0.9em] leading-[1em]"
                 />
               </FormControl>
 
@@ -785,7 +783,7 @@ const UpdateCar = () => {
                 </>
               )}
 
-              <FormControl fullWidth margin="dense" className="checkbox-fc">
+              <FormControl fullWidth margin="dense" className="!my-3">
                 <FormControlLabel
                   control={
                     <Switch
@@ -795,11 +793,11 @@ const UpdateCar = () => {
                     />
                   }
                   label={strings.AVAILABLE}
-                  className="checkbox-fcl"
+                  className="text-black/60 text-[0.9em] leading-[1em]"
                 />
               </FormControl>
 
-              <FormControl fullWidth margin="dense" className="checkbox-fc">
+              <FormControl fullWidth margin="dense" className="!my-3">
                 <FormControlLabel
                   control={(
                     <Switch
@@ -809,11 +807,11 @@ const UpdateCar = () => {
                     />
                   )}
                   label={strings.FULLY_BOOKED}
-                  className="checkbox-fcl"
+                  className="text-black/60 text-[0.9em] leading-[1em]"
                 />
               </FormControl>
 
-              <FormControl fullWidth margin="dense" className="checkbox-fc">
+              <FormControl fullWidth margin="dense" className="!my-3">
                 <FormControlLabel
                   control={(
                     <Switch
@@ -823,11 +821,11 @@ const UpdateCar = () => {
                     />
                   )}
                   label={strings.COMING_SOON}
-                  className="checkbox-fcl"
+                  className="text-black/60 text-[0.9em] leading-[1em]"
                 />
               </FormControl>
 
-              <FormControl fullWidth margin="dense" className="checkbox-fc">
+              <FormControl fullWidth margin="dense" className="!my-3">
                 <FormControlLabel
                   control={(
                     <Switch
@@ -837,7 +835,7 @@ const UpdateCar = () => {
                     />
                   )}
                   label={strings.BLOCK_ON_PAY}
-                  className="checkbox-fcl"
+                  className="text-black/60 text-[0.9em] leading-[1em]"
                 />
               </FormControl>
 
@@ -897,7 +895,7 @@ const UpdateCar = () => {
                 <span>{commonStrings.OPTIONAL}</span>
               </div>
 
-              <FormControl fullWidth margin="dense" className="checkbox-fc">
+              <FormControl fullWidth margin="dense" className="!my-3">
                 <FormControlLabel
                   control={
                     <Switch
@@ -907,7 +905,7 @@ const UpdateCar = () => {
                     />
                   }
                   label={strings.AIRCON}
-                  className="checkbox-fcl"
+                  className="text-black/60 text-[0.9em] leading-[1em]"
                 />
               </FormControl>
 

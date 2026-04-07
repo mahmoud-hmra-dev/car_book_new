@@ -3,8 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { Button } from '@mui/material'
 import { strings as commonStrings } from '@/lang/common'
 
-import '@/assets/css/error.css'
-
 interface ErrorProps {
   message: string
   style?: React.CSSProperties
@@ -16,8 +14,8 @@ const Error = ({ message, style, homeLink }: ErrorProps) => {
 
   return (
     <div style={style || {}}>
-      <div className="error">
-        <span className="message">{message}</span>
+      <div className="text-[#ec5555] text-center">
+        <span className="p-[5px]">{message}</span>
       </div>
       {homeLink && (
         <p>

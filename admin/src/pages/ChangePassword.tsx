@@ -17,9 +17,6 @@ import { schema, FormFields } from '@/models/ChangePasswordForm'
 import NoMatch from '@/pages/NoMatch'
 import PasswordInput from '@/components/PasswordInput'
 
-import '@/assets/css/change-password.css'
-
-
 const ChangePassword = () => {
   const navigate = useNavigate()
 
@@ -115,9 +112,9 @@ const ChangePassword = () => {
 
   return (
     <Layout onLoad={onLoad} strict>
-      {!noMatch && (<div className="password-reset" style={visible ? {} : { display: 'none' }}>
-        <Paper className="password-reset-form password-reset-form-wrapper" elevation={10}>
-          <h1 className="password-reset-form-title">{strings.CHANGE_PASSWORD_HEADING}</h1>
+      {!noMatch && (<div className="flex flex-col items-center pb-10 flex-1" style={visible ? {} : { display: 'none' }}>
+        <Paper className="mt-10 w-[330px] md:w-[450px] p-[30px]" elevation={10}>
+          <h1 className="text-center mt-0">{strings.CHANGE_PASSWORD_HEADING}</h1>
           <form className="form" onSubmit={handleSubmit(onSubmit)}>
 
             {strict && (

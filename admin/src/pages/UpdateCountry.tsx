@@ -27,8 +27,6 @@ import env from '@/config/env.config'
 import SupplierBadge from '@/components/SupplierBadge'
 import { schema, FormFields } from '@/models/CountryForm'
 
-import '@/assets/css/update-country.css'
-
 const UpdateCountry = () => {
   const navigate = useNavigate()
 
@@ -202,9 +200,9 @@ const UpdateCountry = () => {
   return (
     <Layout onLoad={onLoad} strict>
       {!error && !noMatch && country && country.values && (
-        <div className="update-country">
-          <Paper className="country-form country-form-wrapper" elevation={10} style={visible ? {} : { display: 'none' }}>
-            <h1 className="country-form-title">{strings.UPDATE_COUNTRY}</h1>
+        <div className="flex flex-col flex-1 items-center my-11">
+          <Paper className="w-[360px] p-[30px] md:w-[550px] my-8" elevation={10} style={visible ? {} : { display: 'none' }}>
+            <h1 className="text-center capitalize text-[#121212]">{strings.UPDATE_COUNTRY}</h1>
             <form onSubmit={handleSubmit(onSubmit)}>
               {helper.admin(user) && country.supplier && (
                 <FormControl fullWidth margin="dense">

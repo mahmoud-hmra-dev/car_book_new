@@ -32,8 +32,6 @@ import ContractList from '@/components/ContractList'
 import OfficeLocationPicker, { OfficeLocationInfo } from '@/components/OfficeLocationPicker'
 import { schema, FormFields } from '@/models/SupplierForm'
 
-import '@/assets/css/update-supplier.css'
-
 const UpdateSupplier = () => {
   const navigate = useNavigate()
 
@@ -252,8 +250,8 @@ const UpdateSupplier = () => {
   return (
     <Layout onLoad={onLoad} strict>
       {visible && (
-        <div className="update-supplier">
-          <Paper className="supplier-form-update" elevation={10}>
+        <div className="flex flex-col flex-1 items-center my-11">
+          <Paper className="w-[360px] p-[30px] md:w-[550px]" elevation={10}>
             <form onSubmit={handleSubmit(onSubmit, onError)}>
               <Avatar
                 type={bookcarsTypes.RecordType.Supplier}
@@ -483,7 +481,7 @@ const UpdateSupplier = () => {
               </FormControl>
 
               {admin && (
-                <FormControl fullWidth margin="dense" className="resend-activation-link">
+                <FormControl fullWidth margin="dense" className="cursor-pointer mt-5 mb-2.5">
                   <Button
                     variant="outlined"
                     onClick={handleResendActivationLink}

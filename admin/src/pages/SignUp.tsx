@@ -21,8 +21,6 @@ import { useUserContext, UserContextType } from '@/context/UserContext'
 import { schema, FormFields } from '@/models/SignUpForm'
 import PasswordInput from '@/components/PasswordInput'
 
-import '@/assets/css/signup.css'
-
 const SignUp = () => {
   const navigate = useNavigate()
 
@@ -81,9 +79,9 @@ const SignUp = () => {
 
   return (
     <Layout strict={false} onLoad={onLoad}>
-      <div className="signup">
-        <Paper className="signup-form" elevation={10} style={visible ? {} : { display: 'none' }}>
-          <h1 className="signup-form-title">{strings.SIGN_UP_HEADING}</h1>
+      <div className="flex flex-row flex-1 justify-center my-11">
+        <Paper className="w-[350px] md:w-[550px] p-[30px]" elevation={10} style={visible ? {} : { display: 'none' }}>
+          <h1 className="text-center capitalize text-[#121212]">{strings.SIGN_UP_HEADING}</h1>
           <form onSubmit={handleSubmit(onSubmit)}>
             <div>
               <FormControl fullWidth margin="dense">

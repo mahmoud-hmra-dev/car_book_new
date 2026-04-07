@@ -8,8 +8,6 @@ import { strings as headerStrings } from '@/lang/header'
 import Search from '@/components/Search'
 import CountryList from '@/components/CountryList'
 
-import '@/assets/css/countries.css'
-
 const Countries = () => {
   const navigate = useNavigate()
 
@@ -34,30 +32,30 @@ const Countries = () => {
 
   return (
     <Layout onLoad={onLoad} strict>
-      <div className="countries">
-        <div className="page-header">
+      <div className="flex flex-col gap-6 min-h-0">
+        <div className="bg-white rounded-xl shadow-sm py-5 px-6 flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h1 className="page-title">
+            <h1 className="text-2xl font-bold text-text m-0 leading-snug">
               {headerStrings.COUNTRIES}
               {rowCount > 0 && (
-                <span className="page-count">
+                <span className="text-sm font-normal text-text-muted ml-3">
                   {`(${rowCount} ${rowCount > 1 ? strings.COUNTRIES : strings.COUNTRY})`}
                 </span>
               )}
             </h1>
           </div>
           {rowCount > -1 && (
-            <Button variant="contained" className="btn-primary new-country" size="small" onClick={() => navigate('/create-country')}>
+            <Button variant="contained" className="btn-primary !rounded-lg !normal-case !font-semibold !text-sm !py-2 !px-5 !shadow-none" size="small" onClick={() => navigate('/create-country')}>
               {strings.NEW_COUNTRY}
             </Button>
           )}
         </div>
-        <div className="col-1">
-          <div className="col-1-container">
-            <Search className="search" onSubmit={handleSearch} />
+        <div className="bg-white rounded-xl shadow-sm py-5 px-6 w-full">
+          <div className="flex flex-wrap gap-3 items-center w-full max-md:flex-col">
+            <Search className="w-full max-w-[400px] flex justify-start max-md:max-w-full" onSubmit={handleSearch} />
           </div>
         </div>
-        <div className="col-2">
+        <div className="bg-white rounded-xl shadow-sm py-4 px-6 min-h-[300px] flex flex-col items-center flex-1">
           <CountryList
             keyword={keyword}
             onLoad={handleCountryListLoad}

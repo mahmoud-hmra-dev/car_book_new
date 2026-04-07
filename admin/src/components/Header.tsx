@@ -48,8 +48,6 @@ import * as helper from '@/utils/helper'
 import { useNotificationContext, NotificationContextType } from '@/context/NotificationContext'
 import { useUserContext, UserContextType } from '@/context/UserContext'
 
-import '@/assets/css/header.css'
-
 interface HeaderProps {
   hidden?: boolean
   children?: ReactNode
@@ -291,14 +289,14 @@ const Header = ({
       transformOrigin={{ vertical: 'top', horizontal: 'right' }}
       open={isMenuOpen}
       onClose={handleMenuClose}
-      className="menu"
+      className="z-[1401]!"
     >
       <MenuItem onClick={handleSettingsClick}>
-        <SettingsIcon className="header-action" />
+        <SettingsIcon className="mr-5 rtl:mr-0 rtl:ml-5" />
         <Typography>{strings.SETTINGS}</Typography>
       </MenuItem>
       <MenuItem onClick={handleSignout}>
-        <SignoutIcon className="header-action" />
+        <SignoutIcon className="mr-5 rtl:mr-0 rtl:ml-5" />
         <Typography>{strings.SIGN_OUT}</Typography>
       </MenuItem>
     </Menu>
@@ -314,18 +312,18 @@ const Header = ({
       transformOrigin={{ vertical: 'top', horizontal: 'right' }}
       open={isMobileMenuOpen}
       onClose={handleMobileMenuClose}
-      className="menu"
+      className="z-[1401]!"
     >
       <MenuItem onClick={handleSettingsClick}>
-        <SettingsIcon className="header-action" />
+        <SettingsIcon className="mr-5 rtl:mr-0 rtl:ml-5" />
         <p>{strings.SETTINGS}</p>
       </MenuItem>
       <MenuItem onClick={handleLangMenuOpen}>
-        <LanguageIcon className="header-action" />
+        <LanguageIcon className="mr-5 rtl:mr-0 rtl:ml-5" />
         <p>{strings.LANGUAGE}</p>
       </MenuItem>
       <MenuItem onClick={handleSignout}>
-        <SignoutIcon className="header-action" />
+        <SignoutIcon className="mr-5 rtl:mr-0 rtl:ml-5" />
         <p>{strings.SIGN_OUT}</p>
       </MenuItem>
     </Menu>
@@ -341,7 +339,7 @@ const Header = ({
       transformOrigin={{ vertical: 'top', horizontal: 'right' }}
       open={isLangMenuOpen}
       onClose={handleLangMenuClose}
-      className="menu"
+      className="z-[1401]!"
     >
       {
         env._LANGUAGES.map((language) => (
@@ -361,7 +359,7 @@ const Header = ({
     <>
       {/* Mobile backdrop */}
       <div
-        className={`sidebar-drawer-backdrop${sidebarOpen ? ' backdrop-visible' : ''}`}
+        className={`hidden max-[960px]:block max-[960px]:fixed max-[960px]:inset-0 max-[960px]:bg-black/40 max-[960px]:z-[1299] ${sidebarOpen ? 'max-[960px]:!block' : 'max-[960px]:!hidden'}`}
         onClick={handleSidebarClose}
         onKeyDown={(e) => {
           if (e.key === 'Escape') {
@@ -374,12 +372,28 @@ const Header = ({
 
       {/* Sidebar (only when signed in) */}
       {isLoaded && isSignedIn && (
-        <aside className={`admin-sidebar${sidebarOpen ? ' sidebar-open' : ''}${sidebarCollapsed ? ' collapsed' : ''}`}>
-          {/* Toggle button */}
-          <div className="sidebar-toggle-wrapper">
+        <aside
+          className={[
+            // Base sidebar styles
+            'shrink-0 bg-white border-r border-border flex flex-col h-screen sticky top-0 overflow-x-hidden overflow-y-auto z-[200] transition-[width] duration-200 ease-in-out',
+            // Scrollbar styling
+            '[&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded',
+            // Desktop width (collapsed vs expanded)
+            sidebarCollapsed ? 'w-[60px]' : 'w-[260px]',
+            // Mobile: override to fixed drawer
+            'max-[960px]:fixed max-[960px]:top-0 max-[960px]:left-0 max-[960px]:bottom-0 max-[960px]:!w-[280px] max-[960px]:z-[1300] max-[960px]:shadow-none',
+            'max-[960px]:-translate-x-full max-[960px]:transition-transform max-[960px]:duration-[250ms] max-[960px]:ease-[cubic-bezier(0.4,0,0.2,1)]',
+            // RTL mobile
+            'rtl:max-[960px]:left-auto rtl:max-[960px]:right-0 rtl:max-[960px]:translate-x-full rtl:max-[960px]:-translate-x-0',
+            // Mobile sidebar-open state
+            sidebarOpen ? 'max-[960px]:translate-x-0 max-[960px]:shadow-[4px_0_24px_rgb(0_0_0/12%)] rtl:max-[960px]:translate-x-0 rtl:max-[960px]:shadow-[-4px_0_24px_rgb(0_0_0/12%)]' : '',
+          ].join(' ')}
+        >
+          {/* Toggle button (hidden on mobile) */}
+          <div className="relative shrink-0 max-[960px]:hidden">
             <button
               type="button"
-              className="sidebar-toggle-btn"
+              className="absolute -right-3.5 top-3 w-7 h-7 rounded-full bg-white border border-border flex items-center justify-center cursor-pointer z-10 shadow-[0_2px_4px_rgb(0_0_0/10%)] transition-[transform] duration-200 ease-in-out p-0 text-text-secondary hover:bg-slate-50 hover:text-text rtl:right-auto rtl:-left-3.5"
               onClick={handleSidebarToggle}
               aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             >
@@ -388,17 +402,36 @@ const Header = ({
           </div>
 
           {/* Brand */}
-          <div className="sidebar-brand">
-            <CarsIcon className="sidebar-brand-icon" />
-            <span className="sidebar-brand-text">{env.WEBSITE_NAME || 'BookCars'}</span>
+          <div
+            className={[
+              'flex items-center gap-2.5 border-b border-border shrink-0',
+              sidebarCollapsed ? 'justify-center py-4 px-0 max-[960px]:justify-start max-[960px]:px-6' : 'px-6 py-4',
+            ].join(' ')}
+          >
+            <CarsIcon className="text-primary !text-[28px]" />
+            <span
+              className={[
+                'text-lg font-bold text-[#0F1419] whitespace-nowrap',
+                sidebarCollapsed ? 'hidden max-[960px]:inline' : '',
+              ].join(' ')}
+            >
+              {env.WEBSITE_NAME || 'BookCars'}
+            </span>
           </div>
 
           {/* Navigation */}
-          <nav className="sidebar-nav">
+          <nav className="flex-1 py-2 overflow-y-auto">
             {navGroups.map((group, gi) => (
               <div key={`group-${gi}`}>
                 {group.label && (
-                  <div className="sidebar-group-label">{group.label}</div>
+                  <div
+                    className={[
+                      'uppercase text-[11px] font-semibold text-text-muted tracking-[0.5px] leading-none',
+                      sidebarCollapsed ? 'hidden max-[960px]:block max-[960px]:px-6 max-[960px]:pt-6 max-[960px]:pb-2' : 'px-6 pt-6 pb-2',
+                    ].join(' ')}
+                  >
+                    {group.label}
+                  </div>
                 )}
                 {group.items.map((item) => (
                   <Tooltip
@@ -408,7 +441,24 @@ const Header = ({
                     arrow
                   >
                     <div
-                      className={`sidebar-nav-item${isActive(item.path, item.exact) ? ' active' : ''}`}
+                      className={[
+                        'flex items-center gap-3 h-10 cursor-pointer text-[#334155] text-sm font-medium transition-[background-color,color,border-color] duration-150 ease-in-out no-underline whitespace-nowrap select-none',
+                        // Default (not collapsed) layout
+                        sidebarCollapsed
+                          ? 'justify-center px-3 mx-1 my-0.5 rounded-lg border-l-3 border-l-transparent max-[960px]:justify-start max-[960px]:px-4 max-[960px]:pl-6 max-[960px]:mr-2 max-[960px]:ml-0 max-[960px]:rounded-none max-[960px]:rounded-r-lg rtl:max-[960px]:mr-0 rtl:max-[960px]:ml-2 rtl:max-[960px]:rounded-none rtl:max-[960px]:rounded-l-lg rtl:max-[960px]:pl-4 rtl:max-[960px]:pr-6'
+                          : 'pl-6 pr-4 mr-2 ml-0 rounded-r-lg border-l-3 border-l-transparent rtl:border-l-0 rtl:border-r-3 rtl:border-r-transparent rtl:rounded-r-none rtl:rounded-l-lg rtl:ml-2 rtl:mr-0 rtl:pr-6 rtl:pl-4',
+                        // Hover
+                        'hover:bg-primary/6',
+                        // Active state
+                        isActive(item.path, item.exact)
+                          ? [
+                            'bg-primary/8 text-primary',
+                            sidebarCollapsed
+                              ? 'max-[960px]:border-l-primary rtl:max-[960px]:border-r-primary'
+                              : 'border-l-primary rtl:border-l-transparent rtl:border-r-primary',
+                          ].join(' ')
+                          : '',
+                      ].join(' ')}
                       onClick={() => handleNavClick(item.path)}
                       role="button"
                       tabIndex={0}
@@ -418,8 +468,15 @@ const Header = ({
                         }
                       }}
                     >
-                      <span className="sidebar-nav-icon">{item.icon}</span>
-                      <span className="sidebar-nav-label">{item.label}</span>
+                      <span className="!text-[20px] shrink-0 text-inherit">{item.icon}</span>
+                      <span
+                        className={[
+                          'overflow-hidden text-ellipsis',
+                          sidebarCollapsed ? 'hidden max-[960px]:inline' : '',
+                        ].join(' ')}
+                      >
+                        {item.label}
+                      </span>
                     </div>
                   </Tooltip>
                 ))}
@@ -428,66 +485,61 @@ const Header = ({
           </nav>
 
           {/* Footer links */}
-          <div className="sidebar-footer">
-            <Tooltip title={sidebarCollapsed ? strings.ABOUT : ''} placement="right" arrow>
-              <div
-                className={`sidebar-nav-item${isActive('/about') ? ' active' : ''}`}
-                onClick={() => handleNavClick('/about')}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    handleNavClick('/about')
-                  }
-                }}
-              >
-                <span className="sidebar-nav-icon"><AboutIcon /></span>
-                <span className="sidebar-nav-label">{strings.ABOUT}</span>
-              </div>
-            </Tooltip>
-            <Tooltip title={sidebarCollapsed ? strings.TOS : ''} placement="right" arrow>
-              <div
-                className={`sidebar-nav-item${isActive('/tos') ? ' active' : ''}`}
-                onClick={() => handleNavClick('/tos')}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    handleNavClick('/tos')
-                  }
-                }}
-              >
-                <span className="sidebar-nav-icon"><TosIcon /></span>
-                <span className="sidebar-nav-label">{strings.TOS}</span>
-              </div>
-            </Tooltip>
-            <Tooltip title={sidebarCollapsed ? strings.CONTACT : ''} placement="right" arrow>
-              <div
-                className={`sidebar-nav-item${isActive('/contact') ? ' active' : ''}`}
-                onClick={() => handleNavClick('/contact')}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    handleNavClick('/contact')
-                  }
-                }}
-              >
-                <span className="sidebar-nav-icon"><MailIcon /></span>
-                <span className="sidebar-nav-label">{strings.CONTACT}</span>
-              </div>
-            </Tooltip>
+          <div className="border-t border-border py-2 shrink-0">
+            {[
+              { path: '/about', label: strings.ABOUT, icon: <AboutIcon /> },
+              { path: '/tos', label: strings.TOS, icon: <TosIcon /> },
+              { path: '/contact', label: strings.CONTACT, icon: <MailIcon /> },
+            ].map((item) => (
+              <Tooltip key={item.path} title={sidebarCollapsed ? item.label : ''} placement="right" arrow>
+                <div
+                  className={[
+                    'flex items-center gap-3 h-9 cursor-pointer text-text-secondary text-[13px] font-medium transition-[background-color,color,border-color] duration-150 ease-in-out no-underline whitespace-nowrap select-none',
+                    'hover:bg-primary/6 hover:text-text',
+                    sidebarCollapsed
+                      ? 'justify-center px-3 mx-1 my-0.5 rounded-lg border-l-3 border-l-transparent max-[960px]:justify-start max-[960px]:px-4 max-[960px]:pl-6 max-[960px]:mr-2 max-[960px]:ml-0 max-[960px]:rounded-none max-[960px]:rounded-r-lg rtl:max-[960px]:mr-0 rtl:max-[960px]:ml-2 rtl:max-[960px]:rounded-none rtl:max-[960px]:rounded-l-lg rtl:max-[960px]:pl-4 rtl:max-[960px]:pr-6'
+                      : 'pl-6 pr-4 mr-2 ml-0 rounded-r-lg border-l-3 border-l-transparent rtl:border-l-0 rtl:border-r-3 rtl:border-r-transparent rtl:rounded-r-none rtl:rounded-l-lg rtl:ml-2 rtl:mr-0 rtl:pr-6 rtl:pl-4',
+                    isActive(item.path)
+                      ? [
+                        'bg-primary/8 text-primary',
+                        sidebarCollapsed
+                          ? 'max-[960px]:border-l-primary rtl:max-[960px]:border-r-primary'
+                          : 'border-l-primary rtl:border-l-transparent rtl:border-r-primary',
+                      ].join(' ')
+                      : '',
+                  ].join(' ')}
+                  onClick={() => handleNavClick(item.path)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      handleNavClick(item.path)
+                    }
+                  }}
+                >
+                  <span className="!text-[20px] shrink-0 text-inherit">{item.icon}</span>
+                  <span
+                    className={[
+                      'overflow-hidden text-ellipsis',
+                      sidebarCollapsed ? 'hidden max-[960px]:inline' : '',
+                    ].join(' ')}
+                  >
+                    {item.label}
+                  </span>
+                </div>
+              </Tooltip>
+            ))}
           </div>
         </aside>
       )}
 
       {/* Content column: topbar + page content */}
       <div className="admin-content-column">
-        <header className="admin-topbar">
-          <div className="topbar-left">
+        <header className="h-14 bg-white border-b border-border flex items-center px-6 sticky top-0 z-[100] shrink-0">
+          <div className="flex items-center gap-2">
             {isLoaded && isSignedIn && (
               <IconButton
-                className="topbar-hamburger"
+                className="!hidden max-[960px]:!inline-flex"
                 edge="start"
                 color="default"
                 aria-label="open sidebar"
@@ -496,12 +548,12 @@ const Header = ({
                 <MenuIcon />
               </IconButton>
             )}
-            <span className="topbar-brand-mobile">{env.WEBSITE_NAME || 'BookCars'}</span>
+            <span className="hidden max-[960px]:block text-base font-bold text-primary whitespace-nowrap">{env.WEBSITE_NAME || 'BookCars'}</span>
           </div>
 
-          <div className="topbar-spacer" />
+          <div className="flex-1" />
 
-          <div className="topbar-actions">
+          <div className="flex items-center gap-1">
             {isSignedIn && (
               <IconButton aria-label="notifications" color="default" onClick={handleNotificationsClick}>
                 <Badge badgeContent={notificationCount > 0 ? notificationCount : null} color="error">
@@ -533,7 +585,6 @@ const Header = ({
             )}
             {isSignedIn && (
               <IconButton
-                className="topbar-mobile-more"
                 aria-label="show more"
                 aria-controls={mobileMenuId}
                 aria-haspopup="true"

@@ -3,8 +3,6 @@ import * as bookcarsTypes from ':bookcars-types'
 import Layout from '@/components/Layout'
 import ContactForm from '@/components/ContactForm'
 
-import '@/assets/css/contact.css'
-
 const Contact = () => {
   const [user, setUser] = useState<bookcarsTypes.User>()
 
@@ -14,8 +12,8 @@ const Contact = () => {
 
   return (
     <Layout onLoad={onLoad} strict>
-      <div className="contact">
-        <ContactForm user={user} className="form" />
+      <div className="flex flex-col flex-1 items-center min-h-screen">
+        <ContactForm user={user} className="my-[100px]" />
       </div>
     </Layout>
   )

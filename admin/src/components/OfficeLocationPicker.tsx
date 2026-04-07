@@ -19,7 +19,6 @@ import {
 } from '@mui/icons-material'
 import env from '@/config/env.config'
 
-import '@/assets/css/office-location-picker.css'
 
 /* ── types ───────────────────────────────────────────────── */
 export interface OfficeLocationInfo {
@@ -150,9 +149,9 @@ const InnerMap: React.FC<InnerMapProps> = ({ initialLat, initialLng, onChange })
       </Map>
 
       {/* Controls overlay */}
-      <div className="olp-controls">
+      <div className="absolute top-2.5 right-2.5 z-10 flex flex-col gap-1.5">
         <Tooltip title="Use my current location" placement="left">
-          <Button className="olp-geo-btn" onClick={handleGeolocate} disabled={geoLoading} variant="contained" size="small">
+          <Button className="!bg-primary hover:!bg-[#5229BF] !min-w-0 !w-9 !h-9 !rounded-full !p-0 !shadow-[0_2px_8px_rgba(0,0,0,0.22)]" onClick={handleGeolocate} disabled={geoLoading} variant="contained" size="small">
             {geoLoading
               ? <CircularProgress size={16} sx={{ color: '#fff' }} />
               : <MyLocationIcon fontSize="small" />}
@@ -160,7 +159,7 @@ const InnerMap: React.FC<InnerMapProps> = ({ initialLat, initialLng, onChange })
         </Tooltip>
         {marker && (
           <Tooltip title="Clear location" placement="left">
-            <Button className="olp-clear-btn" onClick={handleClear} variant="contained" size="small">
+            <Button className="!bg-danger hover:!bg-[#c62828] !min-w-0 !w-9 !h-9 !rounded-full !p-0 !shadow-[0_2px_8px_rgba(0,0,0,0.22)]" onClick={handleClear} variant="contained" size="small">
               <CloseIcon fontSize="small" />
             </Button>
           </Tooltip>
@@ -169,23 +168,23 @@ const InnerMap: React.FC<InnerMapProps> = ({ initialLat, initialLng, onChange })
 
       {/* Coordinate + address display */}
       {marker ? (
-        <div className="olp-coords">
-          <div className="olp-coords-row">
-            <span className="olp-coords-label">Latitude</span>
-            <span className="olp-coords-value">{marker.lat.toFixed(6)}</span>
-            <span className="olp-coords-sep" />
-            <span className="olp-coords-label">Longitude</span>
-            <span className="olp-coords-value">{marker.lng.toFixed(6)}</span>
+        <div className="px-4 py-3 bg-[#F0EBF9] border-t border-primary/12">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-text-secondary">Latitude</span>
+            <span className="text-[13px] font-bold text-[#1B6B4A] font-mono">{marker.lat.toFixed(6)}</span>
+            <span className="w-px h-3.5 bg-black/15 mx-1" />
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-text-secondary">Longitude</span>
+            <span className="text-[13px] font-bold text-[#1B6B4A] font-mono">{marker.lng.toFixed(6)}</span>
           </div>
           {address && (
-            <div className="olp-coords-address">
+            <div className="flex items-start text-xs text-[#475569] mt-1.5 leading-relaxed">
               <LocationOnIcon fontSize="small" sx={{ color: '#6B3CE6', mr: 0.5, flexShrink: 0 }} />
               {address}
             </div>
           )}
         </div>
       ) : (
-        <div className="olp-coords-hint">
+        <div className="px-4 py-3 text-xs text-text-muted bg-[#fafafa] border-t border-black/[0.06] text-center">
           No office location set. Click the map to place a pin.
         </div>
       )}
@@ -201,25 +200,25 @@ const OfficeLocationPicker: React.FC<Props> = ({
 }) => {
   if (!env.GOOGLE_MAPS_API_KEY) {
     return (
-      <div className="olp-error">
+      <div className="p-5 text-center text-danger text-[13px] bg-[#fff5f5] border border-[#fecaca] rounded-xl">
         Unable to load map. Check your Google Maps API key.
       </div>
     )
   }
 
   return (
-    <div className="olp-wrapper">
+    <div className="rounded-xl border border-primary/18 overflow-hidden bg-white shadow-[0_2px_12px_rgba(0,0,0,0.07)] mt-2 mb-1">
       {/* Header */}
-      <div className="olp-header">
-        <LocationOnIcon className="olp-header-icon" />
+      <div className="flex items-start gap-2.5 px-[18px] pt-3.5 pb-3 bg-gradient-to-br from-primary to-[#8B6AEF] text-white">
+        <LocationOnIcon className="!text-2xl opacity-90 mt-0.5" />
         <div>
-          <div className="olp-header-title">Office Location on Map</div>
-          <div className="olp-header-sub">Click the map or drag the pin to set your office coordinates.</div>
+          <div className="text-sm font-bold tracking-tight">Office Location on Map</div>
+          <div className="text-[11px] opacity-80 mt-0.5">Click the map or drag the pin to set your office coordinates.</div>
         </div>
       </div>
 
       {/* Map */}
-      <div className="olp-map-container">
+      <div className="relative">
         <APIProvider apiKey={env.GOOGLE_MAPS_API_KEY} libraries={['places']}>
           <InnerMap
             initialLat={initialLat}

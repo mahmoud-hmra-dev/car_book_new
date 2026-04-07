@@ -5,7 +5,6 @@ import { strings as commonStrings } from '@/lang/common'
 import { strings } from '@/lang/cars'
 import Accordion from './Accordion'
 
-import '@/assets/css/gearbox-filter.css'
 
 interface GearboxFilterProps {
   className?: string
@@ -134,33 +133,35 @@ const GearboxFilter = ({
   }
 
   return (
-    <Accordion title={strings.GEARBOX} collapse={collapse} className={`${className ? `${className} ` : ''}gearbox-filter`}>
-      <div className="filter-elements">
-        <div className="filter-element">
-          <input ref={automaticRef} type="checkbox" className="gearbox-checkbox" onChange={handleCheckAutomaticChange} />
+    <Accordion title={strings.GEARBOX} collapse={collapse} className={className}>
+      <div className="px-1.5 py-2">
+        <div className="flex items-center gap-2 py-1.5 px-1">
+          <input ref={automaticRef} type="checkbox" className="cursor-pointer" onChange={handleCheckAutomaticChange} />
           <span
             onClick={handleAutomaticClick}
             role="button"
             tabIndex={0}
+            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
           >
             {strings.GEARBOX_AUTOMATIC}
           </span>
         </div>
-        <div className="filter-element">
-          <input ref={manualRef} type="checkbox" className="gearbox-checkbox" onChange={handleCheckManualChange} />
+        <div className="flex items-center gap-2 py-1.5 px-1">
+          <input ref={manualRef} type="checkbox" className="cursor-pointer" onChange={handleCheckManualChange} />
           <span
             onClick={handleManualClick}
             role="button"
             tabIndex={0}
+            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
           >
             {strings.GEARBOX_MANUAL}
           </span>
         </div>
       </div>
-      <div className="filter-actions">
+      <div className="text-center pb-2.5">
         <span
           onClick={handleUncheckAllChange}
-          className="uncheckall"
+          className="text-xs text-primary underline cursor-pointer"
           role="button"
           tabIndex={0}
         >

@@ -32,7 +32,6 @@ import Avatar from './Avatar'
 import { UserContextType, useUserContext } from '@/context/UserContext'
 import Progress from '@/components/Progress'
 
-import '@/assets/css/location-list.css'
 
 interface LocationListProps {
   keyword?: string

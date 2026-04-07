@@ -20,8 +20,6 @@ import env from '@/config/env.config'
 import { UserContextType, useUserContext } from '@/context/UserContext'
 import { schema, FormFields } from '@/models/CountryForm'
 
-import '@/assets/css/create-country.css'
-
 const CreateCountry = () => {
   const navigate = useNavigate()
   const { user } = useUserContext() as UserContextType
@@ -100,9 +98,9 @@ const CreateCountry = () => {
 
   return (
     <Layout onLoad={onLoad} strict>
-      <div className="create-country">
-        <Paper className="country-form country-form-wrapper" elevation={10} style={visible ? {} : { display: 'none' }}>
-          <h1 className="country-form-title">{strings.NEW_COUNTRY_HEADING}</h1>
+      <div className="flex flex-col flex-1 items-center my-11">
+        <Paper className="w-[360px] min-h-[400px] p-[30px] md:w-[550px] md:min-h-[340px] my-8" elevation={10} style={visible ? {} : { display: 'none' }}>
+          <h1 className="text-center capitalize text-[#121212]">{strings.NEW_COUNTRY_HEADING}</h1>
           <form onSubmit={handleSubmit(onSubmit)}>
             {fields.map((field, index) => (
               <FormControl key={field.id} fullWidth margin="dense">

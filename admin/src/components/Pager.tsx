@@ -6,8 +6,6 @@ import {
 } from '@mui/icons-material'
 import { strings as commonStrings } from '@/lang/common'
 
-import '@/assets/css/pager.css'
-
 interface PagerProps {
   page: number
   pageSize: number
@@ -26,11 +24,11 @@ const Pager = ({
   onPrevious
 }: PagerProps) => (
     (((page > 1 || rowCount < totalRecords) && (
-      <div className="pager-container">
-        <div className="pager">
-          <div className="row-count">{`${(page - 1) * pageSize + 1}-${rowCount} ${commonStrings.OF} ${totalRecords}`}</div>
+      <div className="h-[54px] w-full py-[5px] pr-2.5 pl-0 mb-[15px] bg-white rounded-[5px] flex flex-row justify-end">
+        <div className="flex flex-row items-center">
+          <div className="text-sm flex flex-row items-center mr-[7px]">{`${(page - 1) * pageSize + 1}-${rowCount} ${commonStrings.OF} ${totalRecords}`}</div>
 
-          <div className="actions">
+          <div className="flex flex-row items-center">
             <IconButton onClick={onPrevious} disabled={page === 1}>
               <PreviousPageIcon className="icon" />
             </IconButton>

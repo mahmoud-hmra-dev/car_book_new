@@ -12,8 +12,6 @@ import * as helper from '@/utils/helper'
 import env from '@/config/env.config'
 import { schema, FormFields } from '@/models/ForgotPasswordForm'
 
-import '@/assets/css/forgot-password.css'
-
 const ForgotPassword = () => {
   const navigate = useNavigate()
 
@@ -61,9 +59,9 @@ const ForgotPassword = () => {
 
   return (
     <Layout onLoad={onLoad} strict={false}>
-      <div className="forgot-password">
-        <Paper className={`forgot-password-form ${visible ? '' : 'hidden'}`} elevation={10}>
-          <h1 className="forgot-password-title">{strings.RESET_PASSWORD_HEADING}</h1>
+      <div className="flex flex-col items-center flex-1 my-11">
+        <Paper className={`mt-10 w-[330px] md:w-[450px] p-[30px] ${visible ? '' : 'hidden'}`} elevation={10}>
+          <h1 className="text-center mt-0">{strings.RESET_PASSWORD_HEADING}</h1>
 
           <div className={sent ? 'hidden' : ''}>
             <form onSubmit={handleSubmit(onSubmit)}>

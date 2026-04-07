@@ -35,8 +35,6 @@ import BookingList from '@/components/BookingList'
 import * as helper from '@/utils/helper'
 
 import DoorsIcon from '@/assets/img/car-door.png'
-import '@/assets/css/car.css'
-
 const Car = () => {
   const navigate = useNavigate()
 
@@ -188,13 +186,13 @@ const Car = () => {
   return (
     <Layout onLoad={onLoad} strict>
       {visible && car && car.supplier && (
-        <div className="car">
-          <div className="col-1">
-            <section className="car-sec">
-              <div className="name">
+        <div className="car absolute bottom-0 right-0 left-0 top-0 overflow-auto">
+          <div className="max-md:w-full max-md:pt-[5px] max-md:bg-[#fefefe] max-md:border-b max-md:border-[#eee] md:absolute md:top-0 md:bottom-0 md:left-0 md:w-[400px] md:pt-5 md:bg-[#fefefe] md:border-r md:border-[#eee] md:overflow-auto">
+            <section className="text-[#333] text-[12px] p-[5px]">
+              <div className="text-center">
                 <h2>{car.name}</h2>
               </div>
-              {car.licensePlate && <div className="license-plate">{car.licensePlate}</div>}
+              {car.licensePlate && <div className="text-[0.9em] text-[#666]">{car.licensePlate}</div>}
               <div className="car-img">
                 <Avatar
                   type={bookcarsTypes.RecordType.Car}
@@ -208,50 +206,50 @@ const Car = () => {
                   color="disabled"
                   className="avatar-ctn"
                 />
-                <div className="car-supplier">
-                  <span className="car-supplier-logo">
-                    <img src={helper.supplierImageURL(car.supplier.avatar)} alt={car.supplier.fullName} />
+                <div className="flex items-center ml-[5px]">
+                  <span className="w-[60px] h-[30px] flex flex-row items-center justify-center border border-[#e6e6e6] rounded-[3px]">
+                    <img src={helper.supplierImageURL(car.supplier.avatar)} alt={car.supplier.fullName} className="max-w-full max-h-full" />
                   </span>
-                  <span className="car-supplier-info">{car.supplier.fullName}</span>
+                  <span className="text-[#a8a8a8] inline-block text-[0.9em] leading-[1em] whitespace-nowrap ml-[5px]">{car.supplier.fullName}</span>
                 </div>
               </div>
-              <div className="price">{`${bookcarsHelper.formatPrice(car.dailyPrice, commonStrings.CURRENCY, language)}${commonStrings.DAILY}`}</div>
-              <div className="car-info">
-                <ul className="car-info-list">
-                  <li className="car-type">
+              <div className="text-right text-[#383838] text-[1.4em] font-bold whitespace-nowrap mr-2.5">{`${bookcarsHelper.formatPrice(car.dailyPrice, commonStrings.CURRENCY, language)}${commonStrings.DAILY}`}</div>
+              <div className="mt-[5px]">
+                <ul className="relative list-none p-0 flex flex-row flex-wrap">
+                  <li className="w-[60px] mb-2.5 pt-[3px] shadow-[0_0_0_1px_#ddd_inset] ml-[5px] rounded-[5px] text-center">
                     <Tooltip title={helper.getCarTypeTooltip(car.type)} placement="top">
                       <div className="car-info-list-item">
                         <FuelIcon />
-                        <span className="car-info-list-text">{helper.getCarTypeShort(car.type)}</span>
+                        <span className="align-super ml-[3px]">{helper.getCarTypeShort(car.type)}</span>
                       </div>
                     </Tooltip>
                   </li>
-                  <li className="gearbox">
+                  <li className="w-[60px] mb-2.5 pt-[3px] shadow-[0_0_0_1px_#ddd_inset] ml-[5px] rounded-[5px] text-center">
                     <Tooltip title={helper.getGearboxTooltip(car.gearbox)} placement="top">
                       <div className="car-info-list-item">
                         <GearboxIcon />
-                        <span className="car-info-list-text">{helper.getGearboxTypeShort(car.gearbox)}</span>
+                        <span className="align-super ml-[3px]">{helper.getGearboxTypeShort(car.gearbox)}</span>
                       </div>
                     </Tooltip>
                   </li>
-                  <li className="seats">
+                  <li className="w-[60px] mb-2.5 pt-[3px] shadow-[0_0_0_1px_#ddd_inset] ml-[5px] rounded-[5px] text-center">
                     <Tooltip title={helper.getSeatsTooltip(car.seats)} placement="top">
                       <div className="car-info-list-item">
                         <SeatsIcon />
-                        <span className="car-info-list-text">{car.seats}</span>
+                        <span className="align-super ml-[3px]">{car.seats}</span>
                       </div>
                     </Tooltip>
                   </li>
-                  <li className="doors">
+                  <li className="w-[60px] mb-2.5 pt-[3px] shadow-[0_0_0_1px_#ddd_inset] ml-[5px] rounded-[5px] text-center">
                     <Tooltip title={helper.getDoorsTooltip(car.doors)} placement="top">
                       <div className="car-info-list-item">
-                        <img src={DoorsIcon} alt="" className="car-doors" />
-                        <span className="car-info-list-text">{car.doors}</span>
+                        <img src={DoorsIcon} alt="" className="w-5 h-5 m-0.5" />
+                        <span className="align-super ml-[3px]">{car.doors}</span>
                       </div>
                     </Tooltip>
                   </li>
                   {car.aircon && (
-                    <li className="aircon">
+                    <li className="w-[60px] mb-2.5 pt-[3px] shadow-[0_0_0_1px_#ddd_inset] ml-[5px] rounded-[5px] text-center">
                       <Tooltip title={strings.AIRCON_TOOLTIP} placement="top">
                         <div className="car-info-list-item">
                           <AirconIcon />
@@ -259,29 +257,29 @@ const Car = () => {
                       </Tooltip>
                     </li>
                   )}
-                  <li className="mileage">
+                  <li className="w-full mb-[5px]">
                     <Tooltip title={helper.getMileageTooltip(car.mileage, language)} placement="left">
-                      <div className="car-info-list-item">
+                      <div className="car-info-list-item w-fit">
                         <MileageIcon />
-                        <span className="car-info-list-text">{`${strings.MILEAGE}${fr ? ' : ' : ': '}${helper.getMileage(car.mileage, language)}`}</span>
+                        <span className="align-super ml-[3px]">{`${strings.MILEAGE}${fr ? ' : ' : ': '}${helper.getMileage(car.mileage, language)}`}</span>
                       </div>
                     </Tooltip>
                   </li>
-                  <li className="fuel-policy">
+                  <li className="w-full mb-[5px]">
                     <Tooltip title={helper.getFuelPolicyTooltip(car.fuelPolicy)} placement="left">
-                      <div className="car-info-list-item">
+                      <div className="car-info-list-item w-fit">
                         <FuelIcon />
-                        <span className="car-info-list-text">{`${strings.FUEL_POLICY}${fr ? ' : ' : ': '}${helper.getFuelPolicy(car.fuelPolicy)}`}</span>
+                        <span className="align-super ml-[3px]">{`${strings.FUEL_POLICY}${fr ? ' : ' : ': '}${helper.getFuelPolicy(car.fuelPolicy)}`}</span>
                       </div>
                     </Tooltip>
                   </li>
                 </ul>
-                <ul className="extras-list">
-                  <li className={car.available ? 'car-available' : 'car-unavailable'}>
+                <ul className="relative list-none p-0">
+                  <li className={`m-[5px] w-fit ${car.available ? 'text-[#1f9201]' : 'text-[#f44336]'}`}>
                     <Tooltip title={car.available ? strings.CAR_AVAILABLE_TOOLTIP : strings.CAR_UNAVAILABLE_TOOLTIP}>
                       <div className="car-info-list-item">
                         {car.available ? <CheckIcon /> : <UncheckIcon />}
-                        {car.available ? <span className="car-info-list-text">{strings.CAR_AVAILABLE}</span> : <span className="car-info-list-text">{strings.CAR_UNAVAILABLE}</span>}
+                        {car.available ? <span className="align-super ml-[3px]">{strings.CAR_AVAILABLE}</span> : <span className="align-super ml-[3px]">{strings.CAR_UNAVAILABLE}</span>}
                       </div>
                     </Tooltip>
                   </li>
@@ -289,7 +287,7 @@ const Car = () => {
                     <Tooltip title={car.cancellation > -1 ? strings.CANCELLATION_TOOLTIP : helper.getCancellation(car.cancellation, language)} placement="left">
                       <div className="car-info-list-item">
                         {car.cancellation > -1 ? <CheckIcon /> : <UncheckIcon />}
-                        <span className="car-info-list-text">{helper.getCancellation(car.cancellation, language)}</span>
+                        <span className="align-super ml-[3px]">{helper.getCancellation(car.cancellation, language)}</span>
                       </div>
                     </Tooltip>
                   </li>
@@ -297,7 +295,7 @@ const Car = () => {
                     <Tooltip title={car.amendments > -1 ? strings.AMENDMENTS_TOOLTIP : helper.getAmendments(car.amendments, language)} placement="left">
                       <div className="car-info-list-item">
                         {car.amendments > -1 ? <CheckIcon /> : <UncheckIcon />}
-                        <span className="car-info-list-text">{helper.getAmendments(car.amendments, language)}</span>
+                        <span className="align-super ml-[3px]">{helper.getAmendments(car.amendments, language)}</span>
                       </div>
                     </Tooltip>
                   </li>
@@ -305,7 +303,7 @@ const Car = () => {
                     <Tooltip title={car.theftProtection > -1 ? strings.THEFT_PROTECTION_TOOLTIP : helper.getTheftProtection(car.theftProtection, language)} placement="left">
                       <div className="car-info-list-item">
                         {car.theftProtection > -1 ? <CheckIcon /> : <UncheckIcon />}
-                        <span className="car-info-list-text">{helper.getTheftProtection(car.theftProtection, language)}</span>
+                        <span className="align-super ml-[3px]">{helper.getTheftProtection(car.theftProtection, language)}</span>
                       </div>
                     </Tooltip>
                   </li>
@@ -316,7 +314,7 @@ const Car = () => {
                     >
                       <div className="car-info-list-item">
                         {car.collisionDamageWaiver > -1 ? <CheckIcon /> : <UncheckIcon />}
-                        <span className="car-info-list-text">{helper.getCollisionDamageWaiver(car.collisionDamageWaiver, language)}</span>
+                        <span className="align-super ml-[3px]">{helper.getCollisionDamageWaiver(car.collisionDamageWaiver, language)}</span>
                       </div>
                     </Tooltip>
                   </li>
@@ -324,7 +322,7 @@ const Car = () => {
                     <Tooltip title={car.fullInsurance > -1 ? strings.FULL_INSURANCE_TOOLTIP : helper.getFullInsurance(car.fullInsurance, language)} placement="left">
                       <div className="car-info-list-item">
                         {car.fullInsurance > -1 ? <CheckIcon /> : <UncheckIcon />}
-                        <span className="car-info-list-text">{helper.getFullInsurance(car.fullInsurance, language)}</span>
+                        <span className="align-super ml-[3px]">{helper.getFullInsurance(car.fullInsurance, language)}</span>
                       </div>
                     </Tooltip>
                   </li>
@@ -332,17 +330,17 @@ const Car = () => {
                     <Tooltip title={helper.getAdditionalDriver(car.additionalDriver, language)} placement="left">
                       <div className="car-info-list-item">
                         {car.additionalDriver > -1 ? <CheckIcon /> : <UncheckIcon />}
-                        <span className="car-info-list-text">{helper.getAdditionalDriver(car.additionalDriver, language)}</span>
+                        <span className="align-super ml-[3px]">{helper.getAdditionalDriver(car.additionalDriver, language)}</span>
                       </div>
                     </Tooltip>
                   </li>
                 </ul>
-                <ul className="locations-list">
+                <ul className="relative list-none p-0">
                   {car.locations.map((location) => (
-                    <li key={location._id}>
+                    <li key={location._id} className="m-[5px] w-fit">
                       <div className="car-info-list-item">
                         <LocationIcon />
-                        <span className="car-info-list-text">{location.name}</span>
+                        <span className="align-super ml-[3px]">{location.name}</span>
                       </div>
                     </li>
                   ))}
@@ -390,7 +388,7 @@ const Car = () => {
               </div>
             </section>
             {edit && (
-              <section className="buttons action">
+              <section className="buttons max-md:float-none max-md:w-auto max-md:m-[5px] md:text-right md:m-2.5">
                 <Button variant="contained" className="btn-primary btn-margin btn-margin-bottom" size="small" onClick={() => navigate(`/update-car?cr=${car._id}`)}>
                   {commonStrings.UPDATE}
                 </Button>
@@ -400,7 +398,7 @@ const Car = () => {
               </section>
             )}
           </div>
-          <div className="col-2">
+          <div className="max-md:flex max-md:flex-col max-md:items-center md:absolute md:inset-[0_0_0_400px]">
             <BookingList
               containerClassName="car"
               offset={offset}

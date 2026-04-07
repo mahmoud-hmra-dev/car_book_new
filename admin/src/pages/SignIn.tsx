@@ -21,8 +21,6 @@ import { useUserContext, UserContextType } from '@/context/UserContext'
 import { schema, FormFields } from '@/models/SignInForm'
 import PasswordInput from '@/components/PasswordInput'
 
-import '@/assets/css/signin.css'
-
 const SignIn = () => {
   const navigate = useNavigate()
 
@@ -124,10 +122,10 @@ const SignIn = () => {
       <Header />
 
       {visible && (
-        <div className="signin">
-          <Paper className={`signin-form ${visible ? '' : 'hidden'}`} elevation={10}>
+        <div className="flex flex-row flex-1 justify-center my-11">
+          <Paper className={`flex items-center justify-center w-[350px] md:w-[380px] border border-black/12 p-4 ${visible ? '' : 'hidden'}`} elevation={10}>
             <form onSubmit={handleSubmit(onSubmit)}>
-              <h1 className="signin-form-title">{strings.SIGN_IN_HEADING}</h1>
+              <h1 className="text-center capitalize mt-9 text-[#121212]">{strings.SIGN_IN_HEADING}</h1>
               <FormControl fullWidth margin="dense" error={!!errors.email}>
                 <InputLabel htmlFor="email">{commonStrings.EMAIL}</InputLabel>
                 <Input
@@ -160,26 +158,28 @@ const SignIn = () => {
                 autoComplete="password"
               />
 
-              <div className="stay-connected">
+              <div className="mt-4 flex items-center">
                 <input
                   id="stay-connected"
                   type="checkbox"
+                  className="mr-1.5"
                   onChange={(e) => {
                     setValue('stayConnected', e.currentTarget.checked)
                   }}
                 />
                 <label
                   htmlFor="stay-connected"
+                  className="cursor-pointer text-black/60 select-none"
                 >
                   {strings.STAY_CONNECTED}
                 </label>
               </div>
 
-              <div className="forgot-password">
+              <div className="mt-4">
                 <Button variant="text" onClick={() => navigate('/forgot-password')} className="btn-lnk">{strings.RESET_PASSWORD}</Button>
               </div>
 
-              <div className="signin-buttons">
+              <div className="float-right mt-5">
                 <Button type="submit" variant="contained" size="small" className="btn-primary" disabled={isSubmitting}>
                   {strings.SIGN_IN}
                 </Button>
