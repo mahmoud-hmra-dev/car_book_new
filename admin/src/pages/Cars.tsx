@@ -142,12 +142,12 @@ const Cars = () => {
               <h1 className="text-2xl font-bold text-text">
                 {headerStrings.CARS}
                 {rowCount > 0 && (
-                  <span className="text-sm font-normal text-text-secondary ml-3">
+                  <span className="ml-2 text-sm font-normal text-text-muted">
                     {`(${bookcarsHelper.formatNumber(rowCount, language)} ${rowCount > 1 ? commonStrings.CARS : commonStrings.CAR})`}
                   </span>
                 )}
               </h1>
-              <p className="text-sm text-text-muted mt-1">Browse and manage your vehicle fleet</p>
+              <p className="text-sm text-text-muted mt-1">Manage your vehicle fleet</p>
             </div>
             <button
               type="button"
@@ -157,6 +157,7 @@ const Cars = () => {
               {strings.NEW_CAR}
             </button>
           </div>
+
           <div className="bg-white rounded-2xl border border-border shadow-sm p-5">
             <div className="flex flex-wrap gap-3 items-start w-full">
               <Search onSubmit={handleSearch} className="w-full max-w-[400px] flex justify-start max-md:max-w-full" />
@@ -187,28 +188,27 @@ const Cars = () => {
               )}
             </div>
           </div>
-          <div className="bg-white rounded-2xl border border-border shadow-sm p-4 min-h-[300px] flex flex-col items-center flex-1">
-            <CarList
-              user={user}
-              suppliers={suppliers}
-              carSpecs={carSpecs}
-              carType={carType}
-              gearbox={gearbox}
-              mileage={mileage}
-              fuelPolicy={fuelPolicy}
-              deposit={deposit}
-              availability={availability}
-              range={ranges}
-              multimedia={multimedia}
-              rating={rating}
-              seats={seats}
-              keyword={keyword}
-              loading={loading}
-              language={language}
-              onLoad={handleCarListLoad}
-              onDelete={handleCarDelete}
-            />
-          </div>
+
+          <CarList
+            user={user}
+            suppliers={suppliers}
+            carSpecs={carSpecs}
+            carType={carType}
+            gearbox={gearbox}
+            mileage={mileage}
+            fuelPolicy={fuelPolicy}
+            deposit={deposit}
+            availability={availability}
+            range={ranges}
+            multimedia={multimedia}
+            rating={rating}
+            seats={seats}
+            keyword={keyword}
+            loading={loading}
+            language={language}
+            onLoad={handleCarListLoad}
+            onDelete={handleCarDelete}
+          />
         </div>
       )}
     </Layout>
