@@ -3,7 +3,6 @@ import { strings as commonStrings } from '@/lang/common'
 import { strings } from '@/lang/car-seats-filter'
 import Accordion from './Accordion'
 
-
 interface CarSeatsFilterProps {
   className?: string
   collapse?: boolean
@@ -184,61 +183,26 @@ const CarSeatsFilter = ({
 
   return (
     <Accordion title={strings.SEATS} collapse={collapse} className={className}>
-      <div className="py-2 space-y-0.5">
-        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
-          <input ref={twoRef} type="radio" className="w-4 h-4 accent-primary" onChange={handleCheckTwoChange} />
-          <span
-            onClick={handleTwoClick}
-            role="button"
-            tabIndex={0}
-            className="text-sm text-text"
-          >
-            {strings.TWO}
-          </span>
+      <div className="space-y-1">
+        <div className="flex items-center gap-3 py-2.5 px-3 rounded-xl cursor-pointer hover:bg-primary/5 transition-all">
+          <input ref={twoRef} type="radio" className="w-5 h-5 accent-primary cursor-pointer" onChange={handleCheckTwoChange} />
+          <span onClick={handleTwoClick} role="button" tabIndex={0} className="text-sm text-text">{strings.TWO}</span>
         </div>
-        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
-          <input ref={fourRef} type="radio" className="w-4 h-4 accent-primary" onChange={handleCheckFourChange} />
-          <span
-            onClick={handleFourClick}
-            role="button"
-            tabIndex={0}
-            className="text-sm text-text"
-          >
-            {strings.FOUR}
-          </span>
+        <div className="flex items-center gap-3 py-2.5 px-3 rounded-xl cursor-pointer hover:bg-primary/5 transition-all">
+          <input ref={fourRef} type="radio" className="w-5 h-5 accent-primary cursor-pointer" onChange={handleCheckFourChange} />
+          <span onClick={handleFourClick} role="button" tabIndex={0} className="text-sm text-text">{strings.FOUR}</span>
         </div>
-        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
-          <input ref={fiveRef} type="radio" className="w-4 h-4 accent-primary" onChange={handleCheckFiveChange} />
-          <span
-            onClick={handleFiveClick}
-            role="button"
-            tabIndex={0}
-            className="text-sm text-text"
-          >
-            {strings.FIVE}
-          </span>
+        <div className="flex items-center gap-3 py-2.5 px-3 rounded-xl cursor-pointer hover:bg-primary/5 transition-all">
+          <input ref={fiveRef} type="radio" className="w-5 h-5 accent-primary cursor-pointer" onChange={handleCheckFiveChange} />
+          <span onClick={handleFiveClick} role="button" tabIndex={0} className="text-sm text-text">{strings.FIVE}</span>
         </div>
-        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
-          <input ref={fivePlusRef} type="radio" className="w-4 h-4 accent-primary" onChange={handleCheckFivePlusChange} />
-          <span
-            onClick={handleFivePlusClick}
-            role="button"
-            tabIndex={0}
-            className="text-sm text-text"
-          >
-            {strings.FIVE_PLUS}
-          </span>
+        <div className="flex items-center gap-3 py-2.5 px-3 rounded-xl cursor-pointer hover:bg-primary/5 transition-all">
+          <input ref={fivePlusRef} type="radio" className="w-5 h-5 accent-primary cursor-pointer" onChange={handleCheckFivePlusChange} />
+          <span onClick={handleFivePlusClick} role="button" tabIndex={0} className="text-sm text-text">{strings.FIVE_PLUS}</span>
         </div>
-        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
-          <input ref={anyRef} type="radio" className="w-4 h-4 accent-primary" onChange={handleAnyChange} />
-          <span
-            onClick={handleAnyClick}
-            role="button"
-            tabIndex={0}
-            className="text-sm text-text"
-          >
-            {commonStrings.ANY}
-          </span>
+        <div className="flex items-center gap-3 py-2.5 px-3 rounded-xl cursor-pointer hover:bg-primary/5 transition-all">
+          <input ref={anyRef} type="radio" className="w-5 h-5 accent-primary cursor-pointer" onChange={handleAnyChange} />
+          <span onClick={handleAnyClick} role="button" tabIndex={0} className="text-sm text-text">{commonStrings.ANY}</span>
         </div>
       </div>
     </Accordion>

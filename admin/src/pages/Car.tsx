@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Button,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  Tooltip
+  Tooltip,
+  Button,
 } from '@mui/material'
 import {
   LocalGasStation as FuelIcon,
@@ -389,12 +389,20 @@ const Car = () => {
             </section>
             {edit && (
               <section className="flex flex-wrap gap-3 p-4 max-md:justify-center md:justify-end">
-                <Button variant="contained" className="!bg-primary !text-white !rounded-xl !normal-case !font-semibold !px-5 !py-2 !shadow-none hover:!bg-primary-dark" size="small" onClick={() => navigate(`/update-car?cr=${car._id}`)}>
+                <button
+                  type="button"
+                  className="flex items-center gap-2 bg-primary text-white h-10 px-5 rounded-xl font-semibold text-sm hover:bg-primary-dark shadow-sm shadow-primary/25 transition-all hover:-translate-y-0.5"
+                  onClick={() => navigate(`/update-car?cr=${car._id}`)}
+                >
                   {commonStrings.UPDATE}
-                </Button>
-                <Button variant="contained" className="!bg-danger !text-white !rounded-xl !normal-case !font-medium !px-5 !py-2 !shadow-none" size="small" onClick={handleDelete}>
+                </button>
+                <button
+                  type="button"
+                  className="flex items-center gap-2 bg-danger text-white h-10 px-5 rounded-xl font-semibold text-sm hover:bg-red-600 transition-all hover:-translate-y-0.5"
+                  onClick={handleDelete}
+                >
                   {commonStrings.DELETE}
-                </Button>
+                </button>
               </section>
             )}
           </div>

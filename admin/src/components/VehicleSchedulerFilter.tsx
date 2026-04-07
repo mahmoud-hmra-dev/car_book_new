@@ -2,7 +2,6 @@ import React, { useState, useRef } from 'react'
 import {
   FormControl,
   TextField,
-  Button,
   IconButton
 } from '@mui/material'
 import { Search as SearchIcon, Clear as ClearIcon } from '@mui/icons-material'
@@ -112,9 +111,12 @@ const VehicleSchedulerFilter = ({
             className="mt-2"
           />
         </FormControl>
-        <Button type="submit" variant="contained" className="!bg-primary !text-white !px-5 !py-2.5 !rounded-lg !font-semibold hover:!bg-primary-dark !transition-colors !normal-case !my-5" fullWidth>
+        <button
+          type="submit"
+          className="w-full h-10 mt-5 mb-5 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-primary-dark transition-colors"
+        >
           {commonStrings.SEARCH}
-        </Button>
+        </button>
       </form>
     </Accordion>
   )

@@ -31,8 +31,10 @@ const MultimediaList = ({
 
   return (
     <div>
-      <span className={required ? 'form-label required' : 'form-label'}>{label}</span>
-      <div>
+      <span className={`block text-[11px] font-bold uppercase tracking-wider mb-2 ${required ? 'text-text after:content-["*"] after:text-danger after:ml-0.5' : 'text-text-muted'}`}>
+        {label}
+      </span>
+      <div className="flex flex-wrap gap-x-4 gap-y-1">
         <FormControlLabel
           control={(
             <Checkbox

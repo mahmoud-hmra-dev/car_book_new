@@ -341,11 +341,11 @@ const UpdateLocation = () => {
               />
 
               <div className="flex justify-end gap-3 mt-6">
-                <Button type="submit" variant="contained" className="btn-primary btn-margin-bottom" size="small" disabled={isSubmitting}>
-                  {commonStrings.SAVE}
-                </Button>
-                <Button variant="contained" className="btn-secondary btn-margin-bottom" size="small" onClick={() => navigate('/locations')}>
+                <Button variant="contained" className="btn-secondary !rounded-xl !normal-case !font-medium !px-6 !py-2.5 !shadow-none" size="small" onClick={() => navigate('/locations')}>
                   {commonStrings.CANCEL}
+                </Button>
+                <Button type="submit" variant="contained" className="btn-primary !rounded-xl !normal-case !font-semibold !px-6 !py-2.5 !shadow-none" size="small" disabled={isSubmitting}>
+                  {commonStrings.SAVE}
                 </Button>
               </div>
             </div>

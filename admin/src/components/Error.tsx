@@ -1,6 +1,5 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button } from '@mui/material'
 import { strings as commonStrings } from '@/lang/common'
 
 interface ErrorProps {
@@ -19,7 +18,13 @@ const Error = ({ message, style, homeLink }: ErrorProps) => {
       </div>
       {homeLink && (
         <p>
-          <Button variant="text" onClick={() => navigate('/')} className="text-primary hover:underline text-sm normal-case">{commonStrings.GO_TO_HOME}</Button>
+          <button
+            type="button"
+            onClick={() => navigate('/')}
+            className="text-primary hover:text-primary-dark hover:underline text-sm bg-transparent border-none cursor-pointer p-0"
+          >
+            {commonStrings.GO_TO_HOME}
+          </button>
         </p>
       )}
     </div>

@@ -2,7 +2,7 @@ import React, { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Button, FormControl, FormControlLabel, Input, InputLabel, Paper, Switch } from '@mui/material'
+import { FormControl, FormControlLabel, Input, InputLabel, Switch } from '@mui/material'
 import * as bookcarsTypes from ':bookcars-types'
 import { strings as commonStrings } from '@/lang/common'
 import { strings as settingsStrings } from '@/lang/settings'
@@ -63,52 +63,62 @@ const BankDetailsForm = ({ bankDetails, onSubmit: onFormSubmit }: BankDetailsFor
   }
 
   return (
-    <Paper className="settings-form settings-form-wrapper" elevation={10}>
+    <div className="bg-white rounded-2xl border border-border shadow-sm p-8 max-w-2xl">
       <form onSubmit={handleSubmit(onSubmit)}>
-        <h1 className="settings-form-title">{strings.BANK_DETAILS}</h1>
+        <h1 className="text-xl font-bold text-text mb-6">{strings.BANK_DETAILS}</h1>
 
-        <FormControl fullWidth margin="dense">
-          <InputLabel className="required">{strings.ACCOUNT_HOLDER}</InputLabel>
-          <Input {...register('accountHolder')} type="text" required autoComplete="off" />
-        </FormControl>
+        <div className="space-y-4">
+          <FormControl fullWidth margin="dense">
+            <InputLabel className="required">{strings.ACCOUNT_HOLDER}</InputLabel>
+            <Input {...register('accountHolder')} type="text" required autoComplete="off" />
+          </FormControl>
 
-        <FormControl fullWidth margin="dense">
-          <InputLabel className="required">{strings.BANK_NAME}</InputLabel>
-          <Input {...register('bankName')} type="text" required autoComplete="off" />
-        </FormControl>
+          <FormControl fullWidth margin="dense">
+            <InputLabel className="required">{strings.BANK_NAME}</InputLabel>
+            <Input {...register('bankName')} type="text" required autoComplete="off" />
+          </FormControl>
 
-        <FormControl fullWidth margin="dense">
-          <InputLabel className="required">{strings.IBAN}</InputLabel>
-          <Input {...register('iban')} type="text" required autoComplete="off" />
-        </FormControl>
+          <FormControl fullWidth margin="dense">
+            <InputLabel className="required">{strings.IBAN}</InputLabel>
+            <Input {...register('iban')} type="text" required autoComplete="off" />
+          </FormControl>
 
-        <FormControl fullWidth margin="dense">
-          <InputLabel className="required">{strings.SWIFT_BIC}</InputLabel>
-          <Input {...register('swiftBic')} type="text" required autoComplete="off" />
-        </FormControl>
+          <FormControl fullWidth margin="dense">
+            <InputLabel className="required">{strings.SWIFT_BIC}</InputLabel>
+            <Input {...register('swiftBic')} type="text" required autoComplete="off" />
+          </FormControl>
 
-        <FormControl component="fieldset">
-          <FormControlLabel
-            control={(
-              <Switch
-                checked={showBankDetailsPage || false}
-                onChange={(e) => setValue('showBankDetailsPage', e.target.checked)}
-              />
-            )}
-            label={strings.SHOW_BANK_DETAILS_PAGE}
-          />
-        </FormControl>
+          <FormControl component="fieldset">
+            <FormControlLabel
+              control={(
+                <Switch
+                  checked={showBankDetailsPage || false}
+                  onChange={(e) => setValue('showBankDetailsPage', e.target.checked)}
+                />
+              )}
+              label={strings.SHOW_BANK_DETAILS_PAGE}
+            />
+          </FormControl>
+        </div>
 
-        <div className="buttons">
-          <Button type="submit" variant="contained" className="btn-primary btn-margin-bottom" size="small" disabled={isSubmitting}>
+        <div className="flex items-center gap-3 mt-8">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="h-10 px-6 bg-primary text-white text-sm font-semibold rounded-xl hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             {commonStrings.SAVE}
-          </Button>
-          <Button variant="contained" className="btn-secondary btn-margin-bottom" size="small" onClick={() => navigate('/')}>
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/')}
+            className="h-10 px-6 bg-background text-text-secondary text-sm font-semibold rounded-xl border border-border hover:bg-border/50 transition-colors"
+          >
             {commonStrings.CANCEL}
-          </Button>
+          </button>
         </div>
       </form>
-    </Paper>
+    </div>
   )
 }
 

@@ -8,9 +8,6 @@ import {
   DialogContent,
   DialogActions,
   Tooltip,
-  Card,
-  CardContent,
-  Typography
 } from '@mui/material'
 import {
   LocalGasStation as CarTypeIcon,
@@ -394,11 +391,12 @@ const CarList = ({
             && !loading
             && !carLoading
             && (
-              <Card variant="outlined" className="empty-list">
-                <CardContent>
-                  <Typography color="textSecondary">{strings.EMPTY_LIST}</Typography>
-                </CardContent>
-              </Card>
+              <div className="flex flex-col items-center justify-center py-16 bg-white rounded-2xl border border-border">
+                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
+                  <InfoIcon className="text-primary text-2xl" />
+                </div>
+                <p className="text-sm text-text-muted">{strings.EMPTY_LIST}</p>
+              </div>
             )
             : rows.map((car, index) => {
               const edit = admin || car.supplier._id === user._id
@@ -644,25 +642,25 @@ const CarList = ({
           {loading && <Progress />}
 
           <Dialog disableEscapeKeyDown maxWidth="xs" open={openInfoDialog}>
-            <DialogTitle className="dialog-header">{commonStrings.INFO}</DialogTitle>
-            <DialogContent>{strings.CANNOT_DELETE_CAR}</DialogContent>
-            <DialogActions className="dialog-actions">
-              <Button onClick={handleCloseInfo} variant="contained" className="btn-secondary">
+            <DialogTitle className="!text-center !text-lg !font-bold !text-text !pt-8">{commonStrings.INFO}</DialogTitle>
+            <DialogContent className="!text-sm !text-text-secondary !text-center !px-8">{strings.CANNOT_DELETE_CAR}</DialogContent>
+            <DialogActions className="!justify-center !gap-3 !pb-8 !px-8">
+              <button type="button" onClick={handleCloseInfo} className="px-6 py-2.5 rounded-xl border border-border text-sm font-semibold text-text-secondary hover:bg-background transition-colors">
                 {commonStrings.CLOSE}
-              </Button>
+              </button>
             </DialogActions>
           </Dialog>
 
           <Dialog disableEscapeKeyDown maxWidth="xs" open={openDeleteDialog}>
-            <DialogTitle className="dialog-header">{commonStrings.CONFIRM_TITLE}</DialogTitle>
-            <DialogContent>{strings.DELETE_CAR}</DialogContent>
-            <DialogActions className="dialog-actions">
-              <Button onClick={handleCancelDelete} variant="contained" className="btn-secondary">
+            <DialogTitle className="!text-center !text-lg !font-bold !text-text !pt-8">{commonStrings.CONFIRM_TITLE}</DialogTitle>
+            <DialogContent className="!text-sm !text-text-secondary !text-center !px-8">{strings.DELETE_CAR}</DialogContent>
+            <DialogActions className="!justify-center !gap-3 !pb-8 !px-8">
+              <button type="button" onClick={handleCancelDelete} className="px-6 py-2.5 rounded-xl border border-border text-sm font-semibold text-text-secondary hover:bg-background transition-colors">
                 {commonStrings.CANCEL}
-              </Button>
-              <Button onClick={handleConfirmDelete} variant="contained" color="error">
+              </button>
+              <button type="button" onClick={handleConfirmDelete} className="px-6 py-2.5 rounded-xl bg-danger text-white text-sm font-semibold hover:bg-red-600 transition-colors">
                 {commonStrings.DELETE}
-              </Button>
+              </button>
             </DialogActions>
           </Dialog>
         </section>

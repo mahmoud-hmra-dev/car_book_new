@@ -2,25 +2,17 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   IconButton,
-  Button,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   Tooltip,
-  Card,
-  CardContent,
-  Typography,
-  List,
-  ListItem,
-  ListItemAvatar,
-  ListItemText,
-  Avatar,
 } from '@mui/material'
 import {
   Edit as EditIcon,
   Delete as DeleteIcon,
-  Flag as CountryIcon
+  Flag as CountryIcon,
+  Inbox as InboxIcon,
 } from '@mui/icons-material'
 import * as bookcarsTypes from ':bookcars-types'
 import env from '@/config/env.config'
@@ -208,65 +200,61 @@ const CountryList = ({
           !init
           && !loading
           && (
-            <Card variant="outlined" className="empty-list">
-              <CardContent>
-                <Typography color="textSecondary">{strings.EMPTY_LIST}</Typography>
-              </CardContent>
-            </Card>
+            <div className="flex flex-col items-center justify-center py-16 bg-white rounded-2xl border border-border">
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
+                <InboxIcon className="text-primary text-2xl" />
+              </div>
+              <p className="text-sm text-text-muted">{strings.EMPTY_LIST}</p>
+            </div>
           )
         ) : (
-          <List className="country-list-items">
+          <div className="space-y-1">
             {rows.map((country, index) => (
-              <ListItem
-                className="country-list-item"
-                key={country._id}
-                secondaryAction={
-                  (helper.admin(user) || country.supplier?._id === user._id) && (
-                    <div>
-                      <Tooltip title={commonStrings.UPDATE}>
-                        <IconButton edge="end" onClick={() => navigate(`/update-country?loc=${country._id}`)}>
-                          <EditIcon />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title={commonStrings.DELETE}>
-                        <IconButton edge="end" data-id={country._id} data-index={index} onClick={handleDelete}>
-                          <DeleteIcon />
-                        </IconButton>
-                      </Tooltip>
-                    </div>
-                  )
-                }
-              >
-                <ListItemAvatar>
-                  <Avatar>
-                    <CountryIcon />
-                  </Avatar>
-                </ListItemAvatar>
-                <ListItemText primary={<Typography className="country-title">{country.name}</Typography>} />
-              </ListItem>
+              <article key={country._id} className="bg-white rounded-2xl border border-border p-4 flex items-center gap-4 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
+                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center shrink-0">
+                  <CountryIcon className="text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-text text-[15px] truncate">{country.name}</h3>
+                </div>
+                {(helper.admin(user) || country.supplier?._id === user._id) && (
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Tooltip title={commonStrings.UPDATE}>
+                      <IconButton onClick={() => navigate(`/update-country?loc=${country._id}`)} className="!w-9 !h-9 !rounded-xl hover:!bg-primary/10 !text-text-muted hover:!text-primary !transition-all">
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title={commonStrings.DELETE}>
+                      <IconButton data-id={country._id} data-index={index} onClick={handleDelete} className="!w-9 !h-9 !rounded-xl hover:!bg-danger/10 !text-text-muted hover:!text-danger !transition-all">
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </div>
+                )}
+              </article>
             ))}
-          </List>
+          </div>
         )}
         <Dialog disableEscapeKeyDown maxWidth="xs" open={openInfoDialog}>
-          <DialogTitle className="dialog-header">{commonStrings.INFO}</DialogTitle>
-          <DialogContent>{strings.CANNOT_DELETE_COUNTRY}</DialogContent>
-          <DialogActions className="dialog-actions">
-            <Button onClick={handleCloseInfo} variant="contained" className="btn-secondary">
+          <DialogTitle className="!text-center !text-lg !font-bold !text-text !pt-8">{commonStrings.INFO}</DialogTitle>
+          <DialogContent className="!text-sm !text-text-secondary !text-center !px-8">{strings.CANNOT_DELETE_COUNTRY}</DialogContent>
+          <DialogActions className="!justify-center !gap-3 !pb-8 !px-8">
+            <button type="button" onClick={handleCloseInfo} className="px-6 py-2.5 rounded-xl border border-border text-sm font-semibold text-text-secondary hover:bg-background transition-colors">
               {commonStrings.CLOSE}
-            </Button>
+            </button>
           </DialogActions>
         </Dialog>
 
         <Dialog disableEscapeKeyDown maxWidth="xs" open={openDeleteDialog}>
-          <DialogTitle className="dialog-header">{commonStrings.CONFIRM_TITLE}</DialogTitle>
-          <DialogContent>{strings.DELETE_COUNTRY}</DialogContent>
-          <DialogActions className="dialog-actions">
-            <Button onClick={handleCancelDelete} variant="contained" className="btn-secondary">
+          <DialogTitle className="!text-center !text-lg !font-bold !text-text !pt-8">{commonStrings.CONFIRM_TITLE}</DialogTitle>
+          <DialogContent className="!text-sm !text-text-secondary !text-center !px-8">{strings.DELETE_COUNTRY}</DialogContent>
+          <DialogActions className="!justify-center !gap-3 !pb-8 !px-8">
+            <button type="button" onClick={handleCancelDelete} className="px-6 py-2.5 rounded-xl border border-border text-sm font-semibold text-text-secondary hover:bg-background transition-colors">
               {commonStrings.CANCEL}
-            </Button>
-            <Button onClick={handleConfirmDelete} variant="contained" color="error">
+            </button>
+            <button type="button" onClick={handleConfirmDelete} className="px-6 py-2.5 rounded-xl bg-danger text-white text-sm font-semibold hover:bg-red-600 transition-colors">
               {commonStrings.DELETE}
-            </Button>
+            </button>
           </DialogActions>
         </Dialog>
 

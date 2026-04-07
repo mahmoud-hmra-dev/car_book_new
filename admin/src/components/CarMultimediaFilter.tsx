@@ -5,7 +5,6 @@ import { strings as commonStrings } from '@/lang/common'
 import { strings } from '@/lang/car-multimedia-filter'
 import Accordion from './Accordion'
 
-
 interface CarMultimediaFilterProps {
   className?: string
   collapse?: boolean
@@ -212,60 +211,31 @@ const CarMultimediaFilter = ({
 
   return (
     <Accordion title={strings.MULTIMEDIA} collapse={collapse} className={className}>
-      <div className="py-2 space-y-0.5">
-        <div className="text-center py-1">
-          <span
+      <div className="space-y-1">
+        <div className="text-center py-2">
+          <button
+            type="button"
             onClick={handleUncheckAllChange}
-            className="text-xs text-primary hover:underline cursor-pointer"
-            role="button"
-            tabIndex={0}
+            className="text-xs text-primary font-semibold hover:text-primary-dark transition-colors bg-transparent border-none cursor-pointer"
           >
             {allChecked ? commonStrings.UNCHECK_ALL : commonStrings.CHECK_ALL}
-          </span>
+          </button>
         </div>
-        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
-          <input ref={touchscreenRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckTouchscreenChange} />
-          <span
-            onClick={handleTouchscreenClick}
-            role="button"
-            tabIndex={0}
-            className="text-sm text-text"
-          >
-            {strings.TOUCHSCREEN}
-          </span>
+        <div className="flex items-center gap-3 py-2.5 px-3 rounded-xl cursor-pointer hover:bg-primary/5 transition-all">
+          <input ref={touchscreenRef} type="checkbox" className="w-5 h-5 accent-primary cursor-pointer rounded" onChange={handleCheckTouchscreenChange} />
+          <span onClick={handleTouchscreenClick} role="button" tabIndex={0} className="text-sm text-text">{strings.TOUCHSCREEN}</span>
         </div>
-        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
-          <input ref={bluetoothRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckBluetoothChange} />
-          <span
-            onClick={handleBluetoothClick}
-            role="button"
-            tabIndex={0}
-            className="text-sm text-text"
-          >
-            {strings.BLUETOOTH}
-          </span>
+        <div className="flex items-center gap-3 py-2.5 px-3 rounded-xl cursor-pointer hover:bg-primary/5 transition-all">
+          <input ref={bluetoothRef} type="checkbox" className="w-5 h-5 accent-primary cursor-pointer rounded" onChange={handleCheckBluetoothChange} />
+          <span onClick={handleBluetoothClick} role="button" tabIndex={0} className="text-sm text-text">{strings.BLUETOOTH}</span>
         </div>
-        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
-          <input ref={androidAutoRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckAndroidAutoChange} />
-          <span
-            onClick={handleAndroidAutoClick}
-            role="button"
-            tabIndex={0}
-            className="text-sm text-text"
-          >
-            {strings.ANDROID_AUTO}
-          </span>
+        <div className="flex items-center gap-3 py-2.5 px-3 rounded-xl cursor-pointer hover:bg-primary/5 transition-all">
+          <input ref={androidAutoRef} type="checkbox" className="w-5 h-5 accent-primary cursor-pointer rounded" onChange={handleCheckAndroidAutoChange} />
+          <span onClick={handleAndroidAutoClick} role="button" tabIndex={0} className="text-sm text-text">{strings.ANDROID_AUTO}</span>
         </div>
-        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
-          <input ref={appleCarPlayRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckAppleCarPlayChange} />
-          <span
-            onClick={handleAppleCarPlayClick}
-            role="button"
-            tabIndex={0}
-            className="text-sm text-text"
-          >
-            {strings.APPLE_CAR_PLAY}
-          </span>
+        <div className="flex items-center gap-3 py-2.5 px-3 rounded-xl cursor-pointer hover:bg-primary/5 transition-all">
+          <input ref={appleCarPlayRef} type="checkbox" className="w-5 h-5 accent-primary cursor-pointer rounded" onChange={handleCheckAppleCarPlayChange} />
+          <span onClick={handleAppleCarPlayClick} role="button" tabIndex={0} className="text-sm text-text">{strings.APPLE_CAR_PLAY}</span>
         </div>
       </div>
     </Accordion>

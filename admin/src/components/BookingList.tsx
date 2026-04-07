@@ -15,7 +15,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Button,
 } from '@mui/material'
 import { Edit as EditIcon, Delete as DeleteIcon, Check as CheckIcon } from '@mui/icons-material'
 import { format } from 'date-fns'
@@ -605,24 +604,22 @@ const BookingList = ({
                   </div>
 
                   <div className="flex gap-2 mt-4">
-                    <Button
-                      variant="contained"
-                      className="!bg-primary !text-white !flex-1 !rounded-lg !font-semibold !text-sm !normal-case hover:!bg-primary-dark !transition-colors"
-                      size="small"
+                    <button
+                      type="button"
+                      className="bg-primary text-white flex-1 rounded-xl py-2.5 font-semibold text-sm hover:bg-primary-dark transition-colors"
                       onClick={() => navigate(`/update-booking?b=${booking._id}`)}
                     >
                       {commonStrings.UPDATE}
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      className="!border-border !text-text-secondary !flex-1 !rounded-lg !font-semibold !text-sm !normal-case hover:!border-danger hover:!text-danger !transition-colors"
-                      size="small"
+                    </button>
+                    <button
+                      type="button"
+                      className="border border-border text-text-secondary flex-1 rounded-xl py-2.5 font-semibold text-sm hover:border-danger hover:text-danger transition-colors"
                       data-id={booking._id}
                       data-index={index}
                       onClick={handleDelete}
                     >
                       {commonStrings.DELETE}
-                    </Button>
+                    </button>
                   </div>
                 </div>
               )
@@ -657,30 +654,30 @@ const BookingList = ({
           />
         ))}
       <Dialog disableEscapeKeyDown maxWidth="xs" open={openUpdateDialog}>
-        <DialogTitle className="dialog-header">{strings.UPDATE_STATUS}</DialogTitle>
+        <DialogTitle className="!text-center !text-lg !font-bold !text-text !pt-8">{strings.UPDATE_STATUS}</DialogTitle>
         <DialogContent className="w-[444px] h-[70px] overflow-hidden">
           <StatusList label={strings.NEW_STATUS} onChange={handleStatusChange} />
         </DialogContent>
-        <DialogActions className="dialog-actions">
-          <Button onClick={handleCancelUpdate} variant="contained" className="btn-secondary">
+        <DialogActions className="!justify-center !gap-3 !pb-8 !px-8">
+          <button type="button" onClick={handleCancelUpdate} className="px-6 py-2.5 rounded-xl border border-border text-sm font-semibold text-text-secondary hover:bg-background transition-colors">
             {commonStrings.CANCEL}
-          </Button>
-          <Button onClick={handleConfirmUpdate} variant="contained" className="btn-primary">
+          </button>
+          <button type="button" onClick={handleConfirmUpdate} className="px-6 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary-dark transition-colors">
             {commonStrings.UPDATE}
-          </Button>
+          </button>
         </DialogActions>
       </Dialog>
 
       <Dialog disableEscapeKeyDown maxWidth="xs" open={openDeleteDialog}>
-        <DialogTitle className="dialog-header">{commonStrings.CONFIRM_TITLE}</DialogTitle>
-        <DialogContent className="dialog-content">{selectedIds.length === 0 ? strings.DELETE_BOOKING : strings.DELETE_BOOKINGS}</DialogContent>
-        <DialogActions className="dialog-actions">
-          <Button onClick={handleCancelDelete} variant="contained" className="btn-secondary">
+        <DialogTitle className="!text-center !text-lg !font-bold !text-text !pt-8">{commonStrings.CONFIRM_TITLE}</DialogTitle>
+        <DialogContent className="!text-sm !text-text-secondary !text-center !px-8">{selectedIds.length === 0 ? strings.DELETE_BOOKING : strings.DELETE_BOOKINGS}</DialogContent>
+        <DialogActions className="!justify-center !gap-3 !pb-8 !px-8">
+          <button type="button" onClick={handleCancelDelete} className="px-6 py-2.5 rounded-xl border border-border text-sm font-semibold text-text-secondary hover:bg-background transition-colors">
             {commonStrings.CANCEL}
-          </Button>
-          <Button onClick={handleConfirmDelete} variant="contained" color="error">
+          </button>
+          <button type="button" onClick={handleConfirmDelete} className="px-6 py-2.5 rounded-xl bg-danger text-white text-sm font-semibold hover:bg-red-600 transition-colors">
             {commonStrings.DELETE}
-          </Button>
+          </button>
         </DialogActions>
       </Dialog>
     </div>

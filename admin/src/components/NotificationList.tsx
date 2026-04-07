@@ -1,8 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import {
-  Button,
-  Card,
-  CardContent,
   Checkbox,
   Dialog,
   DialogActions,
@@ -10,8 +7,8 @@ import {
   DialogTitle,
   IconButton,
   Tooltip,
-  Typography
 } from '@mui/material'
+import { Inbox as InboxIcon } from '@mui/icons-material'
 import {
   Visibility as ViewIcon,
   Drafts as MarkReadIcon,
@@ -96,11 +93,12 @@ const NotificationList = ({ user }: NotificationListProps) => {
     <>
       <div className="notifications">
         {totalRecords === 0 && (
-          <Card variant="outlined" className="empty-list">
-            <CardContent>
-              <Typography color="textSecondary">{strings.EMPTY_LIST}</Typography>
-            </CardContent>
-          </Card>
+          <div className="flex flex-col items-center justify-center py-16 bg-white rounded-2xl border border-border">
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
+              <InboxIcon className="text-primary text-2xl" />
+            </div>
+            <p className="text-sm text-text-muted">{strings.EMPTY_LIST}</p>
+          </div>
         )}
 
         {totalRecords > 0 && (
@@ -368,19 +366,20 @@ const NotificationList = ({ user }: NotificationListProps) => {
             </div>
 
             <Dialog disableEscapeKeyDown maxWidth="xs" open={openDeleteDialog}>
-              <DialogTitle className="dialog-header">{commonStrings.CONFIRM_TITLE}</DialogTitle>
-              <DialogContent>{selectedRows.length > 1 ? strings.DELETE_NOTIFICATIONS : strings.DELETE_NOTIFICATION}</DialogContent>
-              <DialogActions className="dialog-actions">
-                <Button
+              <DialogTitle className="!text-center !text-lg !font-bold !text-text !pt-8">{commonStrings.CONFIRM_TITLE}</DialogTitle>
+              <DialogContent className="!text-sm !text-text-secondary !text-center !px-8">{selectedRows.length > 1 ? strings.DELETE_NOTIFICATIONS : strings.DELETE_NOTIFICATION}</DialogContent>
+              <DialogActions className="!justify-center !gap-3 !pb-8 !px-8">
+                <button
+                  type="button"
                   onClick={() => {
                     setOpenDeleteDialog(false)
                   }}
-                  variant="contained"
-                  className="btn-secondary"
+                  className="px-6 py-2.5 rounded-xl border border-border text-sm font-semibold text-text-secondary hover:bg-background transition-colors"
                 >
                   {commonStrings.CANCEL}
-                </Button>
-                <Button
+                </button>
+                <button
+                  type="button"
                   onClick={async () => {
                     try {
                       if (!user || !user._id) {
@@ -417,11 +416,10 @@ const NotificationList = ({ user }: NotificationListProps) => {
                       helper.error(err)
                     }
                   }}
-                  variant="contained"
-                  color="error"
+                  className="px-6 py-2.5 rounded-xl bg-danger text-white text-sm font-semibold hover:bg-red-600 transition-colors"
                 >
                   {commonStrings.DELETE}
-                </Button>
+                </button>
               </DialogActions>
             </Dialog>
           </>

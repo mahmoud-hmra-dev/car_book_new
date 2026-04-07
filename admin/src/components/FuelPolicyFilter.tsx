@@ -5,7 +5,6 @@ import { strings as commonStrings } from '@/lang/common'
 import { strings } from '@/lang/cars'
 import Accordion from './Accordion'
 
-
 interface FuelPolicyFilterProps {
   className?: string
   collapse?: boolean
@@ -212,60 +211,31 @@ const FuelPolicyFilter = ({
 
   return (
     <Accordion title={strings.FUEL_POLICY} collapse={collapse} className={className}>
-      <div className="py-2 space-y-0.5">
-        <div className="text-center py-1">
-          <span
+      <div className="space-y-1">
+        <div className="text-center py-2">
+          <button
+            type="button"
             onClick={handleUncheckAllChange}
-            className="text-xs text-primary hover:underline cursor-pointer"
-            role="button"
-            tabIndex={0}
+            className="text-xs text-primary font-semibold hover:text-primary-dark transition-colors bg-transparent border-none cursor-pointer"
           >
             {allChecked ? commonStrings.UNCHECK_ALL : commonStrings.CHECK_ALL}
-          </span>
+          </button>
         </div>
-        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
-          <input ref={freeTankRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckFreeTankChange} />
-          <span
-            onClick={handleFreeTankClick}
-            role="button"
-            tabIndex={0}
-            className="text-sm text-text"
-          >
-            {strings.FUEL_POLICY_FREE_TANK}
-          </span>
+        <div className="flex items-center gap-3 py-2.5 px-3 rounded-xl cursor-pointer hover:bg-primary/5 transition-all">
+          <input ref={freeTankRef} type="checkbox" className="w-5 h-5 accent-primary cursor-pointer rounded" onChange={handleCheckFreeTankChange} />
+          <span onClick={handleFreeTankClick} role="button" tabIndex={0} className="text-sm text-text">{strings.FUEL_POLICY_FREE_TANK}</span>
         </div>
-        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
-          <input ref={likeForLikeRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckLikeForLikeChange} />
-          <span
-            onClick={handleLikeForLikeClick}
-            role="button"
-            tabIndex={0}
-            className="text-sm text-text"
-          >
-            {strings.FUEL_POLICY_LIKE_FOR_LIKE}
-          </span>
+        <div className="flex items-center gap-3 py-2.5 px-3 rounded-xl cursor-pointer hover:bg-primary/5 transition-all">
+          <input ref={likeForLikeRef} type="checkbox" className="w-5 h-5 accent-primary cursor-pointer rounded" onChange={handleCheckLikeForLikeChange} />
+          <span onClick={handleLikeForLikeClick} role="button" tabIndex={0} className="text-sm text-text">{strings.FUEL_POLICY_LIKE_FOR_LIKE}</span>
         </div>
-        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
-          <input ref={fullToFullRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckFullToFullChange} />
-          <span
-            onClick={handleFullToFullClick}
-            role="button"
-            tabIndex={0}
-            className="text-sm text-text"
-          >
-            {strings.FUEL_POLICY_FULL_TO_FULL}
-          </span>
+        <div className="flex items-center gap-3 py-2.5 px-3 rounded-xl cursor-pointer hover:bg-primary/5 transition-all">
+          <input ref={fullToFullRef} type="checkbox" className="w-5 h-5 accent-primary cursor-pointer rounded" onChange={handleCheckFullToFullChange} />
+          <span onClick={handleFullToFullClick} role="button" tabIndex={0} className="text-sm text-text">{strings.FUEL_POLICY_FULL_TO_FULL}</span>
         </div>
-        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
-          <input ref={fullToEmptyRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckFullToEmptyChange} />
-          <span
-            onClick={handleFullToEmptyClick}
-            role="button"
-            tabIndex={0}
-            className="text-sm text-text"
-          >
-            {strings.FUEL_POLICY_FULL_TO_EMPTY}
-          </span>
+        <div className="flex items-center gap-3 py-2.5 px-3 rounded-xl cursor-pointer hover:bg-primary/5 transition-all">
+          <input ref={fullToEmptyRef} type="checkbox" className="w-5 h-5 accent-primary cursor-pointer rounded" onChange={handleCheckFullToEmptyChange} />
+          <span onClick={handleFullToEmptyClick} role="button" tabIndex={0} className="text-sm text-text">{strings.FUEL_POLICY_FULL_TO_EMPTY}</span>
         </div>
       </div>
     </Accordion>

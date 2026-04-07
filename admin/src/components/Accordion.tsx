@@ -1,4 +1,5 @@
 import React, { ReactNode, useEffect, useRef } from 'react'
+import { ExpandMore as ChevronIcon } from '@mui/icons-material'
 
 interface AccordionProps {
   title?: string
@@ -15,9 +16,9 @@ const Accordion = ({
   offsetHeight = 0,
   children
 }: AccordionProps) => {
-  const accordionRef = useRef<HTMLSpanElement>(null)
+  const accordionRef = useRef<HTMLButtonElement>(null)
 
-  const handleAccordionClick = (e: React.MouseEvent<HTMLElement>) => {
+  const handleAccordionClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.currentTarget.classList.toggle('accordion-active')
     const panel = e.currentTarget.nextElementSibling as HTMLDivElement
     const _collapse = panel.classList.contains('panel-collapse')
@@ -48,17 +49,19 @@ const Accordion = ({
   }, [offsetHeight]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className={`${className ? `${className} ` : ''}bg-white my-2.5 border border-border rounded-xl text-[13px] select-none shadow-sm`}>
-      <span
+    <div className={`bg-white rounded-2xl border border-border shadow-sm overflow-hidden${className ? ` ${className}` : ''}`}>
+      <button
         ref={accordionRef}
-        className="flex items-center justify-between py-3 px-4 cursor-pointer text-sm font-semibold text-text hover:text-primary transition-colors duration-200 after:content-[''] after:border-t-[5px] after:border-t-transparent after:border-l-[5px] after:border-l-text-muted after:border-b-[5px] after:border-b-transparent after:transition-transform after:duration-150 after:ease-in-out [&.accordion-active]:border-b [&.accordion-active]:border-b-border [&.accordion-active]:rounded-t-xl [&.accordion-active]:rounded-b-none [&.accordion-active]:after:rotate-90"
+        type="button"
         onClick={handleAccordionClick}
-        role="button"
-        tabIndex={0}
+        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-background/50 transition-colors [&.accordion-active]:border-b [&.accordion-active]:border-b-border group"
       >
-        {title}
-      </span>
-      <div className={collapse ? 'overflow-hidden' : 'max-h-0 overflow-hidden transition-[max-height] duration-200 ease-out'}>{children}</div>
+        <span className="text-sm font-bold text-text">{title}</span>
+        <ChevronIcon className="text-text-muted transition-transform duration-200 group-[.accordion-active]:rotate-180" />
+      </button>
+      <div className={collapse ? 'overflow-hidden' : 'max-h-0 overflow-hidden transition-[max-height] duration-200 ease-out'}>
+        <div className="px-5 pb-4">{children}</div>
+      </div>
     </div>
   )
 }

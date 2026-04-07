@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { IconButton, TextField, FormControl, Button } from '@mui/material'
+import { IconButton, TextField, FormControl } from '@mui/material'
 import { Search as SearchIcon, Clear as ClearIcon } from '@mui/icons-material'
 import * as bookcarsTypes from ':bookcars-types'
 import * as bookcarsHelper from ':bookcars-helper'
@@ -147,9 +147,13 @@ const BookingFilter = ({
             className="mt-2"
           />
         </FormControl>
-        <Button type="submit" variant="contained" className="!bg-primary !text-white !px-5 !py-2.5 !rounded-lg !font-semibold hover:!bg-primary-dark !transition-colors !normal-case !my-5" fullWidth disabled={isSubmitting}>
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="w-full h-10 mt-5 mb-5 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
           {commonStrings.SEARCH}
-        </Button>
+        </button>
       </form>
     </Accordion>
   )

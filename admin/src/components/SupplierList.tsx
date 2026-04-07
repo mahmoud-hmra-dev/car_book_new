@@ -2,16 +2,13 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   IconButton,
-  Button,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   Tooltip,
-  Card,
-  CardContent,
-  Typography
 } from '@mui/material'
+import { Inbox as InboxIcon } from '@mui/icons-material'
 import {
   Visibility as ViewIcon,
   Edit as EditIcon,
@@ -186,11 +183,12 @@ const SupplierList = ({
           ? !init
           && !loading
           && (
-            <Card variant="outlined" className="!rounded-xl !border-border">
-              <CardContent>
-                <Typography color="textSecondary">{strings.EMPTY_LIST}</Typography>
-              </CardContent>
-            </Card>
+            <div className="flex flex-col items-center justify-center py-16 bg-white rounded-2xl border border-border">
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
+                <InboxIcon className="text-primary text-2xl" />
+              </div>
+              <p className="text-sm text-text-muted">{strings.EMPTY_LIST}</p>
+            </div>
           )
           : rows.map((supplier, index) => {
             const edit = admin || (user && user._id === supplier._id)
@@ -237,15 +235,15 @@ const SupplierList = ({
         {loading && <Progress />}
 
         <Dialog disableEscapeKeyDown maxWidth="xs" open={openDeleteDialog}>
-          <DialogTitle className="!text-center !font-semibold">{commonStrings.CONFIRM_TITLE}</DialogTitle>
-          <DialogContent>{strings.DELETE_SUPPLIER}</DialogContent>
-          <DialogActions className="!mr-1 !mb-2">
-            <Button onClick={handleCancelDelete} variant="contained" className="!bg-transparent !text-text-secondary !border !border-border !rounded-lg !h-11 !px-6 !font-semibold !normal-case !text-sm !shadow-none hover:!bg-background">
+          <DialogTitle className="!text-center !text-lg !font-bold !text-text !pt-8">{commonStrings.CONFIRM_TITLE}</DialogTitle>
+          <DialogContent className="!text-sm !text-text-secondary !text-center !px-8">{strings.DELETE_SUPPLIER}</DialogContent>
+          <DialogActions className="!justify-center !gap-3 !pb-8 !px-8">
+            <button type="button" onClick={handleCancelDelete} className="px-6 py-2.5 rounded-xl border border-border text-sm font-semibold text-text-secondary hover:bg-background transition-colors">
               {commonStrings.CANCEL}
-            </Button>
-            <Button onClick={handleConfirmDelete} variant="contained" color="error">
+            </button>
+            <button type="button" onClick={handleConfirmDelete} className="px-6 py-2.5 rounded-xl bg-danger text-white text-sm font-semibold hover:bg-red-600 transition-colors">
               {commonStrings.DELETE}
-            </Button>
+            </button>
           </DialogActions>
         </Dialog>
       </section>

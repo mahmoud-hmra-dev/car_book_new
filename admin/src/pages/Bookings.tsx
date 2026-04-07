@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button } from '@mui/material'
+
 import * as bookcarsTypes from ':bookcars-types'
 import * as bookcarsHelper from ':bookcars-helper'
 import Layout from '@/components/Layout'
@@ -68,16 +68,19 @@ const Bookings = () => {
       {user && (
         <div className="space-y-6">
           <div className="flex items-center justify-between flex-wrap gap-4">
-            <h1 className="text-2xl font-bold text-text">{headerStrings.DASHBOARD}</h1>
+            <div>
+              <h1 className="text-2xl font-bold text-text">{headerStrings.DASHBOARD}</h1>
+              <p className="text-sm text-text-muted mt-1">Manage all bookings and reservations</p>
+            </div>
             <button
               type="button"
-              className="flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-primary-dark transition-colors"
+              className="flex items-center gap-2 bg-primary text-white h-11 px-6 rounded-xl font-semibold text-sm hover:bg-primary-dark shadow-sm shadow-primary/25 transition-all hover:-translate-y-0.5"
               onClick={() => navigate('/create-booking')}
             >
               {strings.NEW_BOOKING}
             </button>
           </div>
-          <div ref={col1Ref} className="bg-white rounded-xl border border-border shadow-sm p-5">
+          <div ref={col1Ref} className="bg-white rounded-2xl border border-border shadow-sm p-5">
             {leftPanel && (
               <>
                 {admin
@@ -101,7 +104,7 @@ const Bookings = () => {
               </>
             )}
           </div>
-          <div className="bg-white rounded-xl border border-border shadow-sm min-h-[300px]">
+          <div className="bg-white rounded-2xl border border-border shadow-sm min-h-[300px]">
             <BookingList
               containerClassName="bookings"
               offset={offset}

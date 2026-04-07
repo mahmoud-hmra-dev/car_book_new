@@ -138,23 +138,26 @@ const Cars = () => {
       {user && (
         <div className="space-y-6">
           <div className="flex items-center justify-between flex-wrap gap-4">
-            <h1 className="text-2xl font-bold text-text">
-              {headerStrings.CARS}
-              {rowCount > 0 && (
-                <span className="text-sm font-normal text-text-secondary ml-3">
-                  {`(${bookcarsHelper.formatNumber(rowCount, language)} ${rowCount > 1 ? commonStrings.CARS : commonStrings.CAR})`}
-                </span>
-              )}
-            </h1>
+            <div>
+              <h1 className="text-2xl font-bold text-text">
+                {headerStrings.CARS}
+                {rowCount > 0 && (
+                  <span className="text-sm font-normal text-text-secondary ml-3">
+                    {`(${bookcarsHelper.formatNumber(rowCount, language)} ${rowCount > 1 ? commonStrings.CARS : commonStrings.CAR})`}
+                  </span>
+                )}
+              </h1>
+              <p className="text-sm text-text-muted mt-1">Browse and manage your vehicle fleet</p>
+            </div>
             <button
               type="button"
-              className="flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-primary-dark transition-colors"
+              className="flex items-center gap-2 bg-primary text-white h-11 px-6 rounded-xl font-semibold text-sm hover:bg-primary-dark shadow-sm shadow-primary/25 transition-all hover:-translate-y-0.5"
               onClick={() => navigate('/create-car')}
             >
               {strings.NEW_CAR}
             </button>
           </div>
-          <div className="bg-white rounded-xl border border-border shadow-sm p-5">
+          <div className="bg-white rounded-2xl border border-border shadow-sm p-5">
             <div className="flex flex-wrap gap-3 items-start w-full">
               <Search onSubmit={handleSearch} className="w-full max-w-[400px] flex justify-start max-md:max-w-full" />
 
@@ -184,7 +187,7 @@ const Cars = () => {
               )}
             </div>
           </div>
-          <div className="bg-white rounded-xl border border-border shadow-sm p-4 min-h-[300px] flex flex-col items-center flex-1">
+          <div className="bg-white rounded-2xl border border-border shadow-sm p-4 min-h-[300px] flex flex-col items-center flex-1">
             <CarList
               user={user}
               suppliers={suppliers}

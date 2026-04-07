@@ -4,7 +4,6 @@ import * as bookcarsHelper from ':bookcars-helper'
 import { strings as commonStrings } from '@/lang/common'
 import * as helper from '@/utils/helper'
 
-
 interface UserTypeFilterProps {
   className?: string
   onChange?: (types: bookcarsTypes.UserType[]) => void
@@ -91,8 +90,8 @@ const UserTypeFilter = ({
   }
 
   return (
-    <div className={`${className ? `${className} ` : ''}bg-white border border-border rounded-xl shadow-sm p-3`}>
-      <ul className="list-none m-0 p-0 flex flex-wrap gap-2 justify-center">
+    <div className={`bg-white border border-border rounded-2xl shadow-sm p-4${className ? ` ${className}` : ''}`}>
+      <ul className="list-none m-0 p-0 flex flex-wrap gap-2.5 justify-center">
         {userTypes.map((userType, index) => (
           <li key={userType.value} className="flex items-center gap-2">
             <input
@@ -101,12 +100,12 @@ const UserTypeFilter = ({
               }}
               type="checkbox"
               data-value={userType.value}
-              className="w-4 h-4 rounded border-border text-primary accent-primary cursor-pointer"
+              className="w-5 h-5 accent-primary cursor-pointer rounded"
               onChange={handleUserTypeChange}
             />
             <span
               onClick={handleUserTypeClick}
-              className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold cursor-pointer ${userTypeBadgeMap[userType.value?.toLowerCase()] || 'bg-text-muted/10 text-text-muted'}`}
+              className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold cursor-pointer transition-opacity hover:opacity-80 ${userTypeBadgeMap[userType.value?.toLowerCase()] || 'bg-text-muted/10 text-text-muted'}`}
               role="button"
               tabIndex={0}
             >
@@ -115,15 +114,14 @@ const UserTypeFilter = ({
           </li>
         ))}
       </ul>
-      <div className="text-center pt-2">
-        <span
+      <div className="text-center pt-3">
+        <button
+          type="button"
           onClick={handleUncheckAllChange}
-          className="text-xs text-primary hover:underline cursor-pointer"
-          role="button"
-          tabIndex={0}
+          className="text-xs text-primary font-semibold hover:text-primary-dark transition-colors bg-transparent border-none cursor-pointer"
         >
           {allChecked ? commonStrings.UNCHECK_ALL : commonStrings.CHECK_ALL}
-        </span>
+        </button>
       </div>
     </div>
   )

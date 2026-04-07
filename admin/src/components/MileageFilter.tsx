@@ -5,7 +5,6 @@ import { strings as commonStrings } from '@/lang/common'
 import { strings } from '@/lang/cars'
 import Accordion from './Accordion'
 
-
 interface MileageFilterProps {
   className?: string
   collapse?: boolean
@@ -134,38 +133,23 @@ const MileageFilter = ({
 
   return (
     <Accordion title={strings.MILEAGE} collapse={collapse} className={className}>
-      <div className="py-2 space-y-0.5">
-        <div className="text-center py-1">
-          <span
+      <div className="space-y-1">
+        <div className="text-center py-2">
+          <button
+            type="button"
             onClick={handleUncheckAllChange}
-            className="text-xs text-primary hover:underline cursor-pointer"
-            role="button"
-            tabIndex={0}
+            className="text-xs text-primary font-semibold hover:text-primary-dark transition-colors bg-transparent border-none cursor-pointer"
           >
             {allChecked ? commonStrings.UNCHECK_ALL : commonStrings.CHECK_ALL}
-          </span>
+          </button>
         </div>
-        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
-          <input ref={limitedRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleLimitedMileageChange} />
-          <span
-            onClick={handleLimitedMileageClick}
-            role="button"
-            tabIndex={0}
-            className="text-sm text-text"
-          >
-            {strings.LIMITED}
-          </span>
+        <div className="flex items-center gap-3 py-2.5 px-3 rounded-xl cursor-pointer hover:bg-primary/5 transition-all">
+          <input ref={limitedRef} type="checkbox" className="w-5 h-5 accent-primary cursor-pointer rounded" onChange={handleLimitedMileageChange} />
+          <span onClick={handleLimitedMileageClick} role="button" tabIndex={0} className="text-sm text-text">{strings.LIMITED}</span>
         </div>
-        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
-          <input ref={unlimitedRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleUnlimitedMileageChange} />
-          <span
-            onClick={handleUnlimitedMileageClick}
-            role="button"
-            tabIndex={0}
-            className="text-sm text-text"
-          >
-            {strings.UNLIMITED}
-          </span>
+        <div className="flex items-center gap-3 py-2.5 px-3 rounded-xl cursor-pointer hover:bg-primary/5 transition-all">
+          <input ref={unlimitedRef} type="checkbox" className="w-5 h-5 accent-primary cursor-pointer rounded" onChange={handleUnlimitedMileageChange} />
+          <span onClick={handleUnlimitedMileageClick} role="button" tabIndex={0} className="text-sm text-text">{strings.UNLIMITED}</span>
         </div>
       </div>
     </Accordion>

@@ -5,7 +5,6 @@ import { strings as commonStrings } from '@/lang/common'
 import { strings } from '@/lang/cars'
 import Accordion from './Accordion'
 
-
 interface CarTypeProps {
   className?: string
   collapse?: boolean
@@ -284,82 +283,39 @@ const CarType = ({
 
   return (
     <Accordion title={strings.ENGINE} collapse={collapse} className={className}>
-      <div className="py-2 space-y-0.5">
-        <div className="text-center py-1">
-          <span
+      <div className="space-y-1">
+        <div className="text-center py-2">
+          <button
+            type="button"
             onClick={handleUncheckAllChange}
-            className="text-xs text-primary hover:underline cursor-pointer"
-            role="button"
-            tabIndex={0}
+            className="text-xs text-primary font-semibold hover:text-primary-dark transition-colors bg-transparent border-none cursor-pointer"
           >
             {allChecked ? commonStrings.UNCHECK_ALL : commonStrings.CHECK_ALL}
-          </span>
+          </button>
         </div>
-        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
-          <input ref={dieselRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckDieselChange} />
-          <span
-            onClick={handleDieselClick}
-            role="button"
-            tabIndex={0}
-            className="text-sm text-text"
-          >
-            {strings.DIESEL}
-          </span>
+        <div className="flex items-center gap-3 py-2.5 px-3 rounded-xl cursor-pointer hover:bg-primary/5 transition-all">
+          <input ref={dieselRef} type="checkbox" className="w-5 h-5 accent-primary cursor-pointer rounded" onChange={handleCheckDieselChange} />
+          <span onClick={handleDieselClick} role="button" tabIndex={0} className="text-sm text-text">{strings.DIESEL}</span>
         </div>
-        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
-          <input ref={gasolineRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckGasolineChange} />
-          <span
-            onClick={handleGasolineClick}
-            role="button"
-            tabIndex={0}
-            className="text-sm text-text"
-          >
-            {strings.GASOLINE}
-          </span>
+        <div className="flex items-center gap-3 py-2.5 px-3 rounded-xl cursor-pointer hover:bg-primary/5 transition-all">
+          <input ref={gasolineRef} type="checkbox" className="w-5 h-5 accent-primary cursor-pointer rounded" onChange={handleCheckGasolineChange} />
+          <span onClick={handleGasolineClick} role="button" tabIndex={0} className="text-sm text-text">{strings.GASOLINE}</span>
         </div>
-        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
-          <input ref={electricRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckElectricChange} />
-          <span
-            onClick={handleElectricClick}
-            role="button"
-            tabIndex={0}
-            className="text-sm text-text"
-          >
-            {strings.ELECTRIC}
-          </span>
+        <div className="flex items-center gap-3 py-2.5 px-3 rounded-xl cursor-pointer hover:bg-primary/5 transition-all">
+          <input ref={electricRef} type="checkbox" className="w-5 h-5 accent-primary cursor-pointer rounded" onChange={handleCheckElectricChange} />
+          <span onClick={handleElectricClick} role="button" tabIndex={0} className="text-sm text-text">{strings.ELECTRIC}</span>
         </div>
-        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
-          <input ref={hybridRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckHybridChange} />
-          <span
-            onClick={handleHybridClick}
-            role="button"
-            tabIndex={0}
-            className="text-sm text-text"
-          >
-            {strings.HYBRID}
-          </span>
+        <div className="flex items-center gap-3 py-2.5 px-3 rounded-xl cursor-pointer hover:bg-primary/5 transition-all">
+          <input ref={hybridRef} type="checkbox" className="w-5 h-5 accent-primary cursor-pointer rounded" onChange={handleCheckHybridChange} />
+          <span onClick={handleHybridClick} role="button" tabIndex={0} className="text-sm text-text">{strings.HYBRID}</span>
         </div>
-        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
-          <input ref={plugInHybridRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckPlugInHybridChange} />
-          <span
-            onClick={handlePlugInHybridClick}
-            role="button"
-            tabIndex={0}
-            className="text-sm text-text"
-          >
-            {strings.PLUG_IN_HYBRID}
-          </span>
+        <div className="flex items-center gap-3 py-2.5 px-3 rounded-xl cursor-pointer hover:bg-primary/5 transition-all">
+          <input ref={plugInHybridRef} type="checkbox" className="w-5 h-5 accent-primary cursor-pointer rounded" onChange={handleCheckPlugInHybridChange} />
+          <span onClick={handlePlugInHybridClick} role="button" tabIndex={0} className="text-sm text-text">{strings.PLUG_IN_HYBRID}</span>
         </div>
-        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
-          <input ref={unknownRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckUnknownChange} />
-          <span
-            onClick={handleUnknownClick}
-            role="button"
-            tabIndex={0}
-            className="text-sm text-text"
-          >
-            {strings.UNKNOWN}
-          </span>
+        <div className="flex items-center gap-3 py-2.5 px-3 rounded-xl cursor-pointer hover:bg-primary/5 transition-all">
+          <input ref={unknownRef} type="checkbox" className="w-5 h-5 accent-primary cursor-pointer rounded" onChange={handleCheckUnknownChange} />
+          <span onClick={handleUnknownClick} role="button" tabIndex={0} className="text-sm text-text">{strings.UNKNOWN}</span>
         </div>
       </div>
     </Accordion>

@@ -1,5 +1,4 @@
 import React from 'react'
-import { IconButton } from '@mui/material'
 import {
   ArrowBackIos as PreviousPageIcon,
   ArrowForwardIos as NextPageIcon
@@ -24,24 +23,28 @@ const Pager = ({
   onPrevious
 }: PagerProps) => (
     (((page > 1 || rowCount < totalRecords) && (
-      <div className="flex items-center justify-center gap-3 py-6">
-        <IconButton
+      <div className="flex items-center justify-center gap-1.5 py-6">
+        <button
+          type="button"
           onClick={onPrevious}
           disabled={page === 1}
-          className="!w-9 !h-9 !rounded-lg !text-sm !font-medium hover:!bg-background !text-text-secondary disabled:!opacity-40"
+          className="w-9 h-9 rounded-xl border border-border flex items-center justify-center text-text-muted hover:border-primary hover:text-primary transition-all disabled:opacity-30 disabled:pointer-events-none"
         >
           <PreviousPageIcon className="!w-4 !h-4" />
-        </IconButton>
+        </button>
 
-        <span className="text-sm text-text-secondary font-medium px-2">{`${(page - 1) * pageSize + 1}-${rowCount} ${commonStrings.OF} ${totalRecords}`}</span>
+        <span className="text-sm text-text-secondary font-medium px-3">
+          {`${(page - 1) * pageSize + 1}-${rowCount} ${commonStrings.OF} ${totalRecords}`}
+        </span>
 
-        <IconButton
+        <button
+          type="button"
           onClick={onNext}
           disabled={rowCount >= totalRecords}
-          className="!w-9 !h-9 !rounded-lg !text-sm !font-medium hover:!bg-background !text-text-secondary disabled:!opacity-40"
+          className="w-9 h-9 rounded-xl border border-border flex items-center justify-center text-text-muted hover:border-primary hover:text-primary transition-all disabled:opacity-30 disabled:pointer-events-none"
         >
           <NextPageIcon className="!w-4 !h-4" />
-        </IconButton>
+        </button>
       </div>
     )) || <></>)
   )

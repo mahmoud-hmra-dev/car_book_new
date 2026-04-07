@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  TextFieldVariants
-} from '@mui/material'
+import { TextFieldVariants } from '@mui/material'
 import * as bookcarsTypes from ':bookcars-types'
 import env from '@/config/env.config'
 import { strings as commonStrings } from '@/lang/common'
@@ -193,25 +186,33 @@ const CarSelectList = ({
         }}
       />
 
-      <Dialog disableEscapeKeyDown maxWidth="xs" open={openDialog}>
-        <DialogTitle className="dialog-header">{commonStrings.INFO}</DialogTitle>
-        <DialogContent className="dialog-content">
-          {currentSupplier === '-1' && currentPickupLocation === '-1' ? (
-            `${strings.REQUIRED_FIELDS}${blStrings.SUPPLIER} ${commonStrings.AND} ${bfStrings.PICK_UP_LOCATION}`
-          ) : currentSupplier === '-1' ? (
-            `${strings.REQUIRED_FIELD}${blStrings.SUPPLIER}`
-          ) : currentPickupLocation === '-1' ? (
-            `${strings.REQUIRED_FIELD}${bfStrings.PICK_UP_LOCATION}`
-          ) : (
-            <></>
-          )}
-        </DialogContent>
-        <DialogActions className="dialog-actions">
-          <Button onClick={handleCloseDialog} variant="contained" className="btn-secondary">
-            {commonStrings.CLOSE}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {openDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
+            <div className="px-5 py-4 border-b border-border">
+              <h3 className="text-base font-semibold text-text">{commonStrings.INFO}</h3>
+            </div>
+            <div className="px-5 py-4 text-sm text-text-secondary">
+              {currentSupplier === '-1' && currentPickupLocation === '-1' ? (
+                `${strings.REQUIRED_FIELDS}${blStrings.SUPPLIER} ${commonStrings.AND} ${bfStrings.PICK_UP_LOCATION}`
+              ) : currentSupplier === '-1' ? (
+                `${strings.REQUIRED_FIELD}${blStrings.SUPPLIER}`
+              ) : currentPickupLocation === '-1' ? (
+                `${strings.REQUIRED_FIELD}${bfStrings.PICK_UP_LOCATION}`
+              ) : null}
+            </div>
+            <div className="flex justify-end px-5 py-3 border-t border-border">
+              <button
+                type="button"
+                onClick={handleCloseDialog}
+                className="h-9 px-5 bg-primary text-white text-sm font-semibold rounded-xl hover:bg-primary-dark transition-colors"
+              >
+                {commonStrings.CLOSE}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

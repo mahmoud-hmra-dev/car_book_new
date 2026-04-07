@@ -1,15 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Typography,
-  IconButton,
   Button,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   Tooltip,
-  Link,
 } from '@mui/material'
 import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material'
 import * as bookcarsTypes from ':bookcars-types'
@@ -170,45 +167,54 @@ const User = () => {
                 verified
               />
             </section>
-            <Typography variant="h4" className="!text-center !font-semibold !mt-4 !text-text">
+            <h2 className="text-center font-semibold mt-4 text-text text-2xl">
               {user.fullName}
-            </Typography>
+            </h2>
             {user.bio && (
-              <Typography variant="h6" className="!text-center !font-normal !mt-2.5 !text-text-secondary">
+              <p className="text-center font-normal mt-2.5 text-text-secondary text-base">
                 {user.bio}
-              </Typography>
+              </p>
             )}
             {user.location && (
-              <Typography variant="h6" className="!text-center !font-normal !mt-2.5 !text-text-secondary">
+              <p className="text-center font-normal mt-2.5 text-text-secondary text-base">
                 {user.location}
-              </Typography>
+              </p>
             )}
             {user.phone && (
-              <Typography variant="h6" className="!text-center !font-normal !mt-2.5 !text-text-secondary">
+              <p className="text-center font-normal mt-2.5 text-text-secondary text-base">
                 {user.phone}
-              </Typography>
+              </p>
             )}
             {user.license && (
               <div className="flex flex-col p-1.5">
                 <span className="text-text-secondary">{commonStrings.LICENSE}</span>
-                <Link href={bookcarsHelper.joinURL(env.CDN_LICENSES, user.license)} target="_blank">
+                <a href={bookcarsHelper.joinURL(env.CDN_LICENSES, user.license)} target="_blank" rel="noreferrer" className="text-primary hover:underline">
                   {user.license}
-                </Link>
+                </a>
               </div>
             )}
-            <div className="text-center mt-2">
+            <div className="flex items-center justify-center gap-2 mt-4">
               {edit && (
                 <Tooltip title={commonStrings.UPDATE}>
-                  <IconButton onClick={() => navigate(`/update-user?u=${user._id}`)}>
-                    <EditIcon />
-                  </IconButton>
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/update-user?u=${user._id}`)}
+                    className="w-10 h-10 rounded-xl border border-border flex items-center justify-center hover:bg-background hover:-translate-y-0.5 transition-all text-text-secondary"
+                  >
+                    <EditIcon fontSize="small" />
+                  </button>
                 </Tooltip>
               )}
               {edit && (
                 <Tooltip title={commonStrings.DELETE}>
-                  <IconButton data-id={user._id} onClick={handleDelete}>
-                    <DeleteIcon />
-                  </IconButton>
+                  <button
+                    type="button"
+                    data-id={user._id}
+                    onClick={handleDelete}
+                    className="w-10 h-10 rounded-xl border border-border flex items-center justify-center hover:bg-background hover:-translate-y-0.5 transition-all text-text-secondary"
+                  >
+                    <DeleteIcon fontSize="small" />
+                  </button>
                 </Tooltip>
               )}
             </div>

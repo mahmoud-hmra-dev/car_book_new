@@ -5,9 +5,6 @@ import {
   InputLabel,
   FormControl,
   FormHelperText,
-  Button,
-  Paper,
-  CircularProgress,
 } from '@mui/material'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -50,7 +47,6 @@ const ContactForm = ({ user, className }: ContactFormProps) => {
 
   const onSubmit = async (data: FormFields) => {
     try {
-      console.log('boo')
       let recaptchaToken = ''
       if (reCaptchaLoaded) {
         recaptchaToken = await generateReCaptchaToken()
@@ -86,8 +82,8 @@ const ContactForm = ({ user, className }: ContactFormProps) => {
   }
 
   return (
-    <Paper className={`${className ? `${className} ` : ''}p-8 max-md:w-[350px] md:w-[550px] rounded-xl`} elevation={10}>
-      <h1 className="text-center capitalize text-text text-2xl font-bold mb-4">{strings.CONTACT_HEADING}</h1>
+    <div className={`${className ? `${className} ` : ''}bg-white rounded-2xl border border-border shadow-sm p-8 max-md:w-[350px] md:w-[550px]`}>
+      <h1 className="text-center text-2xl font-bold text-text mb-6 capitalize">{strings.CONTACT_HEADING}</h1>
       <form onSubmit={handleSubmit(onSubmit)}>
         {!isAuthenticated && (
           <FormControl fullWidth margin="dense" error={!!errors.email}>
@@ -127,28 +123,26 @@ const ContactForm = ({ user, className }: ContactFormProps) => {
           />
         </FormControl>
 
-        <div className="flex items-center gap-4 mt-6">
-          <Button type="submit" variant="contained" className="bg-primary hover:bg-primary-dark text-white normal-case rounded-lg px-6 py-2" aria-label="Send" disabled={isSubmitting}>
-            {
-              isSubmitting
-                ? <CircularProgress color="inherit" size={24} />
-                : strings.SEND
-            }
-          </Button>
-          <Button
-            variant="outlined"
-            color="primary"
-            className="border-primary text-primary hover:bg-primary/5 normal-case rounded-lg px-6 py-2"
-            aria-label="Cancel"
-            onClick={() => {
-              navigate('/')
-            }}
+        <div className="flex items-center gap-3 mt-6">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="h-10 px-6 bg-primary text-white text-sm font-semibold rounded-xl hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isSubmitting
+              ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              : strings.SEND}
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/')}
+            className="h-10 px-6 border border-primary text-primary text-sm font-semibold rounded-xl hover:bg-primary/5 transition-colors"
           >
             {commonStrings.CANCEL}
-          </Button>
+          </button>
         </div>
       </form>
-    </Paper>
+    </div>
   )
 }
 

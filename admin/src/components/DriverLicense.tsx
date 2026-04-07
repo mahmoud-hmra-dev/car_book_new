@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import { IconButton, Input, OutlinedInput } from '@mui/material'
 import { Upload as UploadIcon, Delete as DeleteIcon, Visibility as ViewIcon } from '@mui/icons-material'
 import * as bookcarsTypes from ':bookcars-types'
 import * as bookcarsHelper from ':bookcars-helper'
@@ -79,42 +78,39 @@ const DriverLicense = ({
 
   return (
     <div className={`flex items-center gap-2 ${className || ''}`}>
-      {variant === 'standard' ? (
-        <Input
-          value={license || commonStrings.UPLOAD_DRIVER_LICENSE}
-          readOnly
-          onClick={handleClick}
-          className="w-full max-md:w-[210px] text-text-secondary cursor-pointer"
-        />
-      ) : (
-        <OutlinedInput
-          value={license || commonStrings.UPLOAD_DRIVER_LICENSE}
-          readOnly
-          onClick={handleClick}
-          className="w-full max-md:w-[210px] text-text-secondary cursor-pointer"
-        />
-      )}
+      <input
+        value={license || commonStrings.UPLOAD_DRIVER_LICENSE}
+        readOnly
+        onClick={handleClick}
+        className={`w-full max-md:w-[210px] text-sm text-text-secondary cursor-pointer bg-white outline-none transition-all ${
+          variant === 'outlined'
+            ? 'h-11 px-4 rounded-xl border border-border focus:border-primary'
+            : 'h-10 px-1 border-b border-border focus:border-primary'
+        }`}
+      />
       <div className="flex items-center gap-1">
-        <IconButton
-          size="small"
+        <button
+          type="button"
           onClick={handleClick}
+          className="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-primary/10 transition-colors"
         >
-          <UploadIcon className="text-primary" />
-        </IconButton>
+          <UploadIcon className="text-primary !w-5 !h-5" />
+        </button>
 
         {license && (
           <>
-            <IconButton
-              size="small"
+            <button
+              type="button"
               onClick={() => {
                 const url = `${bookcarsHelper.trimEnd(user ? env.CDN_LICENSES : env.CDN_TEMP_LICENSES, '/')}/${license}`
                 helper.downloadURI(url)
               }}
+              className="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-info/10 transition-colors"
             >
-              <ViewIcon className="text-info" />
-            </IconButton>
-            <IconButton
-              size="small"
+              <ViewIcon className="text-info !w-5 !h-5" />
+            </button>
+            <button
+              type="button"
               onClick={async () => {
                 try {
                   let status = 0
@@ -137,9 +133,10 @@ const DriverLicense = ({
                   helper.error(err)
                 }
               }}
+              className="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-danger/10 transition-colors"
             >
-              <DeleteIcon className="text-danger" />
-            </IconButton>
+              <DeleteIcon className="text-danger !w-5 !h-5" />
+            </button>
           </>
         )}
       </div>

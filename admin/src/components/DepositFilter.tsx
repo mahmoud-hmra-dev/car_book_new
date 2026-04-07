@@ -4,7 +4,6 @@ import env from '@/config/env.config'
 import { strings } from '@/lang/cars'
 import Accordion from './Accordion'
 
-
 interface DepositFilterProps {
   className?: string
   collapse?: boolean
@@ -143,50 +142,22 @@ const DepositFilter = ({
 
   return (
     <Accordion title={strings.DEPOSIT} collapse={collapse} className={className}>
-      <div className="py-2 space-y-0.5">
-        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
-          <input ref={depositValue1Ref} type="radio" className="w-4 h-4 accent-primary" onChange={handleDepositLessThanValue1Change} />
-          <span
-            onClick={handleDepositLessThanValue1Click}
-            role="button"
-            tabIndex={0}
-            className="text-sm text-text"
-          >
-            {strings.LESS_THAN_VALUE_1}
-          </span>
+      <div className="space-y-1">
+        <div className="flex items-center gap-3 py-2.5 px-3 rounded-xl cursor-pointer hover:bg-primary/5 transition-all">
+          <input ref={depositValue1Ref} type="radio" className="w-5 h-5 accent-primary cursor-pointer" onChange={handleDepositLessThanValue1Change} />
+          <span onClick={handleDepositLessThanValue1Click} role="button" tabIndex={0} className="text-sm text-text">{strings.LESS_THAN_VALUE_1}</span>
         </div>
-        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
-          <input ref={depositValue2Ref} type="radio" className="w-4 h-4 accent-primary" onChange={handleDepositLessThanValue2Change} />
-          <span
-            onClick={handleDepositLessThanValue2Click}
-            role="button"
-            tabIndex={0}
-            className="text-sm text-text"
-          >
-            {strings.LESS_THAN_VALUE_2}
-          </span>
+        <div className="flex items-center gap-3 py-2.5 px-3 rounded-xl cursor-pointer hover:bg-primary/5 transition-all">
+          <input ref={depositValue2Ref} type="radio" className="w-5 h-5 accent-primary cursor-pointer" onChange={handleDepositLessThanValue2Change} />
+          <span onClick={handleDepositLessThanValue2Click} role="button" tabIndex={0} className="text-sm text-text">{strings.LESS_THAN_VALUE_2}</span>
         </div>
-        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
-          <input ref={depositValue3Ref} type="radio" className="w-4 h-4 accent-primary" onChange={handleDepositLessThanValue3Change} />
-          <span
-            onClick={handleDepositLessThanValue3Click}
-            role="button"
-            tabIndex={0}
-            className="text-sm text-text"
-          >
-            {strings.LESS_THAN_VALUE_3}
-          </span>
+        <div className="flex items-center gap-3 py-2.5 px-3 rounded-xl cursor-pointer hover:bg-primary/5 transition-all">
+          <input ref={depositValue3Ref} type="radio" className="w-5 h-5 accent-primary cursor-pointer" onChange={handleDepositLessThanValue3Change} />
+          <span onClick={handleDepositLessThanValue3Click} role="button" tabIndex={0} className="text-sm text-text">{strings.LESS_THAN_VALUE_3}</span>
         </div>
-        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
-          <input ref={depositAllRef} type="radio" className="w-4 h-4 accent-primary" onChange={handleAllDepositChange} />
-          <span
-            onClick={handleAllDepositClick}
-            role="button"
-            tabIndex={0}
-            className="text-sm text-text"
-          >
-            {commonStrings.ALL}
-          </span>
+        <div className="flex items-center gap-3 py-2.5 px-3 rounded-xl cursor-pointer hover:bg-primary/5 transition-all">
+          <input ref={depositAllRef} type="radio" className="w-5 h-5 accent-primary cursor-pointer" onChange={handleAllDepositChange} />
+          <span onClick={handleAllDepositClick} role="button" tabIndex={0} className="text-sm text-text">{commonStrings.ALL}</span>
         </div>
       </div>
     </Accordion>

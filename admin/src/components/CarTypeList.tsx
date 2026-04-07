@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import {
-  InputLabel,
   Select,
   MenuItem,
   SelectChangeEvent
@@ -40,7 +39,9 @@ const CarTypeList = ({
 
   return (
     <div>
-      <InputLabel className={required ? 'required' : ''}>{label}</InputLabel>
+      <label className={`block text-[11px] font-bold uppercase tracking-wider mb-1.5 ${required ? 'text-text after:content-["*"] after:text-danger after:ml-0.5' : 'text-text-muted'}`}>
+        {label}
+      </label>
       <Select label={label} value={value} onChange={handleChange} variant={variant || 'standard'} required={required} fullWidth>
         <MenuItem value={bookcarsTypes.CarType.Diesel}>{strings.DIESEL}</MenuItem>
         <MenuItem value={bookcarsTypes.CarType.Gasoline}>{strings.GASOLINE}</MenuItem>

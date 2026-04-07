@@ -1,15 +1,12 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Typography,
-  IconButton,
   Button,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   Tooltip,
-  Link
 } from '@mui/material'
 import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material'
 import * as bookcarsTypes from ':bookcars-types'
@@ -136,88 +133,107 @@ const Supplier = () => {
     <Layout onLoad={onLoad} strict>
       {visible && supplier && suppliers && (
         <div className="max-w-5xl mx-auto space-y-6">
-          <div className="bg-white rounded-xl border border-border shadow-sm p-6">
-            <div className="flex flex-col md:flex-row gap-6">
-              <div className="flex flex-col items-center md:w-[240px] shrink-0">
-                <section className="flex justify-center">
-                  {edit ? (
-                    <Avatar
-                      record={supplier}
-                      type={bookcarsTypes.RecordType.Supplier}
-                      mode="update"
-                      size="large"
-                      hideDelete
-                      onBeforeUpload={onBeforeUpload}
-                      onChange={onAvatarChange}
-                      readonly={!edit}
-                      color="disabled"
-                      className="rounded-xl overflow-hidden"
-                    />
-                  ) : (
-                    <div className="flex items-center justify-start">
-                      <span className="flex overflow-hidden align-text-bottom">
-                        <img src={helper.supplierImageURL(supplier.avatar)} alt={supplier.fullName} style={{ width: env.SUPPLIER_IMAGE_WIDTH }} />
-                      </span>
-                      <span className="text-text-muted inline-block text-sm leading-tight whitespace-nowrap ml-2">{supplier.fullName}</span>
-                    </div>
-                  )}
-                </section>
-                {edit && (
-                  <Typography variant="h4" className="!text-center !font-semibold !mt-4 break-words !text-text">
-                    {supplier.fullName}
-                  </Typography>
+          <div className="flex items-center gap-4">
+            <button
+              type="button"
+              onClick={() => navigate('/suppliers')}
+              className="w-10 h-10 rounded-xl border border-border flex items-center justify-center hover:bg-background hover:-translate-y-0.5 transition-all text-text-secondary"
+            >
+              &larr;
+            </button>
+            <h1 className="text-2xl font-bold text-text">{supplier.fullName}</h1>
+          </div>
+          <div className="bg-white rounded-2xl border border-border shadow-sm overflow-hidden">
+            <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-8 flex items-center gap-6">
+              <div className="w-20 h-20 rounded-2xl bg-white shadow-sm flex items-center justify-center overflow-hidden">
+                {edit ? (
+                  <Avatar
+                    record={supplier}
+                    type={bookcarsTypes.RecordType.Supplier}
+                    mode="update"
+                    size="large"
+                    hideDelete
+                    onBeforeUpload={onBeforeUpload}
+                    onChange={onAvatarChange}
+                    readonly={!edit}
+                    color="disabled"
+                    className="rounded-xl overflow-hidden"
+                  />
+                ) : (
+                  <img src={helper.supplierImageURL(supplier.avatar)} alt={supplier.fullName} className="w-full h-full object-cover" />
                 )}
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-text">{supplier.fullName}</h2>
                 {supplier.bio && (
                   helper.isValidURL(supplier.bio)
                     ? (
-                      <Link href={supplier.bio} target="_blank" rel="noreferrer" className="overflow-hidden break-words line-clamp-2 text-center px-2.5 !text-primary !mt-2">{supplier.bio}</Link>
+                      <a href={supplier.bio} target="_blank" rel="noreferrer" className="text-sm text-primary hover:underline mt-1 block break-words line-clamp-2">{supplier.bio}</a>
                     ) : (
-                      <Typography variant="h6" className="!text-center !font-normal !mt-2 !text-text-secondary break-words">
-                        {supplier.bio}
-                      </Typography>
+                      <p className="text-sm text-text-secondary mt-1 break-words">{supplier.bio}</p>
                     )
                 )}
-                {supplier.location && supplier.location !== '' && (
-                  <Typography variant="h6" className="!text-center !font-normal !mt-2 !text-text-secondary break-words">
-                    {supplier.location}
-                  </Typography>
-                )}
-                {supplier.phone && supplier.phone !== '' && (
-                  <Typography variant="h6" className="!text-center !font-normal !mt-2 !text-text-secondary break-words">
-                    {supplier.phone}
-                  </Typography>
-                )}
-                <div className="flex items-center gap-1 mt-4">
-                  {edit && (
-                    <Tooltip title={commonStrings.UPDATE}>
-                      <IconButton onClick={() => navigate(`/update-supplier?c=${supplier._id}`)}>
-                        <EditIcon />
-                      </IconButton>
-                    </Tooltip>
-                  )}
-                  {edit && (
-                    <Tooltip title={commonStrings.DELETE}>
-                      <IconButton data-id={supplier._id} onClick={handleDelete}>
-                        <DeleteIcon />
-                      </IconButton>
-                    </Tooltip>
-                  )}
-                </div>
-                {rowCount > 0 && <InfoBox value={`${rowCount} ${rowCount > 1 ? commonStrings.CARS : commonStrings.CAR}`} className="mt-4" />}
-              </div>
-              <div className="flex-1 border-t md:border-t-0 md:border-l border-border pt-4 md:pt-0 md:pl-6">
-                <CarList
-                  user={user}
-                  suppliers={suppliers}
-                  keyword=""
-                  reload={false}
-                  language={language}
-                  onLoad={handleCarListLoad}
-                  onDelete={handleCarDelete}
-                  hideSupplier
-                />
               </div>
             </div>
+            <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {supplier.location && supplier.location !== '' && (
+                <div>
+                  <dt className="text-[11px] font-bold text-text-muted uppercase tracking-wider">Location</dt>
+                  <dd className="text-sm font-medium text-text mt-1">{supplier.location}</dd>
+                </div>
+              )}
+              {supplier.phone && supplier.phone !== '' && (
+                <div>
+                  <dt className="text-[11px] font-bold text-text-muted uppercase tracking-wider">Phone</dt>
+                  <dd className="text-sm font-medium text-text mt-1">{supplier.phone}</dd>
+                </div>
+              )}
+              {rowCount > 0 && (
+                <div>
+                  <dt className="text-[11px] font-bold text-text-muted uppercase tracking-wider">Cars</dt>
+                  <dd className="text-sm font-medium text-text mt-1">
+                    <InfoBox value={`${rowCount} ${rowCount > 1 ? commonStrings.CARS : commonStrings.CAR}`} />
+                  </dd>
+                </div>
+              )}
+            </div>
+            {edit && (
+              <div className="flex items-center gap-3 px-6 pb-6">
+                <Tooltip title={commonStrings.UPDATE}>
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/update-supplier?c=${supplier._id}`)}
+                    className="flex items-center gap-2 bg-primary text-white h-10 px-5 rounded-xl font-semibold text-sm hover:bg-primary-dark shadow-sm shadow-primary/25 transition-all hover:-translate-y-0.5"
+                  >
+                    <EditIcon fontSize="small" />
+                    {commonStrings.UPDATE}
+                  </button>
+                </Tooltip>
+                <Tooltip title={commonStrings.DELETE}>
+                  <button
+                    type="button"
+                    data-id={supplier._id}
+                    onClick={handleDelete}
+                    className="flex items-center gap-2 bg-danger text-white h-10 px-5 rounded-xl font-semibold text-sm hover:bg-red-600 transition-all hover:-translate-y-0.5"
+                  >
+                    <DeleteIcon fontSize="small" />
+                    {commonStrings.DELETE}
+                  </button>
+                </Tooltip>
+              </div>
+            )}
+          </div>
+          <div className="bg-white rounded-2xl border border-border shadow-sm p-6">
+            <CarList
+              user={user}
+              suppliers={suppliers}
+              keyword=""
+              reload={false}
+              language={language}
+              onLoad={handleCarListLoad}
+              onDelete={handleCarDelete}
+              hideSupplier
+            />
           </div>
         </div>
       )}

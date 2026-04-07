@@ -1,5 +1,4 @@
 import React, { useState, useRef, useCallback } from 'react'
-import { CircularProgress } from '@mui/material'
 import {
   Close as CloseIcon,
   Add as AddIcon,
@@ -136,7 +135,7 @@ const CarImageGallery = ({
   return (
     <div className="mt-2 mb-4">
       <h3 className="my-4 mb-2 text-base font-medium text-text-secondary">Additional Images &amp; Videos</h3>
-      <div className="grid grid-cols-4 gap-3 max-md:grid-cols-3 max-sm:grid-cols-2">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
         {images.map((img, index) => {
           const url = bookcarsHelper.joinURL(env.CDN_CARS, img)
           const video = isVideo(img)
@@ -146,7 +145,7 @@ const CarImageGallery = ({
           return (
             <div
               key={img}
-              className={`relative rounded-xl overflow-hidden aspect-[4/3] bg-background cursor-grab transition-[opacity,border-color] duration-200 border-2 border-transparent active:cursor-grabbing ${isDragging ? 'opacity-50 !border-dashed !border-primary' : ''} ${isDragOver ? '!border-dashed !border-primary' : ''}`}
+              className={`group relative aspect-[4/3] rounded-xl overflow-hidden border-2 bg-background cursor-grab transition-all duration-200 active:cursor-grabbing ${isDragging ? 'opacity-50 border-dashed border-primary' : isDragOver ? 'border-dashed border-primary' : 'border-transparent'}`}
               draggable={!disabled}
               onDragStart={(e) => handleDragStart(e, index)}
               onDragOver={(e) => handleDragOver(e, index)}
@@ -167,11 +166,11 @@ const CarImageGallery = ({
               {!disabled && (
                 <button
                   type="button"
-                  className="absolute top-2 right-2 bg-black/60 text-white rounded-full w-7 h-7 border-none cursor-pointer flex items-center justify-center p-0 transition-colors duration-200 z-[2] hover:bg-black/80 [&_svg]:w-4 [&_svg]:h-4"
+                  className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center backdrop-blur-sm hover:bg-black/70"
                   onClick={() => handleDelete(img)}
                   aria-label="Delete image"
                 >
-                  <CloseIcon />
+                  <CloseIcon fontSize="small" />
                 </button>
               )}
             </div>
@@ -180,19 +179,18 @@ const CarImageGallery = ({
 
         {uploading && (
           <div className="flex items-center justify-center aspect-[4/3] rounded-xl border-2 border-dashed border-border bg-primary/5">
-            <CircularProgress size={32} />
+            <div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin" />
           </div>
         )}
 
         {!disabled && (
-          <button
-            type="button"
-            className="border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center cursor-pointer aspect-[4/3] bg-transparent transition-[border-color,background] duration-200 gap-1 p-0 hover:border-primary hover:bg-primary/5 [&_svg]:w-8 [&_svg]:h-8 [&_svg]:text-text-muted [&_span]:text-xs [&_span]:text-text-muted"
+          <label
+            className="aspect-[4/3] rounded-xl border-2 border-dashed border-border hover:border-primary flex flex-col items-center justify-center cursor-pointer transition-all hover:bg-primary/5"
             onClick={handleAddClick}
           >
-            <AddIcon />
-            <span>Add images</span>
-          </button>
+            <AddIcon className="!text-2xl text-text-muted mb-1" />
+            <span className="text-xs text-text-muted">Add Images</span>
+          </label>
         )}
 
         <input
@@ -200,7 +198,7 @@ const CarImageGallery = ({
           type="file"
           accept="image/*,video/mp4,video/webm,video/quicktime"
           multiple
-          style={{ display: 'none' }}
+          className="hidden"
           onChange={handleFileChange}
         />
       </div>

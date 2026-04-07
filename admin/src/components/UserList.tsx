@@ -14,7 +14,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Button,
   Avatar,
   Badge,
   Box
@@ -390,15 +389,15 @@ const UserList = ({
       )}
 
       <Dialog disableEscapeKeyDown maxWidth="xs" open={openDeleteDialog}>
-        <DialogTitle className="dialog-header">{commonStrings.CONFIRM_TITLE}</DialogTitle>
-        <DialogContent className="dialog-content">{selectedIds.length === 0 ? strings.DELETE_USER : strings.DELETE_USERS}</DialogContent>
-        <DialogActions className="dialog-actions">
-          <Button onClick={handleCancelDelete} variant="contained" className="btn-secondary">
+        <DialogTitle className="!text-center !text-lg !font-bold !text-text !pt-8">{commonStrings.CONFIRM_TITLE}</DialogTitle>
+        <DialogContent className="!text-sm !text-text-secondary !text-center !px-8">{selectedIds.length === 0 ? strings.DELETE_USER : strings.DELETE_USERS}</DialogContent>
+        <DialogActions className="!justify-center !gap-3 !pb-8 !px-8">
+          <button type="button" onClick={handleCancelDelete} className="px-6 py-2.5 rounded-xl border border-border text-sm font-semibold text-text-secondary hover:bg-background transition-colors">
             {commonStrings.CANCEL}
-          </Button>
-          <Button onClick={handleConfirmDelete} variant="contained" color="error">
+          </button>
+          <button type="button" onClick={handleConfirmDelete} className="px-6 py-2.5 rounded-xl bg-danger text-white text-sm font-semibold hover:bg-red-600 transition-colors">
             {commonStrings.DELETE}
-          </Button>
+          </button>
         </DialogActions>
       </Dialog>
     </div>

@@ -6,7 +6,6 @@ import * as helper from '@/utils/helper'
 import Accordion from '@/components/Accordion'
 import BookingStatus from './BookingStatus'
 
-
 interface StatusFilterProps {
   className?: string
   collapse?: boolean
@@ -90,33 +89,32 @@ const StatusFilter = ({
 
   return (
     (allStatuses.length > 0 && (
-      <Accordion title={commonStrings.STATUS} collapse={collapse} className={`${className ? `${className} ` : ''}bg-white mt-2.5 mr-2.5 border border-border rounded-xl shadow-sm text-[13px]`}>
-        <div className="py-2 space-y-0.5">
-          <ul className="list-none text-[13px] m-0 px-3 pb-0 flex flex-wrap gap-2 justify-center">
+      <Accordion title={commonStrings.STATUS} collapse={collapse} className={className}>
+        <div className="space-y-1">
+          <ul className="list-none m-0 px-3 pb-0 flex flex-wrap gap-2 justify-center">
             {statuses.map((status, index) => (
-              <li key={status.value} className="flex items-center gap-1.5 py-1.5 px-1 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
+              <li key={status.value} className="flex items-center gap-1.5 py-1.5 px-1 rounded-xl cursor-pointer hover:bg-primary/5 transition-all">
                 <input
                   ref={(ref) => {
                     refs.current[index] = ref
                   }}
                   type="checkbox"
                   data-value={status.value}
-                  className="w-4 h-4 rounded border-border text-primary accent-primary cursor-pointer"
+                  className="w-5 h-5 accent-primary cursor-pointer rounded"
                   onChange={handleCheckStatusChange}
                 />
                 <BookingStatus value={status.value} onClick={handleStatusClick} />
               </li>
             ))}
           </ul>
-          <div className="text-center py-1">
-            <span
+          <div className="text-center py-2">
+            <button
+              type="button"
               onClick={handleUncheckAllChange}
-              className="text-xs text-primary hover:underline cursor-pointer"
-              role="button"
-              tabIndex={0}
+              className="text-xs text-primary font-semibold hover:text-primary-dark transition-colors bg-transparent border-none cursor-pointer"
             >
               {allChecked ? commonStrings.UNCHECK_ALL : commonStrings.CHECK_ALL}
-            </span>
+            </button>
           </div>
         </div>
       </Accordion>

@@ -1,14 +1,8 @@
 import React from 'react'
-import { CircularProgress } from '@mui/material'
 
-
-interface ProgressProps {
-  color?: 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' | 'inherit'
-}
-
-const Progress = ({ color }: ProgressProps) => (
+const Progress = () => (
   <div className="flex items-center justify-center py-8">
-    <CircularProgress color={color || 'inherit'} size={28} />
+    <div className="w-7 h-7 border-[3px] border-primary/20 border-t-primary rounded-full animate-spin" />
   </div>
 )
 

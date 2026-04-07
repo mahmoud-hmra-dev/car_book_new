@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { TextFieldVariants } from '@mui/material'
+import type { TextFieldVariants } from '@mui/material'
 import * as bookcarsTypes from ':bookcars-types'
 import * as bookcarsHelper from ':bookcars-helper'
 import env from '@/config/env.config'
@@ -113,7 +113,6 @@ const SupplierSelectList = ({
       onInputChange={(event) => {
         const _value = (event && event.target && 'value' in event.target && event.target.value as string) || ''
 
-        // if (event.target.type === 'text' && value !== keyword) {
         if (_value !== keyword) {
           setRows([])
           setPage(1)

@@ -5,7 +5,6 @@ import { strings as commonStrings } from '@/lang/common'
 import { strings } from '@/lang/cars'
 import Accordion from './Accordion'
 
-
 interface GearboxFilterProps {
   className?: string
   collapse?: boolean
@@ -134,38 +133,23 @@ const GearboxFilter = ({
 
   return (
     <Accordion title={strings.GEARBOX} collapse={collapse} className={className}>
-      <div className="py-2 space-y-0.5">
-        <div className="text-center py-1">
-          <span
+      <div className="space-y-1">
+        <div className="text-center py-2">
+          <button
+            type="button"
             onClick={handleUncheckAllChange}
-            className="text-xs text-primary hover:underline cursor-pointer"
-            role="button"
-            tabIndex={0}
+            className="text-xs text-primary font-semibold hover:text-primary-dark transition-colors bg-transparent border-none cursor-pointer"
           >
             {allChecked ? commonStrings.UNCHECK_ALL : commonStrings.CHECK_ALL}
-          </span>
+          </button>
         </div>
-        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
-          <input ref={automaticRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckAutomaticChange} />
-          <span
-            onClick={handleAutomaticClick}
-            role="button"
-            tabIndex={0}
-            className="text-sm text-text"
-          >
-            {strings.GEARBOX_AUTOMATIC}
-          </span>
+        <div className="flex items-center gap-3 py-2.5 px-3 rounded-xl cursor-pointer hover:bg-primary/5 transition-all">
+          <input ref={automaticRef} type="checkbox" className="w-5 h-5 accent-primary cursor-pointer rounded" onChange={handleCheckAutomaticChange} />
+          <span onClick={handleAutomaticClick} role="button" tabIndex={0} className="text-sm text-text">{strings.GEARBOX_AUTOMATIC}</span>
         </div>
-        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
-          <input ref={manualRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckManualChange} />
-          <span
-            onClick={handleManualClick}
-            role="button"
-            tabIndex={0}
-            className="text-sm text-text"
-          >
-            {strings.GEARBOX_MANUAL}
-          </span>
+        <div className="flex items-center gap-3 py-2.5 px-3 rounded-xl cursor-pointer hover:bg-primary/5 transition-all">
+          <input ref={manualRef} type="checkbox" className="w-5 h-5 accent-primary cursor-pointer rounded" onChange={handleCheckManualChange} />
+          <span onClick={handleManualClick} role="button" tabIndex={0} className="text-sm text-text">{strings.GEARBOX_MANUAL}</span>
         </div>
       </div>
     </Accordion>

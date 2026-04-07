@@ -6,7 +6,6 @@ import { strings } from '@/lang/car-range-filter'
 import * as helper from '@/utils/helper'
 import Accordion from './Accordion'
 
-
 interface CarRangeFilterProps {
   className?: string
   collapse?: boolean
@@ -328,93 +327,43 @@ const CarRangeFilter = ({
 
   return (
     <Accordion title={strings.RANGE} collapse={collapse} className={className}>
-      <div className="py-2 space-y-0.5">
-        <div className="text-center py-1">
-          <span
+      <div className="space-y-1">
+        <div className="text-center py-2">
+          <button
+            type="button"
             onClick={handleUncheckAllChange}
-            className="text-xs text-primary hover:underline cursor-pointer"
-            role="button"
-            tabIndex={0}
+            className="text-xs text-primary font-semibold hover:text-primary-dark transition-colors bg-transparent border-none cursor-pointer"
           >
             {allChecked ? commonStrings.UNCHECK_ALL : commonStrings.CHECK_ALL}
-          </span>
+          </button>
         </div>
-        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
-          <input ref={miniRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckMiniChange} />
-          <span
-            onClick={handleMiniClick}
-            role="button"
-            tabIndex={0}
-            className="text-sm text-text"
-          >
-            {helper.getCarRange(bookcarsTypes.CarRange.Mini)}
-          </span>
+        <div className="flex items-center gap-3 py-2.5 px-3 rounded-xl cursor-pointer hover:bg-primary/5 transition-all">
+          <input ref={miniRef} type="checkbox" className="w-5 h-5 accent-primary cursor-pointer rounded" onChange={handleCheckMiniChange} />
+          <span onClick={handleMiniClick} role="button" tabIndex={0} className="text-sm text-text">{helper.getCarRange(bookcarsTypes.CarRange.Mini)}</span>
         </div>
-        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
-          <input ref={midiRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckMidiChange} />
-          <span
-            onClick={handleMidiClick}
-            role="button"
-            tabIndex={0}
-            className="text-sm text-text"
-          >
-            {helper.getCarRange(bookcarsTypes.CarRange.Midi)}
-          </span>
+        <div className="flex items-center gap-3 py-2.5 px-3 rounded-xl cursor-pointer hover:bg-primary/5 transition-all">
+          <input ref={midiRef} type="checkbox" className="w-5 h-5 accent-primary cursor-pointer rounded" onChange={handleCheckMidiChange} />
+          <span onClick={handleMidiClick} role="button" tabIndex={0} className="text-sm text-text">{helper.getCarRange(bookcarsTypes.CarRange.Midi)}</span>
         </div>
-        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
-          <input ref={maxiRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckMaxiChange} />
-          <span
-            onClick={handleMaxiClick}
-            role="button"
-            tabIndex={0}
-            className="text-sm text-text"
-          >
-            {helper.getCarRange(bookcarsTypes.CarRange.Maxi)}
-          </span>
+        <div className="flex items-center gap-3 py-2.5 px-3 rounded-xl cursor-pointer hover:bg-primary/5 transition-all">
+          <input ref={maxiRef} type="checkbox" className="w-5 h-5 accent-primary cursor-pointer rounded" onChange={handleCheckMaxiChange} />
+          <span onClick={handleMaxiClick} role="button" tabIndex={0} className="text-sm text-text">{helper.getCarRange(bookcarsTypes.CarRange.Maxi)}</span>
         </div>
-        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
-          <input ref={scooterRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckScooterChange} />
-          <span
-            onClick={handleScooterClick}
-            role="button"
-            tabIndex={0}
-            className="text-sm text-text"
-          >
-            {helper.getCarRange(bookcarsTypes.CarRange.Scooter)}
-          </span>
+        <div className="flex items-center gap-3 py-2.5 px-3 rounded-xl cursor-pointer hover:bg-primary/5 transition-all">
+          <input ref={scooterRef} type="checkbox" className="w-5 h-5 accent-primary cursor-pointer rounded" onChange={handleCheckScooterChange} />
+          <span onClick={handleScooterClick} role="button" tabIndex={0} className="text-sm text-text">{helper.getCarRange(bookcarsTypes.CarRange.Scooter)}</span>
         </div>
-        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
-          <input ref={busRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckBusChange} />
-          <span
-            onClick={handleBusClick}
-            role="button"
-            tabIndex={0}
-            className="text-sm text-text"
-          >
-            {helper.getCarRange(bookcarsTypes.CarRange.Bus)}
-          </span>
+        <div className="flex items-center gap-3 py-2.5 px-3 rounded-xl cursor-pointer hover:bg-primary/5 transition-all">
+          <input ref={busRef} type="checkbox" className="w-5 h-5 accent-primary cursor-pointer rounded" onChange={handleCheckBusChange} />
+          <span onClick={handleBusClick} role="button" tabIndex={0} className="text-sm text-text">{helper.getCarRange(bookcarsTypes.CarRange.Bus)}</span>
         </div>
-        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
-          <input ref={truckRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckTruckChange} />
-          <span
-            onClick={handleTruckClick}
-            role="button"
-            tabIndex={0}
-            className="text-sm text-text"
-          >
-            {helper.getCarRange(bookcarsTypes.CarRange.Truck)}
-          </span>
+        <div className="flex items-center gap-3 py-2.5 px-3 rounded-xl cursor-pointer hover:bg-primary/5 transition-all">
+          <input ref={truckRef} type="checkbox" className="w-5 h-5 accent-primary cursor-pointer rounded" onChange={handleCheckTruckChange} />
+          <span onClick={handleTruckClick} role="button" tabIndex={0} className="text-sm text-text">{helper.getCarRange(bookcarsTypes.CarRange.Truck)}</span>
         </div>
-        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
-          <input ref={caravanRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckCaravanChange} />
-          <span
-            onClick={handleCaravanClick}
-            role="button"
-            tabIndex={0}
-            className="text-sm text-text"
-          >
-            {helper.getCarRange(bookcarsTypes.CarRange.Caravan)}
-          </span>
+        <div className="flex items-center gap-3 py-2.5 px-3 rounded-xl cursor-pointer hover:bg-primary/5 transition-all">
+          <input ref={caravanRef} type="checkbox" className="w-5 h-5 accent-primary cursor-pointer rounded" onChange={handleCheckCaravanChange} />
+          <span onClick={handleCaravanClick} role="button" tabIndex={0} className="text-sm text-text">{helper.getCarRange(bookcarsTypes.CarRange.Caravan)}</span>
         </div>
       </div>
     </Accordion>
