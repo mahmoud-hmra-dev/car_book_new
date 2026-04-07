@@ -183,16 +183,16 @@ const Settings = () => {
                   onChange={onAvatarChange}
                   hideDelete={!admin}
                   color="disabled"
-                  className="avatar-ctn"
+                  className=""
                 />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <FormControl fullWidth margin="dense">
-                  <InputLabel className="required">{commonStrings.FULL_NAME}</InputLabel>
+                  <InputLabel>{commonStrings.FULL_NAME}</InputLabel>
                   <Input {...register('fullName')} type="text" required autoComplete="off" />
                 </FormControl>
                 <FormControl fullWidth margin="dense">
-                  <InputLabel className="required">{commonStrings.EMAIL}</InputLabel>
+                  <InputLabel>{commonStrings.EMAIL}</InputLabel>
                   <Input {...register('email')} type="text" disabled />
                 </FormControl>
                 <FormControl fullWidth margin="dense" error={!!errors.phone}>
@@ -221,15 +221,27 @@ const Settings = () => {
                 </FormControl>
               </div>
               <div className="flex justify-end gap-3 mt-6 pt-5 border-t border-border">
-                <Button variant="contained" className="btn-primary" size="small" onClick={() => navigate('/change-password')}>
+                <button
+                  type="button"
+                  onClick={() => navigate('/change-password')}
+                  className="bg-primary text-white px-6 py-2.5 rounded-xl font-semibold text-sm hover:bg-primary-dark transition-colors"
+                >
                   {commonStrings.RESET_PASSWORD}
-                </Button>
-                <Button type="submit" variant="contained" className="btn-primary" size="small" disabled={isSubmitting}>
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="bg-primary text-white px-6 py-2.5 rounded-xl font-semibold text-sm hover:bg-primary-dark transition-colors disabled:opacity-50"
+                >
                   {commonStrings.SAVE}
-                </Button>
-                <Button variant="contained" className="btn-secondary" size="small" onClick={() => navigate('/')}>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate('/')}
+                  className="border border-border text-text-secondary px-6 py-2.5 rounded-xl font-medium text-sm hover:bg-background transition-colors"
+                >
                   {commonStrings.CANCEL}
-                </Button>
+                </button>
               </div>
             </form>
           </div>

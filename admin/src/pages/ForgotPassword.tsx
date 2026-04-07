@@ -70,7 +70,7 @@ const ForgotPassword = () => {
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                 <div>
                   <FormControl fullWidth margin="dense">
-                    <InputLabel className="required">{commonStrings.EMAIL}</InputLabel>
+                    <InputLabel>{commonStrings.EMAIL}</InputLabel>
                     <Input
                       {...register('email')}
                       onChange={() =>{
@@ -112,9 +112,13 @@ const ForgotPassword = () => {
                 </div>
                 <span className="text-sm text-text-secondary block">{strings.EMAIL_SENT}</span>
                 <p>
-                  <Button variant="text" onClick={() => navigate('/')} className="btn-lnk">
+                  <button
+                    type="button"
+                    onClick={() => navigate('/')}
+                    className="text-sm text-primary font-medium hover:text-primary-dark transition-colors"
+                  >
                     {commonStrings.GO_TO_HOME}
-                  </Button>
+                  </button>
                 </p>
               </div>
             )}

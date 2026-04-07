@@ -183,9 +183,13 @@ const ChangePassword = () => {
                 </button>
 
                 <div className="flex justify-center">
-                  <Button className="btn-secondary" size="small" variant="contained" onClick={() => navigate('/')}>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/')}
+                    className="border border-border text-text-secondary px-6 py-2.5 rounded-xl font-medium text-sm hover:bg-background transition-colors"
+                  >
                     {commonStrings.CANCEL}
-                  </Button>
+                  </button>
                 </div>
               </form>
             </div>

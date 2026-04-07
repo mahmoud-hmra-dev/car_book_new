@@ -24,14 +24,14 @@ const About = () => {
           </div>
 
           <div className="flex justify-end mt-6 pt-5 border-t border-border">
-            <Button
-              variant="contained"
-              className="btn-primary"
+            <button
+              type="button"
               aria-label="Find deal"
               onClick={() => navigate('/pricing')}
+              className="bg-primary text-white px-6 py-2.5 rounded-xl font-semibold text-sm hover:bg-primary-dark transition-colors"
             >
               {strings.PRICING}
-            </Button>
+            </button>
           </div>
         </div>
       </div>

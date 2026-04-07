@@ -183,7 +183,13 @@ const SignIn = () => {
                 </div>
 
                 <div>
-                  <Button variant="text" onClick={() => navigate('/forgot-password')} className="btn-lnk">{strings.RESET_PASSWORD}</Button>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/forgot-password')}
+                    className="text-sm text-primary font-medium hover:text-primary-dark transition-colors"
+                  >
+                    {strings.RESET_PASSWORD}
+                  </button>
                 </div>
 
                 <button

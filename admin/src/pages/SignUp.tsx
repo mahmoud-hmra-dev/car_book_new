@@ -174,9 +174,13 @@ const SignUp = () => {
               </button>
 
               <div className="flex justify-center">
-                <Button variant="contained" className="btn-secondary" size="small" onClick={() => navigate('/')}>
+                <button
+                  type="button"
+                  onClick={() => navigate('/')}
+                  className="border border-border text-text-secondary px-6 py-2.5 rounded-xl font-medium text-sm hover:bg-background transition-colors"
+                >
                   {commonStrings.CANCEL}
-                </Button>
+                </button>
               </div>
 
               <div className="min-h-[40px] pt-2 text-center">

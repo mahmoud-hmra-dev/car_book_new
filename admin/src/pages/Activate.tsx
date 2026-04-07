@@ -146,7 +146,13 @@ const Activate = () => {
                 {mStrings.RESEND}
               </button>
               <p className="flex justify-center">
-                <Button variant="text" onClick={() => navigate('/')} className="btn-lnk">{commonStrings.GO_TO_HOME}</Button>
+                <button
+                  type="button"
+                  onClick={() => navigate('/')}
+                  className="text-sm text-primary font-medium hover:text-primary-dark transition-colors"
+                >
+                  {commonStrings.GO_TO_HOME}
+                </button>
               </p>
             </div>
           </div>

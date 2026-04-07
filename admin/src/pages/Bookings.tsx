@@ -66,14 +66,18 @@ const Bookings = () => {
   return (
     <Layout onLoad={onLoad} strict>
       {user && (
-        <div className="bookings flex flex-col gap-6 min-h-0">
-          <div className="bg-white rounded-xl shadow-sm px-6 py-5 flex items-center justify-between flex-wrap gap-4">
-            <h1 className="text-2xl font-bold text-text m-0 leading-tight">{headerStrings.DASHBOARD}</h1>
-            <Button variant="contained" className="btn-primary !rounded-lg !normal-case !font-semibold !text-sm !px-5 !py-2 !shadow-none" size="small" onClick={() => navigate('/create-booking')}>
+        <div className="space-y-6">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <h1 className="text-2xl font-bold text-text">{headerStrings.DASHBOARD}</h1>
+            <button
+              type="button"
+              className="flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-primary-dark transition-colors"
+              onClick={() => navigate('/create-booking')}
+            >
               {strings.NEW_BOOKING}
-            </Button>
+            </button>
           </div>
-          <div ref={col1Ref} className="col-1 bg-white rounded-xl shadow-sm px-6 py-5">
+          <div ref={col1Ref} className="bg-white rounded-xl border border-border shadow-sm p-5">
             {leftPanel && (
               <>
                 {admin
@@ -81,23 +85,23 @@ const Bookings = () => {
                     <SupplierFilter
                       suppliers={allSuppliers}
                       onChange={handleSupplierFilterChange}
-                      className="cl-supplier-filter m-0 bg-transparent border-none [&_label.accordion]:bg-transparent"
+                      className="m-0 bg-transparent border-none"
                     />
                   )}
                 <StatusFilter
                   onChange={handleStatusFilterChange}
-                  className="cl-status-filter m-0 bg-transparent border-none [&_label.accordion]:bg-transparent mt-3 pt-3 border-t border-t-[var(--bc-gray-100)]"
+                  className="m-0 bg-transparent border-none mt-3 pt-3 border-t border-t-border"
                 />
                 <BookingFilter
                   onSubmit={handleBookingFilterSubmit}
                   language={(user && user.language) || env.DEFAULT_LANGUAGE}
-                  className="cl-booking-filter m-0 bg-transparent border-none [&_label.accordion]:bg-transparent mt-3 pt-3 border-t border-t-[var(--bc-gray-100)] [&_.panel]:px-0 [&_.panel-collapse]:px-0"
+                  className="m-0 bg-transparent border-none mt-3 pt-3 border-t border-t-border"
                   collapse={!env.isMobile}
                 />
               </>
             )}
           </div>
-          <div className="bg-white rounded-xl shadow-sm min-h-[300px]">
+          <div className="bg-white rounded-xl border border-border shadow-sm min-h-[300px]">
             <BookingList
               containerClassName="bookings"
               offset={offset}
