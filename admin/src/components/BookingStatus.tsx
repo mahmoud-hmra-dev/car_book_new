@@ -15,28 +15,28 @@ interface BookingStatusProps {
 }
 
 const iconColorMap: Record<string, string> = {
-  void: 'text-[#6E7C86]',
-  pending: 'text-[#EF6C00]',
-  deposit: 'text-[#3CB371]',
-  paid: 'text-[#77BC23]',
-  paidinfull: 'text-[#77BC23]',
-  reserved: 'text-[#1E88E5]',
-  cancelled: 'text-[#E53935]',
+  void: 'text-text-muted',
+  pending: 'text-warning',
+  deposit: 'text-success',
+  paid: 'text-success',
+  paidinfull: 'text-success',
+  reserved: 'text-info',
+  cancelled: 'text-danger',
 }
 
 const badgeStyleMap: Record<string, string> = {
-  void: 'bg-[#D9D9D9] text-[#6E7C86]',
-  pending: 'bg-[#FBDCC2] text-[#EF6C00]',
-  deposit: 'bg-[#CDECDA] text-[#3CB371]',
-  paid: 'bg-[#D1F9D1] text-[#77BC23]',
-  paidinfull: 'bg-[#77BC23] text-white',
-  reserved: 'bg-[#D9E7F4] text-[#1E88E5]',
-  cancelled: 'bg-[#FBDFDE] text-[#E53935]',
+  void: 'bg-border/60 text-text-secondary',
+  pending: 'bg-warning/15 text-warning',
+  deposit: 'bg-success/15 text-success',
+  paid: 'bg-success/15 text-success',
+  paidinfull: 'bg-success text-white',
+  reserved: 'bg-info/15 text-info',
+  cancelled: 'bg-danger/15 text-danger',
 }
 
 const getIcon = (value: bookcarsTypes.BookingStatus) => {
   const color = iconColorMap[value?.toLowerCase()] || ''
-  const iconCls = `max-w-[18px] max-h-[18px] mr-0.5 ${color}`
+  const iconCls = `!w-4 !h-4 mr-1 ${color}`
 
   if ([
     bookcarsTypes.BookingStatus.Deposit,
@@ -73,7 +73,7 @@ const BookingStatus = ({
     role="presentation"
   >
     {showIcon && getIcon(value)}
-    <span className={`p-[3px] w-[108px] text-center inline-flex h-[22px] text-xs font-normal justify-center items-center rounded-[18px] ${badgeStyleMap[value?.toLowerCase()] || ''}`}>{helper.getBookingStatus(value)}</span>
+    <span className={`px-3 py-1 text-center inline-flex text-xs font-bold justify-center items-center rounded-full ${badgeStyleMap[value?.toLowerCase()] || ''}`}>{helper.getBookingStatus(value)}</span>
   </div>
 )
 

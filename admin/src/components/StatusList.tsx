@@ -47,13 +47,13 @@ const StatusList = ({
   }
 
   const statusStyles: Record<string, string> = {
-    void: 'bg-[#D9D9D9] !text-[#6E7C86]',
-    pending: 'bg-[#FBDCC2] !text-[#EF6C00]',
-    deposit: 'bg-[#CDECDA] !text-[#3CB371]',
-    paid: 'bg-[#D1F9D1] !text-[#77BC23]',
-    paidinfull: 'bg-[#77BC23] !text-white',
-    reserved: 'bg-[#D9E7F4] !text-[#1E88E5]',
-    cancelled: 'bg-[#FBDFDE] !text-[#E53935]',
+    void: 'bg-border/60 !text-text-secondary',
+    pending: 'bg-warning/15 !text-warning',
+    deposit: 'bg-success/15 !text-success',
+    paid: 'bg-success/15 !text-success',
+    paidinfull: 'bg-success !text-white',
+    reserved: 'bg-info/15 !text-info',
+    cancelled: 'bg-danger/15 !text-danger',
   }
 
   const getStatusClass = (s: string) => statusStyles[s.toLowerCase()] || ''

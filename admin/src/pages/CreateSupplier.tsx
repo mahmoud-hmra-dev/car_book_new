@@ -184,10 +184,16 @@ const CreateSupplier = () => {
 
   return (
     <Layout onLoad={onLoad} strict admin>
-      <div className="flex flex-col flex-1 items-center my-11">
-        <Paper className="w-[360px] p-[30px] md:w-[550px]" elevation={10} style={visible ? {} : { display: 'none' }}>
-          <h1 className="text-center capitalize text-[#121212]">{strings.CREATE_SUPPLIER_HEADING}</h1>
-          <form onSubmit={handleSubmit(onSubmit, onError)}>
+      <div className="max-w-4xl mx-auto space-y-6 py-6" style={visible ? {} : { display: 'none' }}>
+        <div className="flex items-center gap-3">
+          <button type="button" onClick={() => navigate('/suppliers')} className="w-9 h-9 rounded-lg border border-border flex items-center justify-center hover:bg-background transition-colors">
+            <span className="text-text-secondary text-lg">&larr;</span>
+          </button>
+          <h1 className="text-2xl font-bold text-text">{strings.CREATE_SUPPLIER_HEADING}</h1>
+        </div>
+        <form onSubmit={handleSubmit(onSubmit, onError)}>
+          <div className="bg-white rounded-xl border border-border p-6 space-y-5">
+            <h2 className="text-base font-semibold text-text pb-4 border-b border-border">Avatar & Identity</h2>
             <Avatar
               type={bookcarsTypes.RecordType.Supplier}
               mode="create"
@@ -200,8 +206,8 @@ const CreateSupplier = () => {
               className="avatar-ctn"
             />
 
-            <div className="info">
-              <InfoIcon />
+            <div className="flex items-center gap-2 text-text-muted text-sm mt-2">
+              <InfoIcon className="!text-base" />
               <span>{strings.RECOMMENDED_IMAGE_SIZE}</span>
             </div>
 
@@ -232,7 +238,10 @@ const CreateSupplier = () => {
                 {errors.email?.message || ''}
               </FormHelperText>
             </FormControl>
+          </div>
 
+          <div className="bg-white rounded-xl border border-border p-6 space-y-5">
+            <h2 className="text-base font-semibold text-text pb-4 border-b border-border">Settings</h2>
             <FormControl fullWidth margin="dense">
               <FormControlLabel
                 control={(
@@ -265,8 +274,8 @@ const CreateSupplier = () => {
               />
             </FormControl>
 
-            <div className="info">
-              <InfoIcon />
+            <div className="flex items-center gap-2 text-text-muted text-sm mt-3">
+              <InfoIcon className="!text-base" />
               <span>{commonStrings.OPTIONAL}</span>
             </div>
 
@@ -340,7 +349,10 @@ const CreateSupplier = () => {
                 {errors.priceChangeRate?.message || ''}
               </FormHelperText>
             </FormControl>
+          </div>
 
+          <div className="bg-white rounded-xl border border-border p-6 space-y-5">
+            <h2 className="text-base font-semibold text-text pb-4 border-b border-border">Contact Information</h2>
             <FormControl fullWidth margin="dense">
               <InputLabel>{commonStrings.PHONE}</InputLabel>
               <Input
@@ -379,13 +391,12 @@ const CreateSupplier = () => {
               />
             </FormControl>
 
-            {/* ── Office location on map ─────────────────── */}
-            <Divider sx={{ my: 2 }}>
-              <Typography variant="caption" sx={{ color: '#64748b', display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <LocationOnIcon sx={{ fontSize: 14 }} /> Office Map Location
-              </Typography>
-            </Divider>
+          </div>
 
+          <div className="bg-white rounded-xl border border-border p-6 space-y-5">
+            <h2 className="text-base font-semibold text-text pb-4 border-b border-border">
+              <span className="flex items-center gap-2"><LocationOnIcon className="!text-base text-text-secondary" /> Office Map Location</span>
+            </h2>
             <FormControl fullWidth margin="dense">
               <OfficeLocationPicker
                 onChange={(info) => {
@@ -395,14 +406,12 @@ const CreateSupplier = () => {
                 }}
               />
             </FormControl>
+          </div>
 
-            {/* ── Password (set by admin) ─────────────────── */}
-            <Divider sx={{ my: 2 }}>
-              <Typography variant="caption" sx={{ color: '#64748b', display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <LockIcon sx={{ fontSize: 14 }} /> Account Password
-              </Typography>
-            </Divider>
-
+          <div className="bg-white rounded-xl border border-border p-6 space-y-5">
+            <h2 className="text-base font-semibold text-text pb-4 border-b border-border">
+              <span className="flex items-center gap-2"><LockIcon className="!text-base text-text-secondary" /> Account Password</span>
+            </h2>
             <FormControl fullWidth margin="dense">
               <PasswordInput
                 {...register('password')}
@@ -414,7 +423,10 @@ const CreateSupplier = () => {
                 If left blank, an activation email with a password-reset link will be sent.
               </FormHelperText>
             </FormControl>
+          </div>
 
+          <div className="bg-white rounded-xl border border-border p-6 space-y-5">
+            <h2 className="text-base font-semibold text-text pb-4 border-b border-border">Contracts</h2>
             <FormControl fullWidth margin="dense">
               <ContractList
                 onUpload={(language, filename) => {
@@ -434,22 +446,22 @@ const CreateSupplier = () => {
                 }}
               />
             </FormControl>
+          </div>
 
-            <div className="buttons">
-              <Button type="submit" variant="contained" className="btn-primary btn-margin-bottom" size="small" disabled={isSubmitting}>
-                {commonStrings.CREATE}
-              </Button>
-              <Button variant="contained" className="btn-secondary btn-margin-bottom" size="small" onClick={handleCancel}>
-                {commonStrings.CANCEL}
-              </Button>
-            </div>
+          <div className="flex justify-end gap-3 pb-6">
+            <Button variant="contained" className="btn-secondary !rounded-xl !normal-case !font-medium !px-6 !py-2.5 !shadow-none" size="small" onClick={handleCancel}>
+              {commonStrings.CANCEL}
+            </Button>
+            <Button type="submit" variant="contained" className="btn-primary !rounded-xl !normal-case !font-semibold !px-6 !py-2.5 !shadow-none" size="small" disabled={isSubmitting}>
+              {commonStrings.CREATE}
+            </Button>
+          </div>
 
-            <div className="form-error">
-              {submitError && <Error message={commonStrings.GENERIC_ERROR} />}
-              {avatarError && <Error message={commonStrings.IMAGE_REQUIRED} />}
-            </div>
-          </form>
-        </Paper>
+          <div className="form-error">
+            {submitError && <Error message={commonStrings.GENERIC_ERROR} />}
+            {avatarError && <Error message={commonStrings.IMAGE_REQUIRED} />}
+          </div>
+        </form>
       </div>
 
       {loading && <Backdrop text={commonStrings.PLEASE_WAIT} />}

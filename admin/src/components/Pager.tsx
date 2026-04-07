@@ -24,20 +24,24 @@ const Pager = ({
   onPrevious
 }: PagerProps) => (
     (((page > 1 || rowCount < totalRecords) && (
-      <div className="h-[54px] w-full py-[5px] pr-2.5 pl-0 mb-[15px] bg-white rounded-[5px] flex flex-row justify-end">
-        <div className="flex flex-row items-center">
-          <div className="text-sm flex flex-row items-center mr-[7px]">{`${(page - 1) * pageSize + 1}-${rowCount} ${commonStrings.OF} ${totalRecords}`}</div>
+      <div className="flex items-center justify-center gap-3 py-6">
+        <IconButton
+          onClick={onPrevious}
+          disabled={page === 1}
+          className="!w-9 !h-9 !rounded-lg !text-sm !font-medium hover:!bg-background !text-text-secondary disabled:!opacity-40"
+        >
+          <PreviousPageIcon className="!w-4 !h-4" />
+        </IconButton>
 
-          <div className="flex flex-row items-center">
-            <IconButton onClick={onPrevious} disabled={page === 1}>
-              <PreviousPageIcon className="icon" />
-            </IconButton>
+        <span className="text-sm text-text-secondary font-medium px-2">{`${(page - 1) * pageSize + 1}-${rowCount} ${commonStrings.OF} ${totalRecords}`}</span>
 
-            <IconButton onClick={onNext} disabled={rowCount >= totalRecords}>
-              <NextPageIcon className="icon" />
-            </IconButton>
-          </div>
-        </div>
+        <IconButton
+          onClick={onNext}
+          disabled={rowCount >= totalRecords}
+          className="!w-9 !h-9 !rounded-lg !text-sm !font-medium hover:!bg-background !text-text-secondary disabled:!opacity-40"
+        >
+          <NextPageIcon className="!w-4 !h-4" />
+        </IconButton>
       </div>
     )) || <></>)
   )

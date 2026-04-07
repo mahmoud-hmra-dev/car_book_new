@@ -12,8 +12,10 @@ const Contact = () => {
 
   return (
     <Layout onLoad={onLoad} strict>
-      <div className="flex flex-col flex-1 items-center min-h-screen">
-        <ContactForm user={user} className="my-[100px]" />
+      <div className="max-w-3xl mx-auto py-8 px-4">
+        <div className="bg-white rounded-xl border border-border p-6 mb-6">
+          <ContactForm user={user} className="" />
+        </div>
       </div>
     </Layout>
   )

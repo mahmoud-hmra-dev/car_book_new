@@ -250,9 +250,16 @@ const UpdateSupplier = () => {
   return (
     <Layout onLoad={onLoad} strict>
       {visible && (
-        <div className="flex flex-col flex-1 items-center my-11">
-          <Paper className="w-[360px] p-[30px] md:w-[550px]" elevation={10}>
-            <form onSubmit={handleSubmit(onSubmit, onError)}>
+        <div className="max-w-4xl mx-auto space-y-6 py-6">
+          <div className="flex items-center gap-3">
+            <button type="button" onClick={() => navigate('/suppliers')} className="w-9 h-9 rounded-lg border border-border flex items-center justify-center hover:bg-background transition-colors">
+              <span className="text-text-secondary text-lg">&larr;</span>
+            </button>
+            <h1 className="text-2xl font-bold text-text">Update Supplier</h1>
+          </div>
+          <form onSubmit={handleSubmit(onSubmit, onError)}>
+            <div className="bg-white rounded-xl border border-border p-6 space-y-5">
+              <h2 className="text-base font-semibold text-text pb-4 border-b border-border">Avatar & Identity</h2>
               <Avatar
                 type={bookcarsTypes.RecordType.Supplier}
                 mode="update"
@@ -266,8 +273,8 @@ const UpdateSupplier = () => {
                 className="avatar-ctn"
               />
 
-              <div className="info">
-                <InfoIcon />
+              <div className="flex items-center gap-2 text-text-muted text-sm mt-2">
+                <InfoIcon className="!text-base" />
                 <span>{csStrings.RECOMMENDED_IMAGE_SIZE}</span>
               </div>
 
@@ -294,7 +301,10 @@ const UpdateSupplier = () => {
                   disabled
                 />
               </FormControl>
+            </div>
 
+            <div className="bg-white rounded-xl border border-border p-6 space-y-5">
+              <h2 className="text-base font-semibold text-text pb-4 border-b border-border">Settings</h2>
               <FormControl fullWidth margin="dense">
                 <FormControlLabel
                   control={(
@@ -344,8 +354,8 @@ const UpdateSupplier = () => {
                 />
               </FormControl>
 
-              <div className="info">
-                <InfoIcon />
+              <div className="flex items-center gap-2 text-text-muted text-sm mt-3">
+                <InfoIcon className="!text-base" />
                 <span>{commonStrings.OPTIONAL}</span>
               </div>
 
@@ -420,6 +430,10 @@ const UpdateSupplier = () => {
                 </FormHelperText>
               </FormControl>
 
+            </div>
+
+            <div className="bg-white rounded-xl border border-border p-6 space-y-5">
+              <h2 className="text-base font-semibold text-text pb-4 border-b border-border">Contact Information</h2>
               <FormControl fullWidth margin="dense">
                 <InputLabel>{commonStrings.PHONE}</InputLabel>
                 <Input
@@ -457,13 +471,12 @@ const UpdateSupplier = () => {
                   autoComplete="off" />
               </FormControl>
 
-              {/* ── Office location on map ─────────────────── */}
-              <Divider sx={{ my: 2 }}>
-                <Typography variant="caption" sx={{ color: '#64748b', display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <LocationOnIcon sx={{ fontSize: 14 }} /> Office Map Location
-                </Typography>
-              </Divider>
+            </div>
 
+            <div className="bg-white rounded-xl border border-border p-6 space-y-5">
+              <h2 className="text-base font-semibold text-text pb-4 border-b border-border">
+                <span className="flex items-center gap-2"><LocationOnIcon className="!text-base text-text-secondary" /> Office Map Location</span>
+              </h2>
               <FormControl fullWidth margin="dense">
                 <OfficeLocationPicker
                   initialLat={supplier?.latitude}
@@ -475,39 +488,46 @@ const UpdateSupplier = () => {
                   }}
                 />
               </FormControl>
+            </div>
 
+            <div className="bg-white rounded-xl border border-border p-6 space-y-5">
+              <h2 className="text-base font-semibold text-text pb-4 border-b border-border">Contracts</h2>
               <FormControl fullWidth margin="dense">
                 <ContractList supplier={supplier} />
               </FormControl>
+            </div>
 
-              {admin && (
-                <FormControl fullWidth margin="dense" className="cursor-pointer mt-5 mb-2.5">
+            {admin && (
+              <div className="bg-white rounded-xl border border-border p-6">
+                <FormControl fullWidth margin="dense">
                   <Button
                     variant="outlined"
+                    className="!rounded-xl !normal-case"
                     onClick={handleResendActivationLink}
                   >
                     {commonStrings.RESEND_ACTIVATION_LINK}
                   </Button>
                 </FormControl>
-              )}
-              <div className="buttons">
-                <Button variant="contained" className="btn-primary btn-margin btn-margin-bottom" size="small" onClick={() => navigate(`/change-password?u=${supplier && supplier._id}`)}>
-                  {commonStrings.RESET_PASSWORD}
-                </Button>
-                <Button type="submit" variant="contained" className="btn-primary btn-margin-bottom" size="small" disabled={isSubmitting}>
-                  {commonStrings.SAVE}
-                </Button>
-                <Button variant="contained" className="btn-secondary btn-margin-bottom" size="small" onClick={() => navigate('/suppliers')}>
-                  {commonStrings.CANCEL}
-                </Button>
               </div>
+            )}
 
-              <div className="form-error">
-                {submitError && <Error message={commonStrings.GENERIC_ERROR} />}
-                {avatarError && <Error message={commonStrings.IMAGE_REQUIRED} />}
-              </div>
-            </form>
-          </Paper>
+            <div className="flex flex-wrap justify-end gap-3 pb-6">
+              <Button variant="contained" className="btn-secondary !rounded-xl !normal-case !font-medium !px-6 !py-2.5 !shadow-none" size="small" onClick={() => navigate('/suppliers')}>
+                {commonStrings.CANCEL}
+              </Button>
+              <Button variant="contained" className="btn-primary !rounded-xl !normal-case !font-medium !px-6 !py-2.5 !shadow-none" size="small" onClick={() => navigate(`/change-password?u=${supplier && supplier._id}`)}>
+                {commonStrings.RESET_PASSWORD}
+              </Button>
+              <Button type="submit" variant="contained" className="btn-primary !rounded-xl !normal-case !font-semibold !px-6 !py-2.5 !shadow-none" size="small" disabled={isSubmitting}>
+                {commonStrings.SAVE}
+              </Button>
+            </div>
+
+            <div className="form-error">
+              {submitError && <Error message={commonStrings.GENERIC_ERROR} />}
+              {avatarError && <Error message={commonStrings.IMAGE_REQUIRED} />}
+            </div>
+          </form>
         </div>
       )}
       {loading && <Backdrop text={commonStrings.PLEASE_WAIT} />}

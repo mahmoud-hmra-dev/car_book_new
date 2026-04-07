@@ -7,9 +7,13 @@ const ToS = () => {
 
   return (
     <Layout onLoad={onLoad} strict>
-      <div className="flex flex-col flex-1 items-center whitespace-pre-wrap px-5 md:px-[20%] pt-[30px] md:pt-[50px] text-[15px] text-[#121212] min-h-screen">
-        <h1>{strings.TITLE}</h1>
-        <p>{strings.TOS}</p>
+      <div className="max-w-3xl mx-auto py-8 px-4">
+        <div className="bg-white rounded-xl border border-border p-6 mb-6">
+          <h1 className="text-2xl font-bold text-text mb-5">{strings.TITLE}</h1>
+          <div className="whitespace-pre-wrap text-sm text-text-secondary leading-relaxed">
+            <p>{strings.TOS}</p>
+          </div>
+        </div>
       </div>
     </Layout>
   )

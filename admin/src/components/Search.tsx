@@ -31,35 +31,40 @@ const Search = ({
   }
 
   return (
-    <div className={className}>
-      <form autoComplete="off" onSubmit={handleSubmit(handleFormSubmit)}>
+    <div className={`${className || ''} relative`}>
+      <form autoComplete="off" onSubmit={handleSubmit(handleFormSubmit)} className="flex items-center gap-1">
         <input autoComplete="false" name="hidden" type="text" style={{ display: 'none' }} />
-        <TextField
-          inputRef={inputRef}
-          variant="standard"
-          {...register('keyword')}
-          placeholder={commonStrings.SEARCH_PLACEHOLDER}
-          slotProps={{
-            input: {
-              endAdornment: keyword ? (
-                <InputAdornment position="end">
-                  <IconButton
-                    size="small"
-                    onClick={() => {
-                      setValue('keyword', '')
-                      inputRef.current?.focus()
-                    }}
-                  >
-                    <ClearIcon style={{ width: 20, height: 20 }} />
-                  </IconButton>
-                </InputAdornment>
-              ) : null
-            }
-          }}
-          className="w-[235px]"
-          id="search"
-        />
-        <IconButton type="submit">
+        <div className="relative">
+          <SearchIcon className="!absolute !left-3 !top-1/2 !-translate-y-1/2 !w-5 !h-5 !text-text-muted pointer-events-none" />
+          <TextField
+            inputRef={inputRef}
+            variant="outlined"
+            size="small"
+            {...register('keyword')}
+            placeholder={commonStrings.SEARCH_PLACEHOLDER}
+            slotProps={{
+              input: {
+                endAdornment: keyword ? (
+                  <InputAdornment position="end">
+                    <IconButton
+                      size="small"
+                      onClick={() => {
+                        setValue('keyword', '')
+                        inputRef.current?.focus()
+                      }}
+                    >
+                      <ClearIcon className="!w-4 !h-4" />
+                    </IconButton>
+                  </InputAdornment>
+                ) : null,
+                className: '!pl-10 !rounded-lg !text-sm !h-10',
+              }
+            }}
+            className="w-[280px]"
+            id="search"
+          />
+        </div>
+        <IconButton type="submit" className="!w-10 !h-10 !rounded-lg hover:!bg-primary/5 !text-primary">
           <SearchIcon />
         </IconButton>
       </form>

@@ -158,10 +158,16 @@ const CreateLocation = () => {
 
   return (
     <Layout onLoad={onLoad} strict>
-      <div className="flex flex-col flex-1 items-center my-11">
-        <Paper className="w-[360px] p-[30px] md:w-[550px] my-8" elevation={10} style={visible ? {} : { display: 'none' }}>
-          <h1 className="text-center capitalize text-[#121212]">{strings.NEW_LOCATION_HEADING}</h1>
-          <form onSubmit={handleSubmit(onSubmit)}>
+      <div className="max-w-4xl mx-auto space-y-6 py-6" style={visible ? {} : { display: 'none' }}>
+        <div className="flex items-center gap-3">
+          <button type="button" onClick={handleCancel} className="w-9 h-9 rounded-lg border border-border flex items-center justify-center hover:bg-background transition-colors">
+            <span className="text-text-secondary text-lg">&larr;</span>
+          </button>
+          <h1 className="text-2xl font-bold text-text">{strings.NEW_LOCATION_HEADING}</h1>
+        </div>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <div className="bg-white rounded-xl border border-border p-6 space-y-5">
+            <h2 className="text-base font-semibold text-text pb-4 border-b border-border">Location Image</h2>
             <Avatar
               type={bookcarsTypes.RecordType.Location}
               avatar={watchImage}
@@ -175,6 +181,10 @@ const CreateLocation = () => {
               className="avatar-ctn"
             />
 
+          </div>
+
+          <div className="bg-white rounded-xl border border-border p-6 space-y-5">
+            <h2 className="text-base font-semibold text-text pb-4 border-b border-border">Location Details</h2>
             <FormControl fullWidth margin="dense" error={!!errors.country}>
               <CountrySelectList
                 label={strings.COUNTRY}
@@ -221,19 +231,25 @@ const CreateLocation = () => {
               </FormControl>
             ))}
 
-            <FormControl fullWidth margin="dense">
-              <InputLabel>{commonStrings.LATITUDE}</InputLabel>
-              <PositionInput
-                {...register('latitude')}
-              />
-            </FormControl>
+          </div>
 
-            <FormControl fullWidth margin="dense" >
-              <InputLabel>{commonStrings.LONGITUDE}</InputLabel>
-              <PositionInput
-                {...register('longitude')}
-              />
-            </FormControl>
+          <div className="bg-white rounded-xl border border-border p-6 space-y-5">
+            <h2 className="text-base font-semibold text-text pb-4 border-b border-border">Coordinates & Parking</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <FormControl fullWidth margin="dense">
+                <InputLabel>{commonStrings.LATITUDE}</InputLabel>
+                <PositionInput
+                  {...register('latitude')}
+                />
+              </FormControl>
+
+              <FormControl fullWidth margin="dense">
+                <InputLabel>{commonStrings.LONGITUDE}</InputLabel>
+                <PositionInput
+                  {...register('longitude')}
+                />
+              </FormControl>
+            </div>
 
             <ParkingSpotEditList
               title={strings.PARKING_SPOTS}
@@ -257,21 +273,22 @@ const CreateLocation = () => {
               onDelete={(_, index) => removeParkingSpot(index)}
             />
 
-            <div className="buttons">
-              <Button type="submit" variant="contained" className="btn-primary btn-margin-bottom" size="small" disabled={isSubmitting}>
-                {commonStrings.CREATE}
-              </Button>
-              <Button
-                variant="contained"
-                className="btn-secondary btn-margin-bottom"
-                size="small"
-                onClick={handleCancel}
-              >
-                {commonStrings.CANCEL}
-              </Button>
-            </div>
-          </form>
-        </Paper>
+          </div>
+
+          <div className="flex justify-end gap-3 pb-6">
+            <Button
+              variant="contained"
+              className="btn-secondary !rounded-xl !normal-case !font-medium !px-6 !py-2.5 !shadow-none"
+              size="small"
+              onClick={handleCancel}
+            >
+              {commonStrings.CANCEL}
+            </Button>
+            <Button type="submit" variant="contained" className="btn-primary !rounded-xl !normal-case !font-semibold !px-6 !py-2.5 !shadow-none" size="small" disabled={isSubmitting}>
+              {commonStrings.CREATE}
+            </Button>
+          </div>
+        </form>
       </div>
 
       {loading && <Backdrop text={commonStrings.PLEASE_WAIT} />}

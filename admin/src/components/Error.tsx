@@ -14,8 +14,8 @@ const Error = ({ message, style, homeLink }: ErrorProps) => {
 
   return (
     <div style={style || {}}>
-      <div className="text-[#ec5555] text-center">
-        <span className="p-[5px]">{message}</span>
+      <div className="bg-danger/10 border border-danger/20 rounded-xl p-4 text-center">
+        <span className="text-danger text-sm font-medium">{message}</span>
       </div>
       {homeLink && (
         <p>

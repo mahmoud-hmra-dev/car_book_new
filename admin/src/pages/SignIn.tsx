@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Paper,
   FormControl,
   InputLabel,
   Input,
@@ -122,73 +121,85 @@ const SignIn = () => {
       <Header />
 
       {visible && (
-        <div className="flex flex-row flex-1 justify-center my-11">
-          <Paper className={`flex items-center justify-center w-[350px] md:w-[380px] border border-black/12 p-4 ${visible ? '' : 'hidden'}`} elevation={10}>
-            <form onSubmit={handleSubmit(onSubmit)}>
-              <h1 className="text-center capitalize mt-9 text-[#121212]">{strings.SIGN_IN_HEADING}</h1>
-              <FormControl fullWidth margin="dense" error={!!errors.email}>
-                <InputLabel htmlFor="email">{commonStrings.EMAIL}</InputLabel>
-                <Input
-                  {...register('email')}
-                  onChange={(e) => {
-                    if (errors.email) {
-                      clearErrors('email')
-                    }
-                    // Without the next line, if the field is auto-filled by the browser, react-form does not know it
-                    setValue('email', e.target.value)
-                  }}
-                  autoComplete="email"
-                  required
-                />
-                <FormHelperText error={!!errors.email}>{errors.email?.message || ''}</FormHelperText>
-              </FormControl>
+        <div className="min-h-[calc(100vh-56px)] flex items-center justify-center bg-background px-4">
+          <div className="w-full max-w-md">
+            <div className="text-center mb-8">
+              <h1 className="text-2xl font-bold text-text">{strings.SIGN_IN_HEADING}</h1>
+              <p className="text-sm text-text-muted mt-2">Sign in to your admin account</p>
+            </div>
+            <div className="bg-white rounded-2xl shadow-lg border border-border p-8">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+                <div>
+                  <FormControl fullWidth margin="dense" error={!!errors.email}>
+                    <InputLabel htmlFor="email">{commonStrings.EMAIL}</InputLabel>
+                    <Input
+                      {...register('email')}
+                      onChange={(e) => {
+                        if (errors.email) {
+                          clearErrors('email')
+                        }
+                        // Without the next line, if the field is auto-filled by the browser, react-form does not know it
+                        setValue('email', e.target.value)
+                      }}
+                      autoComplete="email"
+                      required
+                    />
+                    <FormHelperText error={!!errors.email}>{errors.email?.message || ''}</FormHelperText>
+                  </FormControl>
+                </div>
 
-              <PasswordInput
-                label={commonStrings.PASSWORD}
-                {...register('password')}
-                error={!!errors.password}
-                helperText={errors.password?.message}
-                onChange={(e) => {
-                  if (errors.password) {
-                    clearErrors('password')
-                  }
-                  setValue('password', e.target.value)
-                }}
-                required
-                autoComplete="password"
-              />
+                <div>
+                  <PasswordInput
+                    label={commonStrings.PASSWORD}
+                    {...register('password')}
+                    error={!!errors.password}
+                    helperText={errors.password?.message}
+                    onChange={(e) => {
+                      if (errors.password) {
+                        clearErrors('password')
+                      }
+                      setValue('password', e.target.value)
+                    }}
+                    required
+                    autoComplete="password"
+                  />
+                </div>
 
-              <div className="mt-4 flex items-center">
-                <input
-                  id="stay-connected"
-                  type="checkbox"
-                  className="mr-1.5"
-                  onChange={(e) => {
-                    setValue('stayConnected', e.currentTarget.checked)
-                  }}
-                />
-                <label
-                  htmlFor="stay-connected"
-                  className="cursor-pointer text-black/60 select-none"
+                <div className="flex items-center gap-2">
+                  <input
+                    id="stay-connected"
+                    type="checkbox"
+                    className="w-4 h-4 rounded border-border text-primary accent-primary"
+                    onChange={(e) => {
+                      setValue('stayConnected', e.currentTarget.checked)
+                    }}
+                  />
+                  <label
+                    htmlFor="stay-connected"
+                    className="cursor-pointer text-sm text-text-secondary select-none"
+                  >
+                    {strings.STAY_CONNECTED}
+                  </label>
+                </div>
+
+                <div>
+                  <Button variant="text" onClick={() => navigate('/forgot-password')} className="btn-lnk">{strings.RESET_PASSWORD}</Button>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full h-12 bg-primary text-white rounded-xl font-semibold text-sm hover:bg-primary-dark transition-colors disabled:opacity-50"
                 >
-                  {strings.STAY_CONNECTED}
-                </label>
-              </div>
-
-              <div className="mt-4">
-                <Button variant="text" onClick={() => navigate('/forgot-password')} className="btn-lnk">{strings.RESET_PASSWORD}</Button>
-              </div>
-
-              <div className="float-right mt-5">
-                <Button type="submit" variant="contained" size="small" className="btn-primary" disabled={isSubmitting}>
                   {strings.SIGN_IN}
-                </Button>
-              </div>
-              <div className="form-error">
-                {errors.root && <Error message={errors.root.message!} />}
-              </div>
-            </form>
-          </Paper>
+                </button>
+
+                <div className="min-h-[40px] pt-2 text-center">
+                  {errors.root && <Error message={errors.root.message!} />}
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
       )}
     </div>

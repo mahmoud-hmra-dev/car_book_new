@@ -39,23 +39,21 @@ const Suppliers = () => {
   return (
     <Layout onLoad={onLoad} strict>
       {user && (
-        <div className="flex flex-col gap-6 min-h-0">
-          <div className="bg-white rounded-xl shadow-sm py-5 px-6 flex items-center justify-between flex-wrap gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-text m-0 leading-snug">
-                {headerStrings.COMPANIES}
-                {rowCount > 0 && (
-                  <span className="text-sm font-normal text-text-muted ml-3">
-                    {`(${rowCount} ${rowCount > 1 ? strings.SUPPLIERS : strings.SUPPLIER})`}
-                  </span>
-                )}
-              </h1>
-            </div>
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold text-text">
+              {headerStrings.COMPANIES}
+              {rowCount > 0 && (
+                <span className="text-sm font-normal text-text-muted ml-3">
+                  {`(${rowCount} ${rowCount > 1 ? strings.SUPPLIERS : strings.SUPPLIER})`}
+                </span>
+              )}
+            </h1>
             {admin && (
               <Button
                 type="submit"
                 variant="contained"
-                className="btn-primary !rounded-lg !normal-case !font-semibold !text-sm !py-2 !px-5 !shadow-none"
+                className="btn-primary !rounded-xl !normal-case !font-semibold !text-sm !py-2.5 !px-5 !shadow-none"
                 size="small"
                 onClick={() => navigate('/create-supplier')}
               >
@@ -63,12 +61,12 @@ const Suppliers = () => {
               </Button>
             )}
           </div>
-          <div className="bg-white rounded-xl shadow-sm py-5 px-6 w-full">
-            <div className="flex flex-wrap gap-3 items-center w-full max-md:flex-col">
+          <div className="bg-white rounded-xl border border-border p-5">
+            <div className="flex flex-wrap items-end gap-4">
               <Search className="w-full max-w-[400px] flex justify-start max-md:max-w-full" onSubmit={handleSearch} />
             </div>
           </div>
-          <div className="bg-white rounded-xl shadow-sm py-4 px-6 min-h-[300px] flex flex-col items-center flex-1">
+          <div className="bg-white rounded-xl border border-border p-5 min-h-[300px] flex flex-col items-center flex-1">
             <SupplierList
               user={user}
               keyword={keyword}

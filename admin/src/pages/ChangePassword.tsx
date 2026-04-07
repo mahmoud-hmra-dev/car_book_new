@@ -1,8 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Paper,
-  Button
+  Button,
 } from '@mui/material'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -112,69 +111,87 @@ const ChangePassword = () => {
 
   return (
     <Layout onLoad={onLoad} strict>
-      {!noMatch && (<div className="flex flex-col items-center pb-10 flex-1" style={visible ? {} : { display: 'none' }}>
-        <Paper className="mt-10 w-[330px] md:w-[450px] p-[30px]" elevation={10}>
-          <h1 className="text-center mt-0">{strings.CHANGE_PASSWORD_HEADING}</h1>
-          <form className="form" onSubmit={handleSubmit(onSubmit)}>
-
-            {strict && (
-              <PasswordInput
-                label={strings.CURRENT_PASSWORD}
-                variant="standard"
-                {...register('currentPassword')}
-                error={!!errors.currentPassword}
-                helperText={errors.currentPassword?.message}
-                onChange={(e) => {
-                  if (errors.currentPassword) {
-                    clearErrors('currentPassword')
-                  }
-                  setValue('currentPassword', e.target.value)
-                }}
-                required
-              />
-            )}
-
-            <PasswordInput
-              label={strings.NEW_PASSWORD}
-              variant="standard"
-              {...register('newPassword')}
-              error={!!errors.newPassword}
-              helperText={errors.newPassword?.message}
-              onChange={(e) => {
-                if (errors.newPassword) {
-                  clearErrors('newPassword')
-                }
-                setValue('newPassword', e.target.value)
-              }}
-              required
-            />
-
-            <PasswordInput
-              label={commonStrings.CONFIRM_PASSWORD}
-              variant="standard"
-              {...register('confirmPassword')}
-              error={!!errors.confirmPassword}
-              helperText={errors.confirmPassword?.message}
-              onChange={(e) => {
-                if (errors.confirmPassword) {
-                  clearErrors('confirmPassword')
-                }
-                setValue('confirmPassword', e.target.value)
-              }}
-              required
-            />
-
-            <div className="buttons">
-              <Button type="submit" className="btn-primary btn-margin btn-margin-bottom" size="small" variant="contained" disabled={isSubmitting}>
-                {commonStrings.RESET_PASSWORD}
-              </Button>
-              <Button className="btn-secondary btn-margin-bottom" size="small" variant="contained" onClick={() => navigate('/')}>
-                {commonStrings.CANCEL}
-              </Button>
+      {!noMatch && (
+        <div className="min-h-[calc(100vh-56px)] flex items-center justify-center bg-background px-4" style={visible ? {} : { display: 'none' }}>
+          <div className="w-full max-w-md">
+            <div className="text-center mb-8">
+              <h1 className="text-2xl font-bold text-text">{strings.CHANGE_PASSWORD_HEADING}</h1>
+              <p className="text-sm text-text-muted mt-2">Update your account password</p>
             </div>
-          </form>
-        </Paper>
-      </div>)}
+            <div className="bg-white rounded-2xl shadow-lg border border-border p-8">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+
+                {strict && (
+                  <div>
+                    <PasswordInput
+                      label={strings.CURRENT_PASSWORD}
+                      variant="standard"
+                      {...register('currentPassword')}
+                      error={!!errors.currentPassword}
+                      helperText={errors.currentPassword?.message}
+                      onChange={(e) => {
+                        if (errors.currentPassword) {
+                          clearErrors('currentPassword')
+                        }
+                        setValue('currentPassword', e.target.value)
+                      }}
+                      required
+                    />
+                  </div>
+                )}
+
+                <div>
+                  <PasswordInput
+                    label={strings.NEW_PASSWORD}
+                    variant="standard"
+                    {...register('newPassword')}
+                    error={!!errors.newPassword}
+                    helperText={errors.newPassword?.message}
+                    onChange={(e) => {
+                      if (errors.newPassword) {
+                        clearErrors('newPassword')
+                      }
+                      setValue('newPassword', e.target.value)
+                    }}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <PasswordInput
+                    label={commonStrings.CONFIRM_PASSWORD}
+                    variant="standard"
+                    {...register('confirmPassword')}
+                    error={!!errors.confirmPassword}
+                    helperText={errors.confirmPassword?.message}
+                    onChange={(e) => {
+                      if (errors.confirmPassword) {
+                        clearErrors('confirmPassword')
+                      }
+                      setValue('confirmPassword', e.target.value)
+                    }}
+                    required
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full h-12 bg-primary text-white rounded-xl font-semibold text-sm hover:bg-primary-dark transition-colors disabled:opacity-50"
+                >
+                  {commonStrings.RESET_PASSWORD}
+                </button>
+
+                <div className="flex justify-center">
+                  <Button className="btn-secondary" size="small" variant="contained" onClick={() => navigate('/')}>
+                    {commonStrings.CANCEL}
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
       {loading && <Backdrop text={commonStrings.PLEASE_WAIT} />}
       {noMatch && <NoMatch hideHeader />}
     </Layout>

@@ -5,7 +5,6 @@ import {
   FormControl,
   FormHelperText,
   Button,
-  Paper
 } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
@@ -79,96 +78,113 @@ const SignUp = () => {
 
   return (
     <Layout strict={false} onLoad={onLoad}>
-      <div className="flex flex-row flex-1 justify-center my-11">
-        <Paper className="w-[350px] md:w-[550px] p-[30px]" elevation={10} style={visible ? {} : { display: 'none' }}>
-          <h1 className="text-center capitalize text-[#121212]">{strings.SIGN_UP_HEADING}</h1>
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <div>
-              <FormControl fullWidth margin="dense">
-                <InputLabel htmlFor="full-name">{commonStrings.FULL_NAME}</InputLabel>
-                <Input
-                  type="text"
-                  {...register('fullName')}
-                  autoComplete="off"
+      <div className="min-h-[calc(100vh-56px)] flex items-center justify-center bg-background px-4" style={visible ? {} : { display: 'none' }}>
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <h1 className="text-2xl font-bold text-text">{strings.SIGN_UP_HEADING}</h1>
+            <p className="text-sm text-text-muted mt-2">Create your admin account</p>
+          </div>
+          <div className="bg-white rounded-2xl shadow-lg border border-border p-8">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+              <div>
+                <FormControl fullWidth margin="dense">
+                  <InputLabel htmlFor="full-name">{commonStrings.FULL_NAME}</InputLabel>
+                  <Input
+                    type="text"
+                    {...register('fullName')}
+                    autoComplete="off"
+                    onChange={(e) => {
+                      setValue('fullName', e.target.value)
+                    }}
+                    required
+                  />
+                </FormControl>
+              </div>
+              <div>
+                <FormControl fullWidth margin="dense">
+                  <InputLabel htmlFor="email">{commonStrings.EMAIL}</InputLabel>
+                  <Input
+                    type="text"
+                    {...register('email')}
+                    autoComplete="off"
+                    onChange={(e) => {
+                      if (errors.email) {
+                        clearErrors('email')
+                      }
+                      setValue('email', e.target.value)
+                    }}
+                    required
+                  />
+                  <FormHelperText error={!!errors.email}>{errors.email?.message || ''}</FormHelperText>
+                </FormControl>
+              </div>
+
+              <div>
+                <PasswordInput
+                  label={commonStrings.PASSWORD}
+                  variant="standard"
+                  {...register('password')}
+                  error={!!errors.password}
+                  helperText={errors.password?.message}
                   onChange={(e) => {
-                    setValue('fullName', e.target.value)
-                  }}
-                  required
-                />
-              </FormControl>
-              <FormControl fullWidth margin="dense">
-                <InputLabel htmlFor="email">{commonStrings.EMAIL}</InputLabel>
-                <Input
-                  type="text"
-                  {...register('email')}
-                  autoComplete="off"
-                  onChange={(e) => {
-                    if (errors.email) {
-                      clearErrors('email')
+                    if (errors.password) {
+                      clearErrors('password')
                     }
-                    setValue('email', e.target.value)
+                    setValue('password', e.target.value)
                   }}
                   required
+                  inputProps={{
+                    autoComplete: 'new-password',
+                    form: {
+                      autoComplete: 'off',
+                    },
+                  }}
                 />
-                <FormHelperText error={!!errors.email}>{errors.email?.message || ''}</FormHelperText>
-              </FormControl>
+              </div>
 
-              <PasswordInput
-                label={commonStrings.PASSWORD}
-                variant="standard"
-                {...register('password')}
-                error={!!errors.password}
-                helperText={errors.password?.message}
-                onChange={(e) => {
-                  if (errors.password) {
-                    clearErrors('password')
-                  }
-                  setValue('password', e.target.value)
-                }}
-                required
-                inputProps={{
-                  autoComplete: 'new-password',
-                  form: {
-                    autoComplete: 'off',
-                  },
-                }}
-              />
+              <div>
+                <PasswordInput
+                  label={commonStrings.CONFIRM_PASSWORD}
+                  variant="standard"
+                  {...register('confirmPassword')}
+                  error={!!errors.confirmPassword}
+                  helperText={errors.confirmPassword?.message}
+                  onChange={(e) => {
+                    if (errors.confirmPassword) {
+                      clearErrors('confirmPassword')
+                    }
+                    setValue('confirmPassword', e.target.value)
+                  }}
+                  required
+                  inputProps={{
+                    autoComplete: 'new-password',
+                    form: {
+                      autoComplete: 'off',
+                    },
+                  }}
+                />
+              </div>
 
-              <PasswordInput
-                label={commonStrings.CONFIRM_PASSWORD}
-                variant="standard"
-                {...register('confirmPassword')}
-                error={!!errors.confirmPassword}
-                helperText={errors.confirmPassword?.message}
-                onChange={(e) => {
-                  if (errors.confirmPassword) {
-                    clearErrors('confirmPassword')
-                  }
-                  setValue('confirmPassword', e.target.value)
-                }}
-                required
-                inputProps={{
-                  autoComplete: 'new-password',
-                  form: {
-                    autoComplete: 'off',
-                  },
-                }}
-              />
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full h-12 bg-primary text-white rounded-xl font-semibold text-sm hover:bg-primary-dark transition-colors disabled:opacity-50"
+              >
+                {strings.SIGN_UP}
+              </button>
 
-              <div className="buttons">
-                <Button type="submit" variant="contained" className="btn-primary btn-margin-bottom" size="small" disabled={isSubmitting}>
-                  {strings.SIGN_UP}
-                </Button>
-                <Button variant="contained" className="btn-secondary btn-margin-bottom" size="small" onClick={() => navigate('/')}>
+              <div className="flex justify-center">
+                <Button variant="contained" className="btn-secondary" size="small" onClick={() => navigate('/')}>
                   {commonStrings.CANCEL}
                 </Button>
               </div>
-            </div>
-            <div className="form-error">
-              {errors.root && <Error message={errors.root.message!} />}
-            </div>
-          </form>
-        </Paper>
+
+              <div className="min-h-[40px] pt-2 text-center">
+                {errors.root && <Error message={errors.root.message!} />}
+              </div>
+            </form>
+          </div>
+        </div>
       </div>
       {isSubmitting && <Backdrop text={commonStrings.PLEASE_WAIT} />}
     </Layout>

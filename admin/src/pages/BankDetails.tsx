@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { FormControl, Input, InputLabel, Paper } from '@mui/material'
+import { FormControl, Input, InputLabel } from '@mui/material'
 import * as bookcarsTypes from ':bookcars-types'
 import * as helper from '@/utils/helper'
 import * as BankDetailsService from '@/services/BankDetailsService'
@@ -25,33 +25,34 @@ const BankDetails = () => {
 
   return (
     <Layout onLoad={onLoad} strict>
-      <div className="flex flex-col flex-1 justify-center items-center">
+      <div className="max-w-3xl mx-auto py-8 px-4">
 
         {bankDetails && !noMatch && (
-          <Paper className="w-[360px] md:w-[550px] my-[100px] p-[62px]" elevation={10}>
-            <h1 className="text-center capitalize text-[#121212] -mt-[18px]">{strings.BANK_DETAILS}</h1>
+          <div className="bg-white rounded-xl border border-border p-6 mb-6">
+            <h2 className="text-lg font-semibold text-text mb-5">{strings.BANK_DETAILS}</h2>
 
-            <FormControl fullWidth margin="dense">
-              <InputLabel>{strings.ACCOUNT_HOLDER}</InputLabel>
-              <Input type="text" readOnly autoComplete="off" value={bankDetails.accountHolder} />
-            </FormControl>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <FormControl fullWidth margin="dense">
+                <InputLabel>{strings.ACCOUNT_HOLDER}</InputLabel>
+                <Input type="text" readOnly autoComplete="off" value={bankDetails.accountHolder} />
+              </FormControl>
 
-            <FormControl fullWidth margin="dense">
-              <InputLabel>{strings.BANK_NAME}</InputLabel>
-              <Input type="text" readOnly autoComplete="off" value={bankDetails.bankName} />
-            </FormControl>
+              <FormControl fullWidth margin="dense">
+                <InputLabel>{strings.BANK_NAME}</InputLabel>
+                <Input type="text" readOnly autoComplete="off" value={bankDetails.bankName} />
+              </FormControl>
 
-            <FormControl fullWidth margin="dense">
-              <InputLabel>{strings.IBAN}</InputLabel>
-              <Input type="text" readOnly autoComplete="off" value={bankDetails.iban} />
-            </FormControl>
+              <FormControl fullWidth margin="dense">
+                <InputLabel>{strings.IBAN}</InputLabel>
+                <Input type="text" readOnly autoComplete="off" value={bankDetails.iban} />
+              </FormControl>
 
-            <FormControl fullWidth margin="dense">
-              <InputLabel>{strings.SWIFT_BIC}</InputLabel>
-              <Input type="text" readOnly autoComplete="off" value={bankDetails.swiftBic} />
-            </FormControl>
-
-          </Paper>
+              <FormControl fullWidth margin="dense">
+                <InputLabel>{strings.SWIFT_BIC}</InputLabel>
+                <Input type="text" readOnly autoComplete="off" value={bankDetails.swiftBic} />
+              </FormControl>
+            </div>
+          </div>
         )}
       </div>
 

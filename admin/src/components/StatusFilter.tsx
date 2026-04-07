@@ -90,27 +90,27 @@ const StatusFilter = ({
 
   return (
     (allStatuses.length > 0 && (
-      <Accordion title={commonStrings.STATUS} collapse={collapse} className={`${className ? `${className} ` : ''}bg-[#fafafa] mt-2.5 mr-2.5 border border-[#dadada] text-[13px] text-center`}>
-        <ul className="list-none text-[13px] mt-4 mb-0 mx-0 p-0 inline-block w-[312px]">
+      <Accordion title={commonStrings.STATUS} collapse={collapse} className={`${className ? `${className} ` : ''}bg-white mt-2.5 mr-2.5 border border-border rounded-xl shadow-sm text-[13px]`}>
+        <ul className="list-none text-[13px] mt-3 mb-0 mx-0 px-3 pb-0 flex flex-wrap gap-2 justify-center">
           {statuses.map((status, index) => (
-            <li key={status.value} className="w-[42%] float-left mb-3 mx-[4%]">
+            <li key={status.value} className="flex items-center gap-1.5 py-1.5 px-1 rounded-md cursor-pointer hover:bg-primary/5 transition-colors">
               <input
                 ref={(ref) => {
                   refs.current[index] = ref
                 }}
                 type="checkbox"
                 data-value={status.value}
-                className="cursor-pointer"
+                className="cursor-pointer accent-primary"
                 onChange={handleCheckStatusChange}
               />
               <BookingStatus value={status.value} onClick={handleStatusClick} />
             </li>
           ))}
         </ul>
-        <div className="text-center pb-2.5">
+        <div className="text-center py-2.5">
           <span
             onClick={handleUncheckAllChange}
-            className="text-xs text-primary underline cursor-pointer"
+            className="text-xs text-primary hover:underline cursor-pointer py-1"
             role="button"
             tabIndex={0}
           >

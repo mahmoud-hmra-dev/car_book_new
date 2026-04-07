@@ -11,25 +11,30 @@ const About = () => {
 
   return (
     <Layout onLoad={onLoad} strict>
-      <div className="flex flex-col flex-1 items-start whitespace-pre-wrap px-5 md:px-[20%] pt-[30px] md:pt-[50px] pb-[120px] text-[15px] text-[#1a1a1a] min-h-screen bg-white [&_h1]:text-4xl [&_h1]:text-[#1a1a1a] [&_h2]:text-2xl [&_h2]:font-medium [&_h2]:text-[#1a1a1a] [&_p]:text-xl [&_p]:text-black [&_p]:mb-10">
-        <h1>{strings.TITLE1}</h1>
-        <h2>{strings.SUBTITLE1}</h2>
-        <p>{strings.CONTENT1}</p>
+      <div className="max-w-3xl mx-auto py-8 px-4">
+        <div className="bg-white rounded-xl border border-border p-6 mb-6">
+          <div className="whitespace-pre-wrap text-text [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:text-text [&_h1]:mb-3 [&_h2]:text-xl [&_h2]:font-medium [&_h2]:text-text [&_h2]:mb-2 [&_p]:text-base [&_p]:text-text-secondary [&_p]:mb-8 [&_p]:leading-relaxed">
+            <h1>{strings.TITLE1}</h1>
+            <h2>{strings.SUBTITLE1}</h2>
+            <p>{strings.CONTENT1}</p>
 
-        <h1>{strings.TITLE2}</h1>
-        <h2>{strings.SUBTITLE2}</h2>
-        <p>{strings.CONTENT2}</p>
+            <h1>{strings.TITLE2}</h1>
+            <h2>{strings.SUBTITLE2}</h2>
+            <p>{strings.CONTENT2}</p>
+          </div>
 
-        <Button
-          variant="contained"
-          className="btn-primary"
-          aria-label="Find deal"
-          onClick={() => navigate('/pricing')}
-        >
-          {strings.PRICING}
-        </Button>
+          <div className="flex justify-end mt-6 pt-5 border-t border-border">
+            <Button
+              variant="contained"
+              className="btn-primary"
+              aria-label="Find deal"
+              onClick={() => navigate('/pricing')}
+            >
+              {strings.PRICING}
+            </Button>
+          </div>
+        </div>
       </div>
-
     </Layout>
   )
 }

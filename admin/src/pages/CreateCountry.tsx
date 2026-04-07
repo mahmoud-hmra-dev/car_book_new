@@ -98,41 +98,49 @@ const CreateCountry = () => {
 
   return (
     <Layout onLoad={onLoad} strict>
-      <div className="flex flex-col flex-1 items-center my-11">
-        <Paper className="w-[360px] min-h-[400px] p-[30px] md:w-[550px] md:min-h-[340px] my-8" elevation={10} style={visible ? {} : { display: 'none' }}>
-          <h1 className="text-center capitalize text-[#121212]">{strings.NEW_COUNTRY_HEADING}</h1>
-          <form onSubmit={handleSubmit(onSubmit)}>
-            {fields.map((field, index) => (
-              <FormControl key={field.id} fullWidth margin="dense">
-                <InputLabel className="required">{`${commonStrings.NAME} (${env._LANGUAGES[index].label})`}</InputLabel>
-                <Input
-                  type="text"
-                  error={!!errors.names?.[index]?.name}
-                  required
-                  {...register(`names.${index}.name`)}
-                  autoComplete="off"
-                />
-                <FormHelperText error={!!errors.names?.[index]?.name}>
-                  {errors.names?.[index]?.name?.message || ''}
-                </FormHelperText>
-              </FormControl>
-            ))}
-
-            <div className="buttons">
-              <Button type="submit" variant="contained" className="btn-primary btn-margin-bottom" size="small" disabled={isSubmitting}>
-                {commonStrings.CREATE}
-              </Button>
-              <Button
-                variant="contained"
-                className="btn-secondary btn-margin-bottom"
-                size="small"
-                onClick={() => navigate('/countries')}
-              >
-                {commonStrings.CANCEL}
-              </Button>
+      <div className="max-w-4xl mx-auto space-y-6 py-6" style={visible ? {} : { display: 'none' }}>
+        <div className="flex items-center gap-3">
+          <button type="button" onClick={() => navigate('/countries')} className="w-9 h-9 rounded-lg border border-border flex items-center justify-center hover:bg-background transition-colors">
+            <span className="text-text-secondary text-lg">&larr;</span>
+          </button>
+          <h1 className="text-2xl font-bold text-text">{strings.NEW_COUNTRY_HEADING}</h1>
+        </div>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <div className="bg-white rounded-xl border border-border p-6 space-y-5">
+            <h2 className="text-base font-semibold text-text pb-4 border-b border-border">Country Names</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {fields.map((field, index) => (
+                <FormControl key={field.id} fullWidth margin="dense">
+                  <InputLabel className="required">{`${commonStrings.NAME} (${env._LANGUAGES[index].label})`}</InputLabel>
+                  <Input
+                    type="text"
+                    error={!!errors.names?.[index]?.name}
+                    required
+                    {...register(`names.${index}.name`)}
+                    autoComplete="off"
+                  />
+                  <FormHelperText error={!!errors.names?.[index]?.name}>
+                    {errors.names?.[index]?.name?.message || ''}
+                  </FormHelperText>
+                </FormControl>
+              ))}
             </div>
-          </form>
-        </Paper>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-6 pb-6">
+            <Button
+              variant="contained"
+              className="btn-secondary !rounded-xl !normal-case !font-medium !px-6 !py-2.5 !shadow-none"
+              size="small"
+              onClick={() => navigate('/countries')}
+            >
+              {commonStrings.CANCEL}
+            </Button>
+            <Button type="submit" variant="contained" className="btn-primary !rounded-xl !normal-case !font-semibold !px-6 !py-2.5 !shadow-none" size="small" disabled={isSubmitting}>
+              {commonStrings.CREATE}
+            </Button>
+          </div>
+        </form>
       </div>
     </Layout>
   )

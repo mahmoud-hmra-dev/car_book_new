@@ -8,7 +8,6 @@ import {
   FormControlLabel,
   Switch,
   Button,
-  Paper,
   CircularProgress,
   Alert,
   Collapse,
@@ -168,68 +167,75 @@ const Settings = () => {
   return (
     <Layout onLoad={onLoad} strict>
       {visible && user && (
-        <div className="flex flex-col flex-1 justify-center items-center my-11 translate-z-0">
+        <div className="max-w-3xl mx-auto py-8 px-4">
 
-          <Paper className="my-8 w-[360px] p-[30px] md:w-[550px]" elevation={10}>
+          <div className="bg-white rounded-xl border border-border p-6 mb-6">
+            <h2 className="text-lg font-semibold text-text mb-5">Profile Settings</h2>
             <form onSubmit={handleSubmit(onSubmit)}>
-              <Avatar
-                type={user.type}
-                mode="update"
-                record={user}
-                size="large"
-                readonly={false}
-                onBeforeUpload={onBeforeUpload}
-                onChange={onAvatarChange}
-                hideDelete={!admin}
-                color="disabled"
-                className="avatar-ctn"
-              />
-              <FormControl fullWidth margin="dense">
-                <InputLabel className="required">{commonStrings.FULL_NAME}</InputLabel>
-                <Input {...register('fullName')} type="text" required autoComplete="off" />
-              </FormControl>
-              <FormControl fullWidth margin="dense">
-                <InputLabel className="required">{commonStrings.EMAIL}</InputLabel>
-                <Input {...register('email')} type="text" disabled />
-              </FormControl>
-              <FormControl fullWidth margin="dense" error={!!errors.phone}>
-                <InputLabel>{commonStrings.PHONE}</InputLabel>
-                <Input
-                  {...register('phone')}
-                  type="text"
-                  autoComplete="off"
-                  onChange={() => {
-                    if (errors.phone) {
-                      clearErrors('phone')
-                    }
-                  }}
+              <div className="flex justify-center mb-6">
+                <Avatar
+                  type={user.type}
+                  mode="update"
+                  record={user}
+                  size="large"
+                  readonly={false}
+                  onBeforeUpload={onBeforeUpload}
+                  onChange={onAvatarChange}
+                  hideDelete={!admin}
+                  color="disabled"
+                  className="avatar-ctn"
                 />
-                <FormHelperText>{errors.phone?.message || ''}</FormHelperText>
-              </FormControl>
-              <FormControl fullWidth margin="dense">
-                <InputLabel>{commonStrings.LOCATION}</InputLabel>
-                <Input {...register('location')} type="text" autoComplete="off" />
-              </FormControl>
-              <FormControl fullWidth margin="dense">
-                <InputLabel>{commonStrings.BIO}</InputLabel>
-                <Input {...register('bio')} type="text" autoComplete="off" />
-              </FormControl>
-              <div className="buttons">
-                <Button variant="contained" className="btn-primary btn-margin btn-margin-bottom" size="small" onClick={() => navigate('/change-password')}>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <FormControl fullWidth margin="dense">
+                  <InputLabel className="required">{commonStrings.FULL_NAME}</InputLabel>
+                  <Input {...register('fullName')} type="text" required autoComplete="off" />
+                </FormControl>
+                <FormControl fullWidth margin="dense">
+                  <InputLabel className="required">{commonStrings.EMAIL}</InputLabel>
+                  <Input {...register('email')} type="text" disabled />
+                </FormControl>
+                <FormControl fullWidth margin="dense" error={!!errors.phone}>
+                  <InputLabel>{commonStrings.PHONE}</InputLabel>
+                  <Input
+                    {...register('phone')}
+                    type="text"
+                    autoComplete="off"
+                    onChange={() => {
+                      if (errors.phone) {
+                        clearErrors('phone')
+                      }
+                    }}
+                  />
+                  <FormHelperText>{errors.phone?.message || ''}</FormHelperText>
+                </FormControl>
+                <FormControl fullWidth margin="dense">
+                  <InputLabel>{commonStrings.LOCATION}</InputLabel>
+                  <Input {...register('location')} type="text" autoComplete="off" />
+                </FormControl>
+              </div>
+              <div className="mt-5">
+                <FormControl fullWidth margin="dense">
+                  <InputLabel>{commonStrings.BIO}</InputLabel>
+                  <Input {...register('bio')} type="text" autoComplete="off" />
+                </FormControl>
+              </div>
+              <div className="flex justify-end gap-3 mt-6 pt-5 border-t border-border">
+                <Button variant="contained" className="btn-primary" size="small" onClick={() => navigate('/change-password')}>
                   {commonStrings.RESET_PASSWORD}
                 </Button>
-                <Button type="submit" variant="contained" className="btn-primary btn-margin-bottom" size="small" disabled={isSubmitting}>
+                <Button type="submit" variant="contained" className="btn-primary" size="small" disabled={isSubmitting}>
                   {commonStrings.SAVE}
                 </Button>
-                <Button variant="contained" className="btn-secondary btn-margin-bottom" size="small" onClick={() => navigate('/')}>
+                <Button variant="contained" className="btn-secondary" size="small" onClick={() => navigate('/')}>
                   {commonStrings.CANCEL}
                 </Button>
               </div>
             </form>
-          </Paper>
+          </div>
 
-          <Paper className="my-8 w-[360px] p-[30px] md:w-[550px]" elevation={10}>
-            <h1 className="text-center capitalize text-[#121212]">{strings.NETWORK_SETTINGS}</h1>
+          <div className="bg-white rounded-xl border border-border p-6 mb-6">
+            <h2 className="text-lg font-semibold text-text mb-5">{strings.NETWORK_SETTINGS}</h2>
             <FormControl component="fieldset">
               <FormControlLabel
                 control={(
@@ -241,7 +247,7 @@ const Settings = () => {
                 label={strings.SETTINGS_EMAIL_NOTIFICATIONS}
               />
             </FormControl>
-          </Paper>
+          </div>
 
           {user.type === bookcarsTypes.UserType.Admin && (
             <SettingForm
@@ -258,12 +264,12 @@ const Settings = () => {
           )}
 
           {user.type === bookcarsTypes.UserType.Admin && (
-            <Paper className="my-8 w-[360px] p-[30px] md:w-[550px] mt-5" elevation={10}>
-              <h1 className="text-center capitalize text-[#121212] flex items-center gap-2">
+            <div className="bg-white rounded-xl border border-border p-6 mb-6">
+              <h2 className="text-lg font-semibold text-text mb-2 flex items-center gap-2">
                 <SeedIcon color="success" />
                 Demo Data
-              </h1>
-              <p style={{ color: '#64748b', fontSize: 14, marginBottom: 16 }}>
+              </h2>
+              <p className="text-sm text-text-secondary mb-4">
                 Populate the database with 10 Lebanese car rental suppliers and 200 demo cars (20 per supplier).
                 Safe to run multiple times — skips existing records.
               </p>
@@ -303,30 +309,19 @@ const Settings = () => {
 
               {seedResult && (
                 <Collapse in={showSeedLog}>
-                  <div style={{
-                    marginTop: 8,
-                    padding: '12px 16px',
-                    background: '#0f172a',
-                    borderRadius: 8,
-                    maxHeight: 260,
-                    overflowY: 'auto',
-                    fontFamily: 'monospace',
-                    fontSize: 12,
-                    color: '#94a3b8',
-                    lineHeight: 1.7,
-                  }}>
+                  <div className="mt-2 p-3 bg-[#0f172a] rounded-lg max-h-[260px] overflow-y-auto font-mono text-xs text-text-muted leading-[1.7]">
                     {seedResult.log.map((line, i) => (
-                      <div key={i} style={{ color: line.startsWith('✅') ? '#4ade80' : '#94a3b8' }}>
+                      <div key={i} style={{ color: line.startsWith('\u2705') ? '#4ade80' : '#94a3b8' }}>
                         {line}
                       </div>
                     ))}
                     {seedResult.message && !seedResult.success && (
-                      <div style={{ color: '#f87171' }}>{seedResult.message}</div>
+                      <div className="text-danger">{seedResult.message}</div>
                     )}
                   </div>
                 </Collapse>
               )}
-            </Paper>
+            </div>
           )}
         </div>
       )}

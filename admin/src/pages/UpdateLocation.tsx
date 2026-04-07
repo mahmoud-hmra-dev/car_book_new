@@ -6,7 +6,6 @@ import {
   FormControl,
   FormHelperText,
   Button,
-  Paper,
   FormLabel
 } from '@mui/material'
 import { useForm, useFieldArray, useWatch } from 'react-hook-form'
@@ -234,10 +233,16 @@ const UpdateLocation = () => {
   return (
     <Layout onLoad={onLoad} strict>
       {!formError && !noMatch && location && location.values && (
-        <div className="flex flex-col flex-1 items-center my-11">
-          <Paper className="w-[360px] p-[30px] md:w-[550px] my-8" elevation={10} style={visible ? {} : { display: 'none' }}>
-            <h1 className="text-center capitalize text-[#121212]">{strings.UPDATE_LOCATION}</h1>
-            <form onSubmit={handleSubmit(onSubmit)}>
+        <div className="max-w-4xl mx-auto space-y-6 py-6" style={visible ? {} : { display: 'none' }}>
+          <div className="flex items-center gap-3">
+            <button type="button" onClick={() => navigate('/locations')} className="w-9 h-9 rounded-lg border border-border flex items-center justify-center hover:bg-background transition-colors">
+              <span className="text-text-secondary text-lg">&larr;</span>
+            </button>
+            <h1 className="text-2xl font-bold text-text">{strings.UPDATE_LOCATION}</h1>
+          </div>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <div className="bg-white rounded-xl border border-border p-6 space-y-5">
+              <h2 className="text-base font-semibold text-text pb-4 border-b border-border">Location Image</h2>
               <Avatar
                 type={bookcarsTypes.RecordType.Location}
                 mode="update"
@@ -335,7 +340,7 @@ const UpdateLocation = () => {
                 onDelete={(_, index) => removeParkingSpot(index)}
               />
 
-              <div className="buttons">
+              <div className="flex justify-end gap-3 mt-6">
                 <Button type="submit" variant="contained" className="btn-primary btn-margin-bottom" size="small" disabled={isSubmitting}>
                   {commonStrings.SAVE}
                 </Button>
@@ -343,8 +348,8 @@ const UpdateLocation = () => {
                   {commonStrings.CANCEL}
                 </Button>
               </div>
+            </div>
             </form>
-          </Paper>
         </div>
       )}
       {loading && <Backdrop text={commonStrings.PLEASE_WAIT} />}

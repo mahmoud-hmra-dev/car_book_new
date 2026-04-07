@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Button,
-  Paper,
 } from '@mui/material'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -129,74 +128,97 @@ const Activate = () => {
   return (
     <Layout onLoad={onLoad} strict={false}>
       {resend && (
-        <div className="flex flex-col items-center my-11 flex-1 pb-10">
-          <Paper className="mt-10 w-[330px] md:w-[430px] min-h-[330px] md:min-h-[270px] p-[30px]" elevation={10}>
-            <h1 className="text-center">{strings.ACTIVATE_HEADING}</h1>
-            <div className="flex flex-1 flex-col items-center">
-              <span className="float-left">{strings.TOKEN_EXPIRED}</span>
-              <Button type="button" variant="contained" size="small" className="btn-primary btn-resend float-left clear-left w-[90px] mt-4" onClick={handleResend}>
+        <div className="min-h-[calc(100vh-56px)] flex items-center justify-center bg-background px-4">
+          <div className="w-full max-w-md">
+            <div className="text-center mb-8">
+              <h1 className="text-2xl font-bold text-text">{strings.ACTIVATE_HEADING}</h1>
+            </div>
+            <div className="bg-white rounded-2xl shadow-lg border border-border p-8 text-center space-y-5">
+              <div className="w-12 h-12 bg-warning/10 rounded-full flex items-center justify-center mx-auto">
+                <span className="text-warning text-2xl">&#9888;</span>
+              </div>
+              <span className="text-sm text-text-secondary block">{strings.TOKEN_EXPIRED}</span>
+              <button
+                type="button"
+                className="h-12 px-6 bg-primary text-white rounded-xl font-semibold text-sm hover:bg-primary-dark transition-colors"
+                onClick={handleResend}
+              >
                 {mStrings.RESEND}
-              </Button>
-              <p className="flex flex-1 flex-col items-center">
+              </button>
+              <p className="flex justify-center">
                 <Button variant="text" onClick={() => navigate('/')} className="btn-lnk">{commonStrings.GO_TO_HOME}</Button>
               </p>
             </div>
-          </Paper>
+          </div>
         </div>
       )}
       {visible && (
-        <div className="flex flex-row flex-1 justify-center my-11">
-          <Paper className="mt-10 w-[330px] md:w-[450px] min-h-[440px] md:min-h-[390px] p-[30px]" elevation={10}>
-            <h1 className="text-center">{reset ? rpStrings.RESET_PASSWORD_HEADING : strings.ACTIVATE_HEADING}</h1>
-            <form onSubmit={handleSubmit(onSubmit)}>
+        <div className="min-h-[calc(100vh-56px)] flex items-center justify-center bg-background px-4">
+          <div className="w-full max-w-md">
+            <div className="text-center mb-8">
+              <h1 className="text-2xl font-bold text-text">{reset ? rpStrings.RESET_PASSWORD_HEADING : strings.ACTIVATE_HEADING}</h1>
+              <p className="text-sm text-text-muted mt-2">Set a password for your account</p>
+            </div>
+            <div className="bg-white rounded-2xl shadow-lg border border-border p-8">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
 
-              <PasswordInput
-                label={commonStrings.PASSWORD}
-                variant="standard"
-                {...register('password')}
-                error={!!errors.password}
-                helperText={errors.password?.message}
-                onChange={(e) => {
-                  if (errors.password) {
-                    clearErrors('password')
-                  }
-                  setValue('password', e.target.value)
-                }}
-                required
-                autoComplete="new-password"
-              />
+                <div>
+                  <PasswordInput
+                    label={commonStrings.PASSWORD}
+                    variant="standard"
+                    {...register('password')}
+                    error={!!errors.password}
+                    helperText={errors.password?.message}
+                    onChange={(e) => {
+                      if (errors.password) {
+                        clearErrors('password')
+                      }
+                      setValue('password', e.target.value)
+                    }}
+                    required
+                    autoComplete="new-password"
+                  />
+                </div>
 
-              <PasswordInput
-                label={commonStrings.CONFIRM_PASSWORD}
-                variant="standard"
-                {...register('confirmPassword')}
-                error={!!errors.confirmPassword}
-                helperText={errors.confirmPassword?.message}
-                onChange={(e) => {
-                  if (errors.confirmPassword) {
-                    clearErrors('confirmPassword')
-                  }
-                  setValue('confirmPassword', e.target.value)
-                }}
-                required
-                inputProps={{
-                  autoComplete: 'new-password',
-                  form: {
-                    autoComplete: 'off',
-                  },
-                }}
-              />
+                <div>
+                  <PasswordInput
+                    label={commonStrings.CONFIRM_PASSWORD}
+                    variant="standard"
+                    {...register('confirmPassword')}
+                    error={!!errors.confirmPassword}
+                    helperText={errors.confirmPassword?.message}
+                    onChange={(e) => {
+                      if (errors.confirmPassword) {
+                        clearErrors('confirmPassword')
+                      }
+                      setValue('confirmPassword', e.target.value)
+                    }}
+                    required
+                    inputProps={{
+                      autoComplete: 'new-password',
+                      form: {
+                        autoComplete: 'off',
+                      },
+                    }}
+                  />
+                </div>
 
-              <div className="buttons">
-                <Button type="submit" className="btn-primary btn-margin btn-margin-bottom" variant="contained" disabled={isSubmitting}>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full h-12 bg-primary text-white rounded-xl font-semibold text-sm hover:bg-primary-dark transition-colors disabled:opacity-50"
+                >
                   {reset ? commonStrings.UPDATE : strings.ACTIVATE}
-                </Button>
-                <Button variant="outlined" color="primary" className="btn-margin-bottom" onClick={() => navigate('/')}>
-                  {commonStrings.CANCEL}
-                </Button>
-              </div>
-            </form>
-          </Paper>
+                </button>
+
+                <div className="flex justify-center">
+                  <Button variant="outlined" color="primary" onClick={() => navigate('/')}>
+                    {commonStrings.CANCEL}
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
       )}
 

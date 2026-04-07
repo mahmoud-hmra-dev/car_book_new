@@ -474,13 +474,13 @@ const BookingList = ({
   }
 
   const mobileBadgeMap: Record<string, string> = {
-    void: 'bg-[#D9D9D9] text-[#6E7C86]',
-    pending: 'bg-[#FBDCC2] text-[#EF6C00]',
-    deposit: 'bg-[#CDECDA] text-[#3CB371]',
-    paid: 'bg-[#D1F9D1] text-[#77BC23]',
-    paidinfull: 'bg-[#77BC23] text-white',
-    reserved: 'bg-[#D9E7F4] text-[#1E88E5]',
-    cancelled: 'bg-[#FBDFDE] text-[#E53935]',
+    void: 'bg-border/60 text-text-secondary',
+    pending: 'bg-warning/15 text-warning',
+    deposit: 'bg-success/15 text-success',
+    paid: 'bg-success/15 text-success',
+    paidinfull: 'bg-success text-white',
+    reserved: 'bg-info/15 text-info',
+    cancelled: 'bg-danger/15 text-danger',
   }
 
   const _fr = language === 'fr'
@@ -490,7 +490,7 @@ const BookingList = ({
   const bookingDetailHeight = env.SUPPLIER_IMAGE_HEIGHT + 10
 
   return (
-    <div className="flex flex-col items-center flex-1-0-auto max-md:w-[calc(100%-20px)] max-md:max-w-[480px] md:absolute md:inset-0 md:overflow-y-auto">
+    <div className="flex flex-col items-center flex-1-0-auto max-md:w-full max-md:max-w-[520px] max-md:px-2 md:absolute md:inset-0 md:overflow-y-auto">
       {loggedUser
         && (env.isMobile ? (
           <>
@@ -500,120 +500,122 @@ const BookingList = ({
               const days = bookcarsHelper.days(from, to)
 
               return (
-                <div key={booking._id} className="table text-[#333] text-[15px] bg-white my-2.5 p-2.5 border border-[#d9d8d9] rounded-[5px] w-full">
-                  <div className={`p-[3px] mb-[5px] w-full text-center inline-flex h-7 text-xs font-normal justify-center items-center rounded-[18px] ${mobileBadgeMap[booking.status.toLowerCase()] || ''}`}>
-                    <span>{helper.getBookingStatus(booking.status)}</span>
+                <div key={booking._id} className="bg-white rounded-xl border border-border p-5 mb-3 w-full hover:shadow-md transition-shadow">
+                  <div className="flex justify-between items-center mb-4">
+                    <span className={`px-3 py-1 text-xs font-bold rounded-full ${mobileBadgeMap[booking.status.toLowerCase()] || ''}`}>
+                      {helper.getBookingStatus(booking.status)}
+                    </span>
                   </div>
-                  <div className="table-row" style={{ height: bookingDetailHeight }}>
-                    <span className="table-row font-bold w-[250px] text-[15px] text-black/85">{strings.CAR}</span>
-                    <div className="table-row leading-[25px] text-[13px] text-black/50">
-                      <Link href={`car/?cr=${(booking.car as bookcarsTypes.Car)._id}`}>{(booking.car as bookcarsTypes.Car).name}</Link>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between py-1.5 border-b border-border/50">
+                      <span className="text-xs font-semibold text-text-muted uppercase tracking-wide">{strings.CAR}</span>
+                      <Link href={`car/?cr=${(booking.car as bookcarsTypes.Car)._id}`} className="text-sm text-primary font-medium">{(booking.car as bookcarsTypes.Car).name}</Link>
                     </div>
-                  </div>
-                  <div className="table-row" style={{ height: bookingDetailHeight }}>
-                    <span className="table-row font-bold w-[250px] text-[15px] text-black/85">{strings.DRIVER}</span>
-                    <div className="table-row leading-[25px] text-[13px] text-black/50">
-                      <Link href={`user/?u=${(booking.driver as bookcarsTypes.User)._id}`}>{(booking.driver as bookcarsTypes.User).fullName}</Link>
+                    <div className="flex items-center justify-between py-1.5 border-b border-border/50">
+                      <span className="text-xs font-semibold text-text-muted uppercase tracking-wide">{strings.DRIVER}</span>
+                      <Link href={`user/?u=${(booking.driver as bookcarsTypes.User)._id}`} className="text-sm text-primary font-medium">{(booking.driver as bookcarsTypes.User).fullName}</Link>
                     </div>
-                  </div>
-                  <div className="table-row" style={{ height: bookingDetailHeight }}>
-                    <span className="table-row font-bold w-[250px] text-[15px] text-black/85">{strings.DAYS}</span>
-                    <div className="table-row leading-[25px] text-[13px] text-black/50">
-                      {`${helper.getDaysShort(bookcarsHelper.days(from, to))} (${bookcarsHelper.capitalize(
-                        format(from, _format, { locale: _locale }),
-                      )} - ${bookcarsHelper.capitalize(format(to, _format, { locale: _locale }))})`}
+                    <div className="flex flex-col py-1.5 border-b border-border/50">
+                      <span className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">{strings.DAYS}</span>
+                      <span className="text-sm text-text-secondary">
+                        {`${helper.getDaysShort(bookcarsHelper.days(from, to))} (${bookcarsHelper.capitalize(
+                          format(from, _format, { locale: _locale }),
+                        )} - ${bookcarsHelper.capitalize(format(to, _format, { locale: _locale }))})`}
+                      </span>
                     </div>
-                  </div>
-                  <div className="table-row" style={{ height: bookingDetailHeight }}>
-                    <span className="table-row font-bold w-[250px] text-[15px] text-black/85">{commonStrings.PICK_UP_LOCATION}</span>
-                    <div className="table-row leading-[25px] text-[13px] text-black/50">{(booking.pickupLocation as bookcarsTypes.Location).name}</div>
-                  </div>
-                  <div className="table-row" style={{ height: bookingDetailHeight }}>
-                    <span className="table-row font-bold w-[250px] text-[15px] text-black/85">{commonStrings.DROP_OFF_LOCATION}</span>
-                    <div className="table-row leading-[25px] text-[13px] text-black/50">{(booking.dropOffLocation as bookcarsTypes.Location).name}</div>
-                  </div>
-                  <div className="table-row" style={{ height: bookingDetailHeight }}>
-                    <span className="table-row font-bold w-[250px] text-[15px] text-black/85">{commonStrings.SUPPLIER}</span>
-                    <div className="table-row leading-[25px] text-[13px] text-black/50">
-                      <div className="flex items-center mb-[5px] w-[60px] h-[30px]">
-                        <img src={helper.supplierImageURL((booking.supplier as bookcarsTypes.User).avatar)} alt={(booking.supplier as bookcarsTypes.User).fullName} className="max-w-full max-h-full" />
-                        <span className="text-black/60 text-[0.9em] leading-[1em] ml-[5px]">{(booking.supplier as bookcarsTypes.User).fullName}</span>
+                    <div className="flex items-center justify-between py-1.5 border-b border-border/50">
+                      <span className="text-xs font-semibold text-text-muted uppercase tracking-wide">{commonStrings.PICK_UP_LOCATION}</span>
+                      <span className="text-sm text-text-secondary">{(booking.pickupLocation as bookcarsTypes.Location).name}</span>
+                    </div>
+                    <div className="flex items-center justify-between py-1.5 border-b border-border/50">
+                      <span className="text-xs font-semibold text-text-muted uppercase tracking-wide">{commonStrings.DROP_OFF_LOCATION}</span>
+                      <span className="text-sm text-text-secondary">{(booking.dropOffLocation as bookcarsTypes.Location).name}</span>
+                    </div>
+                    <div className="flex items-center justify-between py-1.5 border-b border-border/50">
+                      <span className="text-xs font-semibold text-text-muted uppercase tracking-wide">{commonStrings.SUPPLIER}</span>
+                      <div className="flex items-center gap-2">
+                        <img src={helper.supplierImageURL((booking.supplier as bookcarsTypes.User).avatar)} alt={(booking.supplier as bookcarsTypes.User).fullName} className="max-w-[50px] max-h-[24px] object-contain" />
+                        <span className="text-sm text-text-secondary">{(booking.supplier as bookcarsTypes.User).fullName}</span>
                       </div>
                     </div>
                   </div>
 
                   {(booking.cancellation || booking.amendments || booking.collisionDamageWaiver || booking.theftProtection || booking.fullInsurance || booking.additionalDriver) && (
                     <>
-                      <div className="mb-2.5">
-                        <span className="text-[15px] font-bold">{commonStrings.OPTIONS}</span>
-                        {booking.cancellation && (
-                          <div className="flex items-center m-[3px]">
-                            <CheckIcon className="text-[#1f9201] h-5" />
-                            <span className="text-[13px] font-bold mr-[5px]">{csStrings.CANCELLATION}</span>
-                            <span className="text-xs text-black/50">{helper.getCancellationOption((booking.car as bookcarsTypes.Car).cancellation, language as string, true)}</span>
-                          </div>
-                        )}
+                      <div className="mt-3 pt-3 border-t border-border/50">
+                        <span className="text-xs font-semibold text-text-muted uppercase tracking-wide">{commonStrings.OPTIONS}</span>
+                        <div className="mt-2 space-y-1.5">
+                          {booking.cancellation && (
+                            <div className="flex items-center gap-2">
+                              <CheckIcon className="text-success !w-4 !h-4" />
+                              <span className="text-[13px] font-semibold text-text">{csStrings.CANCELLATION}</span>
+                              <span className="text-xs text-text-muted">{helper.getCancellationOption((booking.car as bookcarsTypes.Car).cancellation, language as string, true)}</span>
+                            </div>
+                          )}
 
-                        {booking.amendments && (
-                          <div className="flex items-center m-[3px]">
-                            <CheckIcon className="text-[#1f9201] h-5" />
-                            <span className="text-[13px] font-bold mr-[5px]">{csStrings.AMENDMENTS}</span>
-                            <span className="text-xs text-black/50">{helper.getAmendmentsOption((booking.car as bookcarsTypes.Car).amendments, language as string, true)}</span>
-                          </div>
-                        )}
+                          {booking.amendments && (
+                            <div className="flex items-center gap-2">
+                              <CheckIcon className="text-success !w-4 !h-4" />
+                              <span className="text-[13px] font-semibold text-text">{csStrings.AMENDMENTS}</span>
+                              <span className="text-xs text-text-muted">{helper.getAmendmentsOption((booking.car as bookcarsTypes.Car).amendments, language as string, true)}</span>
+                            </div>
+                          )}
 
-                        {booking.collisionDamageWaiver && (
-                          <div className="flex items-center m-[3px]">
-                            <CheckIcon className="text-[#1f9201] h-5" />
-                            <span className="text-[13px] font-bold mr-[5px]">{csStrings.COLLISION_DAMAGE_WAVER}</span>
-                            <span className="text-xs text-black/50">{helper.getCollisionDamageWaiverOption((booking.car as bookcarsTypes.Car).collisionDamageWaiver, days, language as string, true)}</span>
-                          </div>
-                        )}
+                          {booking.collisionDamageWaiver && (
+                            <div className="flex items-center gap-2">
+                              <CheckIcon className="text-success !w-4 !h-4" />
+                              <span className="text-[13px] font-semibold text-text">{csStrings.COLLISION_DAMAGE_WAVER}</span>
+                              <span className="text-xs text-text-muted">{helper.getCollisionDamageWaiverOption((booking.car as bookcarsTypes.Car).collisionDamageWaiver, days, language as string, true)}</span>
+                            </div>
+                          )}
 
-                        {booking.theftProtection && (
-                          <div className="flex items-center m-[3px]">
-                            <CheckIcon className="text-[#1f9201] h-5" />
-                            <span className="text-[13px] font-bold mr-[5px]">{csStrings.THEFT_PROTECTION}</span>
-                            <span className="text-xs text-black/50">{helper.getTheftProtectionOption((booking.car as bookcarsTypes.Car).theftProtection, days, language as string, true)}</span>
-                          </div>
-                        )}
+                          {booking.theftProtection && (
+                            <div className="flex items-center gap-2">
+                              <CheckIcon className="text-success !w-4 !h-4" />
+                              <span className="text-[13px] font-semibold text-text">{csStrings.THEFT_PROTECTION}</span>
+                              <span className="text-xs text-text-muted">{helper.getTheftProtectionOption((booking.car as bookcarsTypes.Car).theftProtection, days, language as string, true)}</span>
+                            </div>
+                          )}
 
-                        {booking.fullInsurance && (
-                          <div className="flex items-center m-[3px]">
-                            <CheckIcon className="text-[#1f9201] h-5" />
-                            <span className="text-[13px] font-bold mr-[5px]">{csStrings.FULL_INSURANCE}</span>
-                            <span className="text-xs text-black/50">{helper.getFullInsuranceOption((booking.car as bookcarsTypes.Car).fullInsurance, days, language as string, true)}</span>
-                          </div>
-                        )}
+                          {booking.fullInsurance && (
+                            <div className="flex items-center gap-2">
+                              <CheckIcon className="text-success !w-4 !h-4" />
+                              <span className="text-[13px] font-semibold text-text">{csStrings.FULL_INSURANCE}</span>
+                              <span className="text-xs text-text-muted">{helper.getFullInsuranceOption((booking.car as bookcarsTypes.Car).fullInsurance, days, language as string, true)}</span>
+                            </div>
+                          )}
 
-                        {booking.additionalDriver && (
-                          <div className="flex items-center m-[3px]">
-                            <CheckIcon className="text-[#1f9201] h-5" />
-                            <span className="text-[13px] font-bold mr-[5px]">{csStrings.ADDITIONAL_DRIVER}</span>
-                            <span className="text-xs text-black/50">{helper.getAdditionalDriverOption((booking.car as bookcarsTypes.Car).additionalDriver, days, language as string, true)}</span>
-                          </div>
-                        )}
+                          {booking.additionalDriver && (
+                            <div className="flex items-center gap-2">
+                              <CheckIcon className="text-success !w-4 !h-4" />
+                              <span className="text-[13px] font-semibold text-text">{csStrings.ADDITIONAL_DRIVER}</span>
+                              <span className="text-xs text-text-muted">{helper.getAdditionalDriverOption((booking.car as bookcarsTypes.Car).additionalDriver, days, language as string, true)}</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </>
                   )}
 
-                  <div className="table-row" style={{ height: bookingDetailHeight }}>
-                    <span className="table-row font-bold w-[250px] text-[15px] text-black/85">{strings.COST}</span>
-                    <div className="text-[17px] font-bold text-black/85">{bookcarsHelper.formatPrice(booking.price as number, commonStrings.CURRENCY, language as string)}</div>
+                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-border/50">
+                    <div>
+                      <span className="text-xs font-semibold text-text-muted uppercase tracking-wide">{strings.COST}</span>
+                      <div className="text-lg font-bold text-primary">{bookcarsHelper.formatPrice(booking.price as number, commonStrings.CURRENCY, language as string)}</div>
+                    </div>
                   </div>
 
-                  <div className="grid mt-2.5">
+                  <div className="flex gap-2 mt-4">
                     <Button
                       variant="contained"
-                      className="btn-primary w-full mb-[5px]"
+                      className="!bg-primary !text-white !flex-1 !rounded-lg !font-semibold !text-sm !normal-case hover:!bg-primary-dark !transition-colors"
                       size="small"
                       onClick={() => navigate(`/update-booking?b=${booking._id}`)}
                     >
                       {commonStrings.UPDATE}
                     </Button>
                     <Button
-                      variant="contained"
-                      className="btn-secondary w-full mb-[5px]"
+                      variant="outlined"
+                      className="!border-border !text-text-secondary !flex-1 !rounded-lg !font-semibold !text-sm !normal-case hover:!border-danger hover:!text-danger !transition-colors"
                       size="small"
                       data-id={booking._id}
                       data-index={index}

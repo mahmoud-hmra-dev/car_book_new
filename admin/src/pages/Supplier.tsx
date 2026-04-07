@@ -135,85 +135,89 @@ const Supplier = () => {
   return (
     <Layout onLoad={onLoad} strict>
       {visible && supplier && suppliers && (
-        <div className="flex flex-1 max-md:flex-col md:flex-row">
-          <div className="max-md:py-2.5 max-md:bg-[#fefefe] max-md:border-b max-md:border-[#eee] md:w-[300px] md:min-h-screen md:pt-5 md:bg-[#fefefe] md:border-r md:border-[#eee]">
-            <section className="max-md:flex max-md:justify-center md:relative md:left-1/2 md:-translate-x-[30%]">
-              {edit ? (
-                <Avatar
-                  record={supplier}
-                  type={bookcarsTypes.RecordType.Supplier}
-                  mode="update"
-                  size="large"
-                  hideDelete
-                  onBeforeUpload={onBeforeUpload}
-                  onChange={onAvatarChange}
-                  readonly={!edit}
-                  color="disabled"
-                  className="supplier-avatar"
-                />
-              ) : (
-                <div className="flex items-center justify-start">
-                  <span className="flex overflow-hidden align-text-bottom">
-                    <img src={helper.supplierImageURL(supplier.avatar)} alt={supplier.fullName} style={{ width: env.SUPPLIER_IMAGE_WIDTH }} />
-                  </span>
-                  <span className="text-[#a8a8a8] inline-block text-[0.9em] leading-[1em] whitespace-nowrap ml-[5px]">{supplier.fullName}</span>
-                </div>
-              )}
-            </section>
-            {edit && (
-              <Typography variant="h4" className="text-center font-semibold mt-[15px] break-words">
-                {supplier.fullName}
-              </Typography>
-            )}
-            {supplier.bio && (
-              helper.isValidURL(supplier.bio)
-                ? (
-                  <Link href={supplier.bio} target="_blank" rel="noreferrer" className="overflow-hidden break-words line-clamp-2 text-center px-2.5">{supplier.bio}</Link>
-                ) : (
-                  <Typography variant="h6" className="text-center font-normal mt-2.5 text-[#676767] break-words">
-                    {supplier.bio}
+        <div className="max-w-5xl mx-auto space-y-6">
+          <div className="bg-white rounded-xl border border-border p-6">
+            <div className="flex flex-col md:flex-row gap-6">
+              <div className="flex flex-col items-center md:w-[240px] shrink-0">
+                <section className="flex justify-center">
+                  {edit ? (
+                    <Avatar
+                      record={supplier}
+                      type={bookcarsTypes.RecordType.Supplier}
+                      mode="update"
+                      size="large"
+                      hideDelete
+                      onBeforeUpload={onBeforeUpload}
+                      onChange={onAvatarChange}
+                      readonly={!edit}
+                      color="disabled"
+                      className="supplier-avatar"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-start">
+                      <span className="flex overflow-hidden align-text-bottom">
+                        <img src={helper.supplierImageURL(supplier.avatar)} alt={supplier.fullName} style={{ width: env.SUPPLIER_IMAGE_WIDTH }} />
+                      </span>
+                      <span className="text-text-muted inline-block text-sm leading-tight whitespace-nowrap ml-2">{supplier.fullName}</span>
+                    </div>
+                  )}
+                </section>
+                {edit && (
+                  <Typography variant="h4" className="text-center font-semibold mt-4 break-words text-text">
+                    {supplier.fullName}
                   </Typography>
-                )
-            )}
-            {supplier.location && supplier.location !== '' && (
-              <Typography variant="h6" className="text-center font-normal mt-2.5 text-[#676767] break-words">
-                {supplier.location}
-              </Typography>
-            )}
-            {supplier.phone && supplier.phone !== '' && (
-              <Typography variant="h6" className="text-center font-normal mt-2.5 text-[#676767] break-words">
-                {supplier.phone}
-              </Typography>
-            )}
-            <div className="text-center">
-              {edit && (
-                <Tooltip title={commonStrings.UPDATE}>
-                  <IconButton onClick={() => navigate(`/update-supplier?c=${supplier._id}`)}>
-                    <EditIcon />
-                  </IconButton>
-                </Tooltip>
-              )}
-              {edit && (
-                <Tooltip title={commonStrings.DELETE}>
-                  <IconButton data-id={supplier._id} onClick={handleDelete}>
-                    <DeleteIcon />
-                  </IconButton>
-                </Tooltip>
-              )}
+                )}
+                {supplier.bio && (
+                  helper.isValidURL(supplier.bio)
+                    ? (
+                      <Link href={supplier.bio} target="_blank" rel="noreferrer" className="overflow-hidden break-words line-clamp-2 text-center px-2.5 text-primary mt-2">{supplier.bio}</Link>
+                    ) : (
+                      <Typography variant="h6" className="text-center font-normal mt-2 text-text-secondary break-words">
+                        {supplier.bio}
+                      </Typography>
+                    )
+                )}
+                {supplier.location && supplier.location !== '' && (
+                  <Typography variant="h6" className="text-center font-normal mt-2 text-text-secondary break-words">
+                    {supplier.location}
+                  </Typography>
+                )}
+                {supplier.phone && supplier.phone !== '' && (
+                  <Typography variant="h6" className="text-center font-normal mt-2 text-text-secondary break-words">
+                    {supplier.phone}
+                  </Typography>
+                )}
+                <div className="flex items-center gap-1 mt-4">
+                  {edit && (
+                    <Tooltip title={commonStrings.UPDATE}>
+                      <IconButton onClick={() => navigate(`/update-supplier?c=${supplier._id}`)}>
+                        <EditIcon />
+                      </IconButton>
+                    </Tooltip>
+                  )}
+                  {edit && (
+                    <Tooltip title={commonStrings.DELETE}>
+                      <IconButton data-id={supplier._id} onClick={handleDelete}>
+                        <DeleteIcon />
+                      </IconButton>
+                    </Tooltip>
+                  )}
+                </div>
+                {rowCount > 0 && <InfoBox value={`${rowCount} ${rowCount > 1 ? commonStrings.CARS : commonStrings.CAR}`} className="mt-4" />}
+              </div>
+              <div className="flex-1 border-t md:border-t-0 md:border-l border-border pt-4 md:pt-0 md:pl-6">
+                <CarList
+                  user={user}
+                  suppliers={suppliers}
+                  keyword=""
+                  reload={false}
+                  language={language}
+                  onLoad={handleCarListLoad}
+                  onDelete={handleCarDelete}
+                  hideSupplier
+                />
+              </div>
             </div>
-            {rowCount > 0 && <InfoBox value={`${rowCount} ${rowCount > 1 ? commonStrings.CARS : commonStrings.CAR}`} className="md:mx-2.5 md:mt-2.5" />}
-          </div>
-          <div className="flex flex-col max-md:flex-col md:items-center md:flex-1">
-            <CarList
-              user={user}
-              suppliers={suppliers}
-              keyword=""
-              reload={false}
-              language={language}
-              onLoad={handleCarListLoad}
-              onDelete={handleCarDelete}
-              hideSupplier
-            />
           </div>
         </div>
       )}
