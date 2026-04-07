@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button } from '@mui/material'
 import * as bookcarsTypes from ':bookcars-types'
 import * as bookcarsHelper from ':bookcars-helper'
 import { strings } from '@/lang/bookings'
@@ -60,29 +59,28 @@ const Scheduler = () => {
           <div className="max-md:flex max-md:flex-col max-md:items-center md:absolute md:top-0 md:bottom-0 md:left-0 md:w-[320px] md:pt-3 md:pl-3 md:bg-[#fefefe] md:overflow-auto">
             {leftPanel && (
               <>
-                <Button
-                  variant="contained"
-                  className="btn-primary cl-new-booking max-md:w-[calc(100%-20px)] max-md:max-w-[480px] max-md:mx-2.5 max-md:mt-[15px] max-md:mb-[5px] md:w-[290px] md:ml-[5px]"
-                  size="small"
+                <button
+                  type="button"
                   onClick={() => navigate('/create-booking')}
+                  className="bg-primary text-white rounded-xl font-semibold text-sm hover:bg-primary-dark transition-colors px-5 py-2.5 max-md:w-[calc(100%-20px)] max-md:max-w-[480px] max-md:mx-2.5 max-md:mt-[15px] max-md:mb-[5px] md:w-[290px] md:ml-[5px]"
                 >
                   {strings.NEW_BOOKING}
-                </Button>
+                </button>
                 {admin
                   && (
                     <SupplierFilter
                       suppliers={allSuppliers}
                       onChange={handleSupplierFilterChange}
-                      className="cl-supplier-filter max-md:mx-2.5 max-md:my-[5px] max-md:bg-white max-md:max-w-[480px] max-md:w-[calc(100%-20px)] md:mx-0 md:my-2.5 md:mr-2.5 md:bg-[#fafafa] [&_label.accordion]:max-md:bg-white [&_label.accordion]:md:bg-[#fafafa]"
+                      className="max-md:mx-2.5 max-md:my-[5px] max-md:bg-white max-md:max-w-[480px] max-md:w-[calc(100%-20px)] md:mx-0 md:my-2.5 md:mr-2.5 md:bg-[#fafafa] [&_label.accordion]:max-md:bg-white [&_label.accordion]:md:bg-[#fafafa]"
                     />
                   )}
                 <StatusFilter
                   onChange={handleStatusFilterChange}
-                  className="cl-status-filter max-md:mx-2.5 max-md:my-[5px] max-md:bg-white max-md:max-w-[480px] max-md:w-[calc(100%-20px)] md:mx-0 md:my-2.5 md:mr-2.5 md:mb-2.5 md:bg-[#fafafa] [&_label.accordion]:max-md:bg-white [&_label.accordion]:md:bg-[#fafafa]"
+                  className="max-md:mx-2.5 max-md:my-[5px] max-md:bg-white max-md:max-w-[480px] max-md:w-[calc(100%-20px)] md:mx-0 md:my-2.5 md:mr-2.5 md:mb-2.5 md:bg-[#fafafa] [&_label.accordion]:max-md:bg-white [&_label.accordion]:md:bg-[#fafafa]"
                 />
                 <VehicleSchedulerFilter
                   onSubmit={handleVehicleSchedulerFilterSubmit}
-                  className="cl-scheduler-filter max-md:mx-2.5 max-md:my-[5px] max-md:bg-white max-md:max-w-[480px] max-md:w-[calc(100%-20px)] md:mx-0 md:my-2.5 md:mr-2.5 md:mb-2.5 md:bg-[#fafafa] [&_label.accordion]:max-md:bg-white [&_label.accordion]:md:bg-[#fafafa] [&_.panel]:px-[15px] [&_.panel-collapse]:px-[15px]"
+                  className="max-md:mx-2.5 max-md:my-[5px] max-md:bg-white max-md:max-w-[480px] max-md:w-[calc(100%-20px)] md:mx-0 md:my-2.5 md:mr-2.5 md:mb-2.5 md:bg-[#fafafa] [&_label.accordion]:max-md:bg-white [&_label.accordion]:md:bg-[#fafafa] [&_.panel]:px-[15px] [&_.panel-collapse]:px-[15px]"
                   collapse={!env.isMobile}
                 />
               </>

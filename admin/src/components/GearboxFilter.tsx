@@ -134,39 +134,39 @@ const GearboxFilter = ({
 
   return (
     <Accordion title={strings.GEARBOX} collapse={collapse} className={className}>
-      <div className="px-1.5 py-2">
-        <div className="flex items-center gap-2 py-1.5 px-1">
-          <input ref={automaticRef} type="checkbox" className="cursor-pointer" onChange={handleCheckAutomaticChange} />
+      <div className="py-2 space-y-0.5">
+        <div className="text-center py-1">
+          <span
+            onClick={handleUncheckAllChange}
+            className="text-xs text-primary hover:underline cursor-pointer"
+            role="button"
+            tabIndex={0}
+          >
+            {allChecked ? commonStrings.UNCHECK_ALL : commonStrings.CHECK_ALL}
+          </span>
+        </div>
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
+          <input ref={automaticRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckAutomaticChange} />
           <span
             onClick={handleAutomaticClick}
             role="button"
             tabIndex={0}
-            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
+            className="text-sm text-text"
           >
             {strings.GEARBOX_AUTOMATIC}
           </span>
         </div>
-        <div className="flex items-center gap-2 py-1.5 px-1">
-          <input ref={manualRef} type="checkbox" className="cursor-pointer" onChange={handleCheckManualChange} />
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
+          <input ref={manualRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckManualChange} />
           <span
             onClick={handleManualClick}
             role="button"
             tabIndex={0}
-            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
+            className="text-sm text-text"
           >
             {strings.GEARBOX_MANUAL}
           </span>
         </div>
-      </div>
-      <div className="text-center pb-2.5">
-        <span
-          onClick={handleUncheckAllChange}
-          className="text-xs text-primary underline cursor-pointer"
-          role="button"
-          tabIndex={0}
-        >
-          {allChecked ? commonStrings.UNCHECK_ALL : commonStrings.CHECK_ALL}
-        </span>
       </div>
     </Accordion>
   )

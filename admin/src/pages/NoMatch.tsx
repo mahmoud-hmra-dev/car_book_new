@@ -1,6 +1,5 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button } from '@mui/material'
 import { strings as commonStrings } from '@/lang/common'
 import { strings } from '@/lang/no-match'
 import Layout from '@/components/Layout'

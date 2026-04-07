@@ -6,7 +6,6 @@ import {
   FormControl,
   FormHelperText,
   Button,
-  Paper,
   Select,
   MenuItem,
   FormControlLabel,
@@ -201,9 +200,14 @@ const CreateUser = () => {
   return (
     <Layout onLoad={onLoad} strict>
       {user && (
-        <div className="flex flex-col flex-1 items-center">
-          <Paper className="w-[360px] p-[30px] md:w-[550px] my-8" elevation={10} style={visible ? {} : { display: 'none' }}>
-            <h1 className="text-center capitalize text-[#121212]">{strings.CREATE_USER_HEADING}</h1>
+        <div className="max-w-4xl mx-auto space-y-6 py-6" style={visible ? {} : { display: 'none' }}>
+          <div className="flex items-center gap-3">
+            <button type="button" onClick={() => navigate('/users')} className="w-9 h-9 rounded-lg border border-border flex items-center justify-center hover:bg-background transition-colors">
+              <span className="text-text-secondary text-lg">&larr;</span>
+            </button>
+            <h1 className="text-2xl font-bold text-text">{strings.CREATE_USER_HEADING}</h1>
+          </div>
+          <div className="bg-white rounded-xl border border-border shadow-sm p-6 space-y-5">
             <form onSubmit={handleSubmit(onSubmit)}>
               <Avatar
                 type={type}
@@ -214,12 +218,12 @@ const CreateUser = () => {
                 onBeforeUpload={onBeforeUpload}
                 onChange={onAvatarChange}
                 color="disabled"
-                className="avatar-ctn"
+                className="rounded-xl overflow-hidden"
               />
 
               {supplier && (
-                <div className="info">
-                  <InfoIcon />
+                <div className="flex items-center gap-2 text-text-muted text-sm mt-2">
+                  <InfoIcon className="!text-base" />
                   <span>{csStrings.RECOMMENDED_IMAGE_SIZE}</span>
                 </div>
               )}
@@ -467,21 +471,21 @@ const CreateUser = () => {
                 </>
               )}
 
-              <div className="buttons">
-                <Button type="submit" variant="contained" className="btn-primary btn-margin-bottom" size="small" disabled={isSubmitting}>
-                  {commonStrings.CREATE}
-                </Button>
-                <Button variant="contained" className="btn-secondary btn-margin-bottom" size="small" onClick={handleCancel}>
+              <div className="flex justify-end gap-3 mt-6">
+                <Button variant="contained" className="!bg-border !text-text-secondary !rounded-xl !normal-case !font-medium !px-6 !py-2.5 !shadow-none" size="small" onClick={handleCancel}>
                   {commonStrings.CANCEL}
+                </Button>
+                <Button type="submit" variant="contained" className="!bg-primary !text-white !rounded-xl !normal-case !font-semibold !px-6 !py-2.5 !shadow-none hover:!bg-primary-dark" size="small" disabled={isSubmitting}>
+                  {commonStrings.CREATE}
                 </Button>
               </div>
 
-              <div className="form-error">
+              <div className="mt-4">
                 {formError && <Error message={commonStrings.GENERIC_ERROR} />}
                 {avatarError && <Error message={commonStrings.IMAGE_REQUIRED} />}
               </div>
             </form>
-          </Paper>
+          </div>
         </div>
       )}
       {(loading || isSubmitting) && <Backdrop text={commonStrings.PLEASE_WAIT} disableMargin />}

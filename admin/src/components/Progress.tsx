@@ -7,7 +7,7 @@ interface ProgressProps {
 }
 
 const Progress = ({ color }: ProgressProps) => (
-  <div className="w-full flex flex-col items-center py-6">
+  <div className="flex items-center justify-center py-8">
     <CircularProgress color={color || 'inherit'} size={28} />
   </div>
 )

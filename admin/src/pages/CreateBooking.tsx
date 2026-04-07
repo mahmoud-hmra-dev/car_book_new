@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import {
   FormControl,
   Button,
-  Paper,
   FormControlLabel,
   Switch,
   FormHelperText,
@@ -172,9 +171,15 @@ const CreateBooking = () => {
 
   return (
     <Layout onLoad={onLoad} strict>
-      <div className="flex flex-col flex-1 items-center my-11">
-        <Paper className="w-[360px] p-[30px] md:w-[550px] inline-block my-8" elevation={10} style={visible ? {} : { display: 'none' }}>
-          <h1 className="text-center capitalize text-[#121212]">{strings.NEW_BOOKING_HEADING}</h1>
+      <div className="max-w-4xl mx-auto space-y-6 py-6" style={visible ? {} : { display: 'none' }}>
+        <div className="flex items-center gap-3">
+          <button type="button" onClick={() => navigate('/')} className="w-9 h-9 rounded-lg border border-border flex items-center justify-center hover:bg-background transition-colors">
+            <span className="text-text-secondary text-lg">&larr;</span>
+          </button>
+          <h1 className="text-2xl font-bold text-text">{strings.NEW_BOOKING_HEADING}</h1>
+        </div>
+        <div className="bg-white rounded-xl border border-border shadow-sm p-6 space-y-5">
+          <h2 className="text-base font-semibold text-text pb-4 border-b border-border">Booking Details</h2>
           <form onSubmit={handleSubmit(onSubmit)}>
             {!isSupplier && (
               <FormControl fullWidth margin="dense">
@@ -282,8 +287,8 @@ const CreateBooking = () => {
               />
             </FormControl>
 
-            <div className="info">
-              <InfoIcon />
+            <div className="flex items-center gap-2 text-text-muted text-sm mt-4 mb-2">
+              <InfoIcon className="!text-base" />
               <span>{commonStrings.OPTIONAL}</span>
             </div>
 
@@ -297,7 +302,7 @@ const CreateBooking = () => {
                   />
                 }
                 label={csStrings.CANCELLATION}
-                className="text-black/60 text-[0.9em] leading-[1em]"
+                className="text-text-secondary text-sm"
               />
             </FormControl>
 
@@ -311,7 +316,7 @@ const CreateBooking = () => {
                   />
                 }
                 label={csStrings.AMENDMENTS}
-                className="text-black/60 text-[0.9em] leading-[1em]"
+                className="text-text-secondary text-sm"
               />
             </FormControl>
 
@@ -325,7 +330,7 @@ const CreateBooking = () => {
                   />
                 }
                 label={csStrings.THEFT_PROTECTION}
-                className="text-black/60 text-[0.9em] leading-[1em]"
+                className="text-text-secondary text-sm"
               />
             </FormControl>
 
@@ -339,7 +344,7 @@ const CreateBooking = () => {
                   />
                 }
                 label={csStrings.COLLISION_DAMAGE_WAVER}
-                className="text-black/60 text-[0.9em] leading-[1em]"
+                className="text-text-secondary text-sm"
               />
             </FormControl>
 
@@ -353,7 +358,7 @@ const CreateBooking = () => {
                   />
                 }
                 label={csStrings.FULL_INSURANCE}
-                className="text-black/60 text-[0.9em] leading-[1em]"
+                className="text-text-secondary text-sm"
               />
             </FormControl>
 
@@ -367,14 +372,14 @@ const CreateBooking = () => {
                   />
                 }
                 label={csStrings.ADDITIONAL_DRIVER}
-                className="text-black/60 text-[0.9em] leading-[1em]"
+                className="text-text-secondary text-sm"
               />
             </FormControl>
 
             {carObj && helper.carOptionAvailable(carObj, 'additionalDriver') && additionalDriverEnabled && (
               <>
-                <div className="info">
-                  <DriverIcon />
+                <div className="flex items-center gap-2 text-text-muted text-sm mt-4 mb-2">
+                  <DriverIcon className="!text-base" />
                   <span>{csStrings.ADDITIONAL_DRIVER}</span>
                 </div>
                 <FormControl fullWidth margin="dense">
@@ -434,18 +439,16 @@ const CreateBooking = () => {
               </>
             )}
 
-            <div>
-              <div className="buttons">
-                <Button type="submit" variant="contained" className="btn-primary btn-margin-bottom" size="small" disabled={isSubmitting}>
-                  {commonStrings.CREATE}
-                </Button>
-                <Button variant="contained" className="btn-secondary btn-margin-bottom" size="small" onClick={() => navigate('/')}>
-                  {commonStrings.CANCEL}
-                </Button>
-              </div>
+            <div className="flex justify-end gap-3 mt-6">
+              <Button variant="contained" className="!bg-border !text-text-secondary !rounded-xl !normal-case !font-medium !px-6 !py-2.5 !shadow-none" size="small" onClick={() => navigate('/')}>
+                {commonStrings.CANCEL}
+              </Button>
+              <Button type="submit" variant="contained" className="!bg-primary !text-white !rounded-xl !normal-case !font-semibold !px-6 !py-2.5 !shadow-none hover:!bg-primary-dark" size="small" disabled={isSubmitting}>
+                {commonStrings.CREATE}
+              </Button>
             </div>
           </form>
-        </Paper>
+        </div>
       </div>
     </Layout>
   )

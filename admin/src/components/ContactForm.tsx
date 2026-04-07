@@ -86,8 +86,8 @@ const ContactForm = ({ user, className }: ContactFormProps) => {
   }
 
   return (
-    <Paper className={`${className ? `${className} ` : ''}p-[30px] max-md:w-[350px] md:w-[550px]`} elevation={10}>
-      <h1 className="text-center capitalize text-[#232323]">{strings.CONTACT_HEADING}</h1>
+    <Paper className={`${className ? `${className} ` : ''}p-8 max-md:w-[350px] md:w-[550px] rounded-xl`} elevation={10}>
+      <h1 className="text-center capitalize text-text text-2xl font-bold mb-4">{strings.CONTACT_HEADING}</h1>
       <form onSubmit={handleSubmit(onSubmit)}>
         {!isAuthenticated && (
           <FormControl fullWidth margin="dense" error={!!errors.email}>
@@ -127,8 +127,8 @@ const ContactForm = ({ user, className }: ContactFormProps) => {
           />
         </FormControl>
 
-        <div className="buttons">
-          <Button type="submit" variant="contained" className="btn-primary btn-margin-bottom btn" aria-label="Send" disabled={isSubmitting}>
+        <div className="flex items-center gap-4 mt-6">
+          <Button type="submit" variant="contained" className="bg-primary hover:bg-primary-dark text-white normal-case rounded-lg px-6 py-2" aria-label="Send" disabled={isSubmitting}>
             {
               isSubmitting
                 ? <CircularProgress color="inherit" size={24} />
@@ -138,7 +138,7 @@ const ContactForm = ({ user, className }: ContactFormProps) => {
           <Button
             variant="outlined"
             color="primary"
-            className="btn-margin-bottom btn"
+            className="border-primary text-primary hover:bg-primary/5 normal-case rounded-lg px-6 py-2"
             aria-label="Cancel"
             onClick={() => {
               navigate('/')

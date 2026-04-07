@@ -89,14 +89,14 @@ const ContractList: React.FC<ContractListProps> = ({ supplier, onUpload, onDelet
 
   return (
     <div className="flex flex-col">
-      <div className="text-[#666] my-2.5 px-4 border-b border-[#949494]">{strings.TITLE}</div>
+      <div className="text-text-secondary my-2.5 px-4 border-b border-border font-medium text-sm">{strings.TITLE}</div>
       {languages.map((lang) => (
-        <div key={lang.code} className="flex flex-row my-1.5 max-md:flex-col">
-          <span className="text-[#666] mr-1.5 min-w-[80px]">{lang.label}</span>
-          <span className="min-w-[260px] max-md:min-w-0 max-md:pl-1.5">
-            {lang.filename ? <a href={`${bookcarsHelper.trimEnd(supplier ? env.CDN_CONTRACTS : env.CDN_TEMP_CONTRACTS, '/')}/${lang.filename}`}>{lang.filename}</a> : '-'}
+        <div key={lang.code} className="flex items-center my-1.5 max-md:flex-col max-md:items-start px-4 py-1 hover:bg-background rounded-lg transition-colors">
+          <span className="text-text-secondary text-sm mr-3 min-w-20">{lang.label}</span>
+          <span className="min-w-[260px] max-md:min-w-0 max-md:pl-1.5 text-sm">
+            {lang.filename ? <a href={`${bookcarsHelper.trimEnd(supplier ? env.CDN_CONTRACTS : env.CDN_TEMP_CONTRACTS, '/')}/${lang.filename}`} className="text-primary hover:underline">{lang.filename}</a> : <span className="text-text-muted">-</span>}
           </span>
-          <div className="actions">
+          <div className="flex items-center gap-1 ml-auto">
             <IconButton
               size="small"
               onClick={async () => {
@@ -108,7 +108,7 @@ const ContractList: React.FC<ContractListProps> = ({ supplier, onUpload, onDelet
                 }, 0)
               }}
             >
-              <UploadIcon className="upload-icon" />
+              <UploadIcon className="text-primary" />
             </IconButton>
 
             {lang.filename && (
@@ -139,7 +139,7 @@ const ContractList: React.FC<ContractListProps> = ({ supplier, onUpload, onDelet
                   }
                 }}
               >
-                <DeleteIcon className="delete-icon" />
+                <DeleteIcon className="text-danger" />
               </IconButton>
             )}
           </div>

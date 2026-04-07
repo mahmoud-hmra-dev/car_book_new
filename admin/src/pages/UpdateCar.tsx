@@ -5,7 +5,6 @@ import {
   InputLabel,
   FormControl,
   Button,
-  Paper,
   FormControlLabel,
   Switch,
   TextField,
@@ -366,8 +365,14 @@ const UpdateCar = () => {
   return (
     <Layout onLoad={onLoad} strict>
       {!formError && !noMatch && (
-        <div className="flex flex-col flex-1 items-center my-11 translate-z-0">
-          <Paper className="my-8 w-[360px] p-[30px] md:w-[550px]" elevation={10} style={visible ? {} : { display: 'none' }}>
+        <div className="max-w-4xl mx-auto space-y-6 py-6" style={visible ? {} : { display: 'none' }}>
+          <div className="flex items-center gap-3">
+            <button type="button" onClick={() => navigate('/cars')} className="w-9 h-9 rounded-lg border border-border flex items-center justify-center hover:bg-background transition-colors">
+              <span className="text-text-secondary text-lg">&larr;</span>
+            </button>
+            <h1 className="text-2xl font-bold text-text">Update Car</h1>
+          </div>
+          <div className="bg-white rounded-xl border border-border shadow-sm p-6 space-y-5">
             <form onSubmit={handleSubmit(onSubmit, onError)}>
               <Avatar
                 type={bookcarsTypes.RecordType.Car}
@@ -380,11 +385,11 @@ const UpdateCar = () => {
                 onChange={handleImageChange}
                 onValidate={handleImageValidate}
                 color="disabled"
-                className="avatar-ctn"
+                className="rounded-xl overflow-hidden"
               />
 
-              <div className="info">
-                <InfoIcon />
+              <div className="flex items-center gap-2 text-text-muted text-sm mt-2">
+                <InfoIcon className="!text-base" />
                 <span>{strings.RECOMMENDED_IMAGE_SIZE}</span>
               </div>
 
@@ -500,7 +505,7 @@ const UpdateCar = () => {
                     />
                   )}
                   label={strings.IS_DATE_BASED_PRICE}
-                  className="text-black/60 text-[0.9em] leading-[1em]"
+                  className="text-text-secondary text-sm"
                 />
               </FormControl>
 
@@ -739,7 +744,7 @@ const UpdateCar = () => {
                     />
                   }
                   label="Enable Traccar tracking"
-                  className="text-black/60 text-[0.9em] leading-[1em]"
+                  className="text-text-secondary text-sm"
                 />
               </FormControl>
 
@@ -793,7 +798,7 @@ const UpdateCar = () => {
                     />
                   }
                   label={strings.AVAILABLE}
-                  className="text-black/60 text-[0.9em] leading-[1em]"
+                  className="text-text-secondary text-sm"
                 />
               </FormControl>
 
@@ -807,7 +812,7 @@ const UpdateCar = () => {
                     />
                   )}
                   label={strings.FULLY_BOOKED}
-                  className="text-black/60 text-[0.9em] leading-[1em]"
+                  className="text-text-secondary text-sm"
                 />
               </FormControl>
 
@@ -821,7 +826,7 @@ const UpdateCar = () => {
                     />
                   )}
                   label={strings.COMING_SOON}
-                  className="text-black/60 text-[0.9em] leading-[1em]"
+                  className="text-text-secondary text-sm"
                 />
               </FormControl>
 
@@ -835,7 +840,7 @@ const UpdateCar = () => {
                     />
                   )}
                   label={strings.BLOCK_ON_PAY}
-                  className="text-black/60 text-[0.9em] leading-[1em]"
+                  className="text-text-secondary text-sm"
                 />
               </FormControl>
 
@@ -890,8 +895,8 @@ const UpdateCar = () => {
                 />
               </FormControl>
 
-              <div className="info">
-                <InfoIcon />
+              <div className="flex items-center gap-2 text-text-muted text-sm mt-4 mb-2">
+                <InfoIcon className="!text-base" />
                 <span>{commonStrings.OPTIONAL}</span>
               </div>
 
@@ -905,7 +910,7 @@ const UpdateCar = () => {
                     />
                   }
                   label={strings.AIRCON}
-                  className="text-black/60 text-[0.9em] leading-[1em]"
+                  className="text-text-secondary text-sm"
                 />
               </FormControl>
 
@@ -1021,22 +1026,22 @@ const UpdateCar = () => {
                 />
               </FormControl>
 
-              <div className="buttons">
-                <Button type="submit" variant="contained" className="btn-primary btn-margin-bottom" size="small" disabled={loading || isSubmitting}>
-                  {commonStrings.SAVE}
-                </Button>
-                <Button variant="contained" className="btn-secondary btn-margin-bottom" size="small" onClick={() => navigate('/cars')}>
+              <div className="flex justify-end gap-3 mt-6">
+                <Button variant="contained" className="!bg-border !text-text-secondary !rounded-xl !normal-case !font-medium !px-6 !py-2.5 !shadow-none" size="small" onClick={() => navigate('/cars')}>
                   {commonStrings.CANCEL}
+                </Button>
+                <Button type="submit" variant="contained" className="!bg-primary !text-white !rounded-xl !normal-case !font-semibold !px-6 !py-2.5 !shadow-none hover:!bg-primary-dark" size="small" disabled={loading || isSubmitting}>
+                  {commonStrings.SAVE}
                 </Button>
               </div>
 
-              <div className="form-error">
+              <div className="mt-4">
                 {imageRequired && <ErrorMessage message={commonStrings.IMAGE_REQUIRED} />}
                 {imageSizeError && <ErrorMessage message={strings.CAR_IMAGE_SIZE_ERROR} />}
                 {/* {(formError || Object.keys(errors).length > 0) && <ErrorMessage message={commonStrings.FORM_ERROR} />} */}
               </div>
             </form>
-          </Paper>
+          </div>
         </div>
       )}
       {(loading || isSubmitting) && <Backdrop text={commonStrings.PLEASE_WAIT} />}

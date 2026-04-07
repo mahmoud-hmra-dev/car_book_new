@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button, CircularProgress } from '@mui/material'
+import { CircularProgress } from '@mui/material'
 import * as bookcarsTypes from ':bookcars-types'
 import * as bookcarsHelper from ':bookcars-helper'
 import * as helper from '@/utils/helper'
@@ -136,25 +136,27 @@ const Cars = () => {
   return (
     <Layout onLoad={onLoad} strict>
       {user && (
-        <div className="cars flex flex-col gap-6 min-h-0">
-          <div className="bg-white rounded-xl shadow-sm px-6 py-5 flex items-center justify-between flex-wrap gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-text m-0 leading-tight">
-                {headerStrings.CARS}
-                {rowCount > 0 && (
-                  <span className="text-sm font-normal text-text-secondary ml-3">
-                    {`(${bookcarsHelper.formatNumber(rowCount, language)} ${rowCount > 1 ? commonStrings.CARS : commonStrings.CAR})`}
-                  </span>
-                )}
-              </h1>
-            </div>
-            <Button type="submit" variant="contained" className="btn-primary !rounded-lg !normal-case !font-semibold !text-sm !px-5 !py-2 !shadow-none" size="small" onClick={() => navigate('/create-car')}>
+        <div className="space-y-6">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <h1 className="text-2xl font-bold text-text">
+              {headerStrings.CARS}
+              {rowCount > 0 && (
+                <span className="text-sm font-normal text-text-secondary ml-3">
+                  {`(${bookcarsHelper.formatNumber(rowCount, language)} ${rowCount > 1 ? commonStrings.CARS : commonStrings.CAR})`}
+                </span>
+              )}
+            </h1>
+            <button
+              type="button"
+              className="flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-primary-dark transition-colors"
+              onClick={() => navigate('/create-car')}
+            >
               {strings.NEW_CAR}
-            </Button>
+            </button>
           </div>
-          <div className="col-1 bg-white rounded-xl shadow-sm px-6 py-5 w-full">
+          <div className="bg-white rounded-xl border border-border shadow-sm p-5">
             <div className="flex flex-wrap gap-3 items-start w-full">
-              <Search onSubmit={handleSearch} className="search w-full max-w-[400px] flex justify-start max-md:max-w-full" />
+              <Search onSubmit={handleSearch} className="w-full max-w-[400px] flex justify-start max-md:max-w-full" />
 
               {admin && (
                 loadingSuppliers ? (
@@ -162,27 +164,27 @@ const Cars = () => {
                     <CircularProgress className="text-primary" size="1.3rem" />
                   </div>
                 )
-                  : <SupplierFilter suppliers={allSuppliers} onChange={handleSupplierFilterChange} className="filter" />
+                  : <SupplierFilter suppliers={allSuppliers} onChange={handleSupplierFilterChange} />
               )}
 
               {rowCount > -1 && (
                 <>
-                  <CarRatingFilter className="filter" onChange={handleRatingFilterChange} />
-                  <CarRangeFilter className="filter" onChange={handleRangeFilterChange} />
-                  <CarMultimediaFilter className="filter" onChange={handleMultimediaFilterChange} />
-                  <CarSeatsFilter className="filter" onChange={handleSeatsFilterChange} />
-                  <CarSpecsFilter className="filter" onChange={handleCarSpecsFilterChange} />
-                  <CarTypeFilter className="car-filter" onChange={handleCarTypeFilterChange} />
-                  <GearboxFilter className="car-filter" onChange={handleGearboxFilterChange} />
-                  <MileageFilter className="car-filter" onChange={handleMileageFilterChange} />
-                  <FuelPolicyFilter className="filter" onChange={handleFuelPolicyFilterChange} />
-                  <DepositFilter className="car-filter" onChange={handleDepositFilterChange} />
-                  {admin && <AvailabilityFilter className="car-filter" onChange={handleAvailabilityFilterChange} />}
+                  <CarRatingFilter onChange={handleRatingFilterChange} />
+                  <CarRangeFilter onChange={handleRangeFilterChange} />
+                  <CarMultimediaFilter onChange={handleMultimediaFilterChange} />
+                  <CarSeatsFilter onChange={handleSeatsFilterChange} />
+                  <CarSpecsFilter onChange={handleCarSpecsFilterChange} />
+                  <CarTypeFilter onChange={handleCarTypeFilterChange} />
+                  <GearboxFilter onChange={handleGearboxFilterChange} />
+                  <MileageFilter onChange={handleMileageFilterChange} />
+                  <FuelPolicyFilter onChange={handleFuelPolicyFilterChange} />
+                  <DepositFilter onChange={handleDepositFilterChange} />
+                  {admin && <AvailabilityFilter onChange={handleAvailabilityFilterChange} />}
                 </>
               )}
             </div>
           </div>
-          <div className="bg-white rounded-xl shadow-sm p-4 min-h-[300px] flex flex-col items-center flex-1">
+          <div className="bg-white rounded-xl border border-border shadow-sm p-4 min-h-[300px] flex flex-col items-center flex-1">
             <CarList
               user={user}
               suppliers={suppliers}

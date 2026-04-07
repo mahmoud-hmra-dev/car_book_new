@@ -186,8 +186,8 @@ const MultipleSelect = ({
                     startAdornment: (
                       <>
                         <InputAdornment position="start">
-                          <div className="flex flex-col justify-center items-center w-[60px] h-[34px]">
-                            <img src={helper.supplierImageURL(option.image)} alt={option.name} className="max-w-full max-h-full" />
+                          <div className="flex flex-col justify-center items-center w-15 h-[34px]">
+                            <img src={helper.supplierImageURL(option.image)} alt={option.name} className="max-w-full max-h-full object-contain" />
                           </div>
                         </InputAdornment>
                         {params.InputProps.startAdornment}
@@ -306,68 +306,68 @@ const MultipleSelect = ({
 
           if (type === bookcarsTypes.RecordType.User) {
             return (
-              <li {..._props} key={option._id} className={`${props.className} flex items-center w-full hover:bg-[#fafafa] hover:cursor-pointer`}>
+              <li {..._props} key={option._id} className={`${props.className} flex items-center w-full hover:bg-background hover:cursor-pointer`}>
                 <span className="mt-1.5">
                   {option.image ? <Avatar src={bookcarsHelper.joinURL(env.CDN_USERS, option.image)} className="avatar-medium" /> : <AccountCircle className="avatar-medium" color="disabled" />}
                 </span>
-                <span className="text-[#333] inline-block text-[0.9em] leading-[1em] whitespace-nowrap ml-1.5 mb-1.5">{option.name}</span>
+                <span className="text-text inline-block text-sm leading-tight whitespace-nowrap ml-1.5 mb-1.5">{option.name}</span>
               </li>
             )
           }
 
           if (type === bookcarsTypes.RecordType.Supplier) {
             return (
-              <li {..._props} key={option._id} className={`${props.className} flex items-center w-full hover:bg-[#fafafa] hover:cursor-pointer`}>
-                <span className="mt-1.5 flex flex-col justify-center items-center w-[60px] h-[34px]">
-                  <img src={helper.supplierImageURL(option.image)} alt={option.name} className="max-w-full max-h-full" />
+              <li {..._props} key={option._id} className={`${props.className} flex items-center w-full hover:bg-background hover:cursor-pointer`}>
+                <span className="mt-1.5 flex flex-col justify-center items-center w-15 h-[34px]">
+                  <img src={helper.supplierImageURL(option.image)} alt={option.name} className="max-w-full max-h-full object-contain" />
                 </span>
-                <span className="text-[#333] inline-block text-[0.9em] leading-[1em] whitespace-nowrap ml-1.5 mb-1.5">{option.name}</span>
+                <span className="text-text inline-block text-sm leading-tight whitespace-nowrap ml-1.5 mb-1.5">{option.name}</span>
               </li>
             )
           }
 
           if (type === bookcarsTypes.RecordType.Location) {
             return (
-              <li {..._props} key={option._id} className={`${props.className} flex items-center w-full hover:bg-[#fafafa] hover:cursor-pointer`}>
+              <li {..._props} key={option._id} className={`${props.className} flex items-center w-full hover:bg-background hover:cursor-pointer`}>
                 <span className="mt-1.5">
                   <LocationIcon />
                 </span>
-                <span className="text-[#333] inline-block text-[0.9em] leading-[1em] whitespace-nowrap ml-1.5 mb-1.5">{option.name}</span>
+                <span className="text-text inline-block text-sm leading-tight whitespace-nowrap ml-1.5 mb-1.5">{option.name}</span>
               </li>
             )
           }
 
           if (type === bookcarsTypes.RecordType.Country) {
             return (
-              <li {..._props} key={option._id} className={`${props.className} flex items-center w-full hover:bg-[#fafafa] hover:cursor-pointer`}>
+              <li {..._props} key={option._id} className={`${props.className} flex items-center w-full hover:bg-background hover:cursor-pointer`}>
                 <span className="mt-1.5">
                   <CountryIcon />
                 </span>
-                <span className="text-[#333] inline-block text-[0.9em] leading-[1em] whitespace-nowrap ml-1.5 mb-1.5">{option.name}</span>
+                <span className="text-text inline-block text-sm leading-tight whitespace-nowrap ml-1.5 mb-1.5">{option.name}</span>
               </li>
             )
           }
 
           if (type === bookcarsTypes.RecordType.Car) {
             return (
-              <li {..._props} key={option._id} className={`${props.className} flex items-center w-full hover:bg-[#fafafa] hover:cursor-pointer`}>
-                <span className="mt-1.5 flex flex-col justify-center items-center w-[160px] h-[100px]">
+              <li {..._props} key={option._id} className={`${props.className} flex items-center w-full hover:bg-background hover:cursor-pointer`}>
+                <span className="mt-1.5 flex flex-col justify-center items-center w-40 h-[100px]">
                   <img
                     src={helper.carImageURL(option.image)}
                     alt={option.name}
-                    className="max-w-full max-h-full"
+                    className="max-w-full max-h-full object-contain"
                     style={{
                       height: env.CAR_OPTION_IMAGE_HEIGHT,
                     }}
                   />
                 </span>
-                <span className="text-[#333] inline-block text-base font-semibold whitespace-nowrap ml-1.5 mb-1.5">{option.name}</span>
+                <span className="text-text inline-block text-base font-semibold whitespace-nowrap ml-1.5 mb-1.5">{option.name}</span>
               </li>
             )
           }
 
           return (
-            <li {..._props} key={option._id} className={`${props.className} flex items-center w-full hover:bg-[#fafafa] hover:cursor-pointer`}>
+            <li {..._props} key={option._id} className={`${props.className} flex items-center w-full hover:bg-background hover:cursor-pointer`}>
               <span>{option.name}</span>
             </li>
           )

@@ -143,47 +143,47 @@ const DepositFilter = ({
 
   return (
     <Accordion title={strings.DEPOSIT} collapse={collapse} className={className}>
-      <div className="px-1.5 py-2">
-        <div className="flex items-center gap-2 py-1.5 px-1">
-          <input ref={depositValue1Ref} type="radio" className="cursor-pointer" onChange={handleDepositLessThanValue1Change} />
+      <div className="py-2 space-y-0.5">
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
+          <input ref={depositValue1Ref} type="radio" className="w-4 h-4 accent-primary" onChange={handleDepositLessThanValue1Change} />
           <span
             onClick={handleDepositLessThanValue1Click}
             role="button"
             tabIndex={0}
-            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
+            className="text-sm text-text"
           >
             {strings.LESS_THAN_VALUE_1}
           </span>
         </div>
-        <div className="flex items-center gap-2 py-1.5 px-1">
-          <input ref={depositValue2Ref} type="radio" className="cursor-pointer" onChange={handleDepositLessThanValue2Change} />
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
+          <input ref={depositValue2Ref} type="radio" className="w-4 h-4 accent-primary" onChange={handleDepositLessThanValue2Change} />
           <span
             onClick={handleDepositLessThanValue2Click}
             role="button"
             tabIndex={0}
-            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
+            className="text-sm text-text"
           >
             {strings.LESS_THAN_VALUE_2}
           </span>
         </div>
-        <div className="flex items-center gap-2 py-1.5 px-1">
-          <input ref={depositValue3Ref} type="radio" className="cursor-pointer" onChange={handleDepositLessThanValue3Change} />
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
+          <input ref={depositValue3Ref} type="radio" className="w-4 h-4 accent-primary" onChange={handleDepositLessThanValue3Change} />
           <span
             onClick={handleDepositLessThanValue3Click}
             role="button"
             tabIndex={0}
-            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
+            className="text-sm text-text"
           >
             {strings.LESS_THAN_VALUE_3}
           </span>
         </div>
-        <div className="flex items-center gap-2 py-1.5 px-1">
-          <input ref={depositAllRef} type="radio" className="cursor-pointer" onChange={handleAllDepositChange} />
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
+          <input ref={depositAllRef} type="radio" className="w-4 h-4 accent-primary" onChange={handleAllDepositChange} />
           <span
             onClick={handleAllDepositClick}
             role="button"
             tabIndex={0}
-            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
+            className="text-sm text-text"
           >
             {commonStrings.ALL}
           </span>

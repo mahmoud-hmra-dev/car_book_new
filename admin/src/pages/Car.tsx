@@ -53,7 +53,7 @@ const Car = () => {
 
   useEffect(() => {
     if (visible) {
-      const col1 = document.querySelector('.col-1')
+      const col1 = document.querySelector('.car-detail-sidebar')
       if (col1) {
         setOffset(col1.clientHeight)
       }
@@ -186,14 +186,14 @@ const Car = () => {
   return (
     <Layout onLoad={onLoad} strict>
       {visible && car && car.supplier && (
-        <div className="car absolute bottom-0 right-0 left-0 top-0 overflow-auto">
-          <div className="max-md:w-full max-md:pt-[5px] max-md:bg-[#fefefe] max-md:border-b max-md:border-[#eee] md:absolute md:top-0 md:bottom-0 md:left-0 md:w-[400px] md:pt-5 md:bg-[#fefefe] md:border-r md:border-[#eee] md:overflow-auto">
-            <section className="text-[#333] text-[12px] p-[5px]">
+        <div className="absolute bottom-0 right-0 left-0 top-0 overflow-auto">
+          <div className="car-detail-sidebar max-md:w-full max-md:pt-1.5 max-md:bg-white max-md:border-b max-md:border-border md:absolute md:top-0 md:bottom-0 md:left-0 md:w-[400px] md:pt-5 md:bg-white md:border-r md:border-border md:overflow-auto">
+            <section className="text-text text-xs p-1.5">
               <div className="text-center">
-                <h2>{car.name}</h2>
+                <h2 className="text-lg font-semibold text-text">{car.name}</h2>
               </div>
-              {car.licensePlate && <div className="text-[0.9em] text-[#666]">{car.licensePlate}</div>}
-              <div className="car-img">
+              {car.licensePlate && <div className="text-sm text-text-secondary">{car.licensePlate}</div>}
+              <div className="flex flex-col items-center my-4">
                 <Avatar
                   type={bookcarsTypes.RecordType.Car}
                   mode="update"
@@ -204,106 +204,106 @@ const Car = () => {
                   onBeforeUpload={handleBeforeUpload}
                   onChange={handleImageChange}
                   color="disabled"
-                  className="avatar-ctn"
+                  className="rounded-xl overflow-hidden"
                 />
-                <div className="flex items-center ml-[5px]">
-                  <span className="w-[60px] h-[30px] flex flex-row items-center justify-center border border-[#e6e6e6] rounded-[3px]">
+                <div className="flex items-center mt-2">
+                  <span className="w-[60px] h-[30px] flex flex-row items-center justify-center border border-border rounded">
                     <img src={helper.supplierImageURL(car.supplier.avatar)} alt={car.supplier.fullName} className="max-w-full max-h-full" />
                   </span>
-                  <span className="text-[#a8a8a8] inline-block text-[0.9em] leading-[1em] whitespace-nowrap ml-[5px]">{car.supplier.fullName}</span>
+                  <span className="text-text-muted inline-block text-sm leading-tight whitespace-nowrap ml-1.5">{car.supplier.fullName}</span>
                 </div>
               </div>
-              <div className="text-right text-[#383838] text-[1.4em] font-bold whitespace-nowrap mr-2.5">{`${bookcarsHelper.formatPrice(car.dailyPrice, commonStrings.CURRENCY, language)}${commonStrings.DAILY}`}</div>
-              <div className="mt-[5px]">
+              <div className="text-right text-text text-xl font-bold whitespace-nowrap mr-2.5">{`${bookcarsHelper.formatPrice(car.dailyPrice, commonStrings.CURRENCY, language)}${commonStrings.DAILY}`}</div>
+              <div className="mt-1.5">
                 <ul className="relative list-none p-0 flex flex-row flex-wrap">
-                  <li className="w-[60px] mb-2.5 pt-[3px] shadow-[0_0_0_1px_#ddd_inset] ml-[5px] rounded-[5px] text-center">
+                  <li className="w-[60px] mb-2.5 pt-1 shadow-[0_0_0_1px_var(--color-border)_inset] ml-1.5 rounded-lg text-center">
                     <Tooltip title={helper.getCarTypeTooltip(car.type)} placement="top">
-                      <div className="car-info-list-item">
-                        <FuelIcon />
-                        <span className="align-super ml-[3px]">{helper.getCarTypeShort(car.type)}</span>
+                      <div className="flex items-center justify-center gap-0.5 p-1">
+                        <FuelIcon className="!text-base text-text-secondary" />
+                        <span className="align-super ml-0.5 text-xs text-text">{helper.getCarTypeShort(car.type)}</span>
                       </div>
                     </Tooltip>
                   </li>
-                  <li className="w-[60px] mb-2.5 pt-[3px] shadow-[0_0_0_1px_#ddd_inset] ml-[5px] rounded-[5px] text-center">
+                  <li className="w-[60px] mb-2.5 pt-1 shadow-[0_0_0_1px_var(--color-border)_inset] ml-1.5 rounded-lg text-center">
                     <Tooltip title={helper.getGearboxTooltip(car.gearbox)} placement="top">
-                      <div className="car-info-list-item">
-                        <GearboxIcon />
-                        <span className="align-super ml-[3px]">{helper.getGearboxTypeShort(car.gearbox)}</span>
+                      <div className="flex items-center justify-center gap-0.5 p-1">
+                        <GearboxIcon className="!text-base text-text-secondary" />
+                        <span className="align-super ml-0.5 text-xs text-text">{helper.getGearboxTypeShort(car.gearbox)}</span>
                       </div>
                     </Tooltip>
                   </li>
-                  <li className="w-[60px] mb-2.5 pt-[3px] shadow-[0_0_0_1px_#ddd_inset] ml-[5px] rounded-[5px] text-center">
+                  <li className="w-[60px] mb-2.5 pt-1 shadow-[0_0_0_1px_var(--color-border)_inset] ml-1.5 rounded-lg text-center">
                     <Tooltip title={helper.getSeatsTooltip(car.seats)} placement="top">
-                      <div className="car-info-list-item">
-                        <SeatsIcon />
-                        <span className="align-super ml-[3px]">{car.seats}</span>
+                      <div className="flex items-center justify-center gap-0.5 p-1">
+                        <SeatsIcon className="!text-base text-text-secondary" />
+                        <span className="align-super ml-0.5 text-xs text-text">{car.seats}</span>
                       </div>
                     </Tooltip>
                   </li>
-                  <li className="w-[60px] mb-2.5 pt-[3px] shadow-[0_0_0_1px_#ddd_inset] ml-[5px] rounded-[5px] text-center">
+                  <li className="w-[60px] mb-2.5 pt-1 shadow-[0_0_0_1px_var(--color-border)_inset] ml-1.5 rounded-lg text-center">
                     <Tooltip title={helper.getDoorsTooltip(car.doors)} placement="top">
-                      <div className="car-info-list-item">
+                      <div className="flex items-center justify-center gap-0.5 p-1">
                         <img src={DoorsIcon} alt="" className="w-5 h-5 m-0.5" />
-                        <span className="align-super ml-[3px]">{car.doors}</span>
+                        <span className="align-super ml-0.5 text-xs text-text">{car.doors}</span>
                       </div>
                     </Tooltip>
                   </li>
                   {car.aircon && (
-                    <li className="w-[60px] mb-2.5 pt-[3px] shadow-[0_0_0_1px_#ddd_inset] ml-[5px] rounded-[5px] text-center">
+                    <li className="w-[60px] mb-2.5 pt-1 shadow-[0_0_0_1px_var(--color-border)_inset] ml-1.5 rounded-lg text-center">
                       <Tooltip title={strings.AIRCON_TOOLTIP} placement="top">
-                        <div className="car-info-list-item">
-                          <AirconIcon />
+                        <div className="flex items-center justify-center gap-0.5 p-1">
+                          <AirconIcon className="!text-base text-text-secondary" />
                         </div>
                       </Tooltip>
                     </li>
                   )}
-                  <li className="w-full mb-[5px]">
+                  <li className="w-full mb-1.5">
                     <Tooltip title={helper.getMileageTooltip(car.mileage, language)} placement="left">
-                      <div className="car-info-list-item w-fit">
-                        <MileageIcon />
-                        <span className="align-super ml-[3px]">{`${strings.MILEAGE}${fr ? ' : ' : ': '}${helper.getMileage(car.mileage, language)}`}</span>
+                      <div className="flex items-center gap-1 w-fit p-1">
+                        <MileageIcon className="!text-base text-text-secondary" />
+                        <span className="text-xs text-text">{`${strings.MILEAGE}${fr ? ' : ' : ': '}${helper.getMileage(car.mileage, language)}`}</span>
                       </div>
                     </Tooltip>
                   </li>
-                  <li className="w-full mb-[5px]">
+                  <li className="w-full mb-1.5">
                     <Tooltip title={helper.getFuelPolicyTooltip(car.fuelPolicy)} placement="left">
-                      <div className="car-info-list-item w-fit">
-                        <FuelIcon />
-                        <span className="align-super ml-[3px]">{`${strings.FUEL_POLICY}${fr ? ' : ' : ': '}${helper.getFuelPolicy(car.fuelPolicy)}`}</span>
+                      <div className="flex items-center gap-1 w-fit p-1">
+                        <FuelIcon className="!text-base text-text-secondary" />
+                        <span className="text-xs text-text">{`${strings.FUEL_POLICY}${fr ? ' : ' : ': '}${helper.getFuelPolicy(car.fuelPolicy)}`}</span>
                       </div>
                     </Tooltip>
                   </li>
                 </ul>
                 <ul className="relative list-none p-0">
-                  <li className={`m-[5px] w-fit ${car.available ? 'text-[#1f9201]' : 'text-[#f44336]'}`}>
+                  <li className={`m-1.5 w-fit ${car.available ? 'text-success' : 'text-danger'}`}>
                     <Tooltip title={car.available ? strings.CAR_AVAILABLE_TOOLTIP : strings.CAR_UNAVAILABLE_TOOLTIP}>
-                      <div className="car-info-list-item">
-                        {car.available ? <CheckIcon /> : <UncheckIcon />}
-                        {car.available ? <span className="align-super ml-[3px]">{strings.CAR_AVAILABLE}</span> : <span className="align-super ml-[3px]">{strings.CAR_UNAVAILABLE}</span>}
+                      <div className="flex items-center gap-1 p-1">
+                        {car.available ? <CheckIcon className="!text-base" /> : <UncheckIcon className="!text-base" />}
+                        {car.available ? <span className="text-xs">{strings.CAR_AVAILABLE}</span> : <span className="text-xs">{strings.CAR_UNAVAILABLE}</span>}
                       </div>
                     </Tooltip>
                   </li>
                   <li>
                     <Tooltip title={car.cancellation > -1 ? strings.CANCELLATION_TOOLTIP : helper.getCancellation(car.cancellation, language)} placement="left">
-                      <div className="car-info-list-item">
-                        {car.cancellation > -1 ? <CheckIcon /> : <UncheckIcon />}
-                        <span className="align-super ml-[3px]">{helper.getCancellation(car.cancellation, language)}</span>
+                      <div className="flex items-center gap-1 p-1">
+                        {car.cancellation > -1 ? <CheckIcon className="!text-base text-success" /> : <UncheckIcon className="!text-base text-danger" />}
+                        <span className="text-xs text-text">{helper.getCancellation(car.cancellation, language)}</span>
                       </div>
                     </Tooltip>
                   </li>
                   <li>
                     <Tooltip title={car.amendments > -1 ? strings.AMENDMENTS_TOOLTIP : helper.getAmendments(car.amendments, language)} placement="left">
-                      <div className="car-info-list-item">
-                        {car.amendments > -1 ? <CheckIcon /> : <UncheckIcon />}
-                        <span className="align-super ml-[3px]">{helper.getAmendments(car.amendments, language)}</span>
+                      <div className="flex items-center gap-1 p-1">
+                        {car.amendments > -1 ? <CheckIcon className="!text-base text-success" /> : <UncheckIcon className="!text-base text-danger" />}
+                        <span className="text-xs text-text">{helper.getAmendments(car.amendments, language)}</span>
                       </div>
                     </Tooltip>
                   </li>
                   <li>
                     <Tooltip title={car.theftProtection > -1 ? strings.THEFT_PROTECTION_TOOLTIP : helper.getTheftProtection(car.theftProtection, language)} placement="left">
-                      <div className="car-info-list-item">
-                        {car.theftProtection > -1 ? <CheckIcon /> : <UncheckIcon />}
-                        <span className="align-super ml-[3px]">{helper.getTheftProtection(car.theftProtection, language)}</span>
+                      <div className="flex items-center gap-1 p-1">
+                        {car.theftProtection > -1 ? <CheckIcon className="!text-base text-success" /> : <UncheckIcon className="!text-base text-danger" />}
+                        <span className="text-xs text-text">{helper.getTheftProtection(car.theftProtection, language)}</span>
                       </div>
                     </Tooltip>
                   </li>
@@ -312,62 +312,62 @@ const Car = () => {
                       title={car.collisionDamageWaiver > -1 ? strings.COLLISION_DAMAGE_WAVER_TOOLTIP : helper.getCollisionDamageWaiver(car.collisionDamageWaiver, language)}
                       placement="left"
                     >
-                      <div className="car-info-list-item">
-                        {car.collisionDamageWaiver > -1 ? <CheckIcon /> : <UncheckIcon />}
-                        <span className="align-super ml-[3px]">{helper.getCollisionDamageWaiver(car.collisionDamageWaiver, language)}</span>
+                      <div className="flex items-center gap-1 p-1">
+                        {car.collisionDamageWaiver > -1 ? <CheckIcon className="!text-base text-success" /> : <UncheckIcon className="!text-base text-danger" />}
+                        <span className="text-xs text-text">{helper.getCollisionDamageWaiver(car.collisionDamageWaiver, language)}</span>
                       </div>
                     </Tooltip>
                   </li>
                   <li>
                     <Tooltip title={car.fullInsurance > -1 ? strings.FULL_INSURANCE_TOOLTIP : helper.getFullInsurance(car.fullInsurance, language)} placement="left">
-                      <div className="car-info-list-item">
-                        {car.fullInsurance > -1 ? <CheckIcon /> : <UncheckIcon />}
-                        <span className="align-super ml-[3px]">{helper.getFullInsurance(car.fullInsurance, language)}</span>
+                      <div className="flex items-center gap-1 p-1">
+                        {car.fullInsurance > -1 ? <CheckIcon className="!text-base text-success" /> : <UncheckIcon className="!text-base text-danger" />}
+                        <span className="text-xs text-text">{helper.getFullInsurance(car.fullInsurance, language)}</span>
                       </div>
                     </Tooltip>
                   </li>
                   <li>
                     <Tooltip title={helper.getAdditionalDriver(car.additionalDriver, language)} placement="left">
-                      <div className="car-info-list-item">
-                        {car.additionalDriver > -1 ? <CheckIcon /> : <UncheckIcon />}
-                        <span className="align-super ml-[3px]">{helper.getAdditionalDriver(car.additionalDriver, language)}</span>
+                      <div className="flex items-center gap-1 p-1">
+                        {car.additionalDriver > -1 ? <CheckIcon className="!text-base text-success" /> : <UncheckIcon className="!text-base text-danger" />}
+                        <span className="text-xs text-text">{helper.getAdditionalDriver(car.additionalDriver, language)}</span>
                       </div>
                     </Tooltip>
                   </li>
                 </ul>
                 <ul className="relative list-none p-0">
                   {car.locations.map((location) => (
-                    <li key={location._id} className="m-[5px] w-fit">
-                      <div className="car-info-list-item">
-                        <LocationIcon />
-                        <span className="align-super ml-[3px]">{location.name}</span>
+                    <li key={location._id} className="m-1.5 w-fit">
+                      <div className="flex items-center gap-1 p-1">
+                        <LocationIcon className="!text-base text-text-secondary" />
+                        <span className="text-xs text-text">{location.name}</span>
                       </div>
                     </li>
                   ))}
                 </ul>
 
                 {car.tracking?.enabled && (
-                  <div style={{ marginTop: 24 }}>
-                    <h3>Safe tracking</h3>
-                    <p><strong>Device ID:</strong> {car.tracking.deviceId || '—'}</p>
-                    <p><strong>Device name:</strong> {tracking?.tracking?.deviceName || car.tracking.deviceName || '—'}</p>
-                    <p><strong>Status:</strong> {tracking?.tracking?.status || car.tracking.status || '—'}</p>
+                  <div className="mt-6 space-y-2 text-sm text-text">
+                    <h3 className="text-base font-semibold">Safe tracking</h3>
+                    <p><strong>Device ID:</strong> {car.tracking.deviceId || '\u2014'}</p>
+                    <p><strong>Device name:</strong> {tracking?.tracking?.deviceName || car.tracking.deviceName || '\u2014'}</p>
+                    <p><strong>Status:</strong> {tracking?.tracking?.status || car.tracking.status || '\u2014'}</p>
                     <p><strong>Current position:</strong> {tracking?.currentPosition ? `${tracking.currentPosition.latitude}, ${tracking.currentPosition.longitude}` : 'No live position yet'}</p>
                     <p><strong>Latest safe alert:</strong> {tracking?.geofenceExitEvents?.[0]?.type || car.tracking.lastEventType || 'No zone-exit alert recorded'}</p>
                     {car.tracking.notes && <p><strong>Notes:</strong> {car.tracking.notes}</p>}
                     {tracking?.traccarUrl && (
                       <p>
-                        <a href={tracking.traccarUrl} target="_blank" rel="noreferrer">Open Traccar dashboard</a>
+                        <a href={tracking.traccarUrl} target="_blank" rel="noreferrer" className="text-primary hover:underline">Open Traccar dashboard</a>
                       </p>
                     )}
-                    {tracking?.warning && <p>{tracking.warning}</p>}
+                    {tracking?.warning && <p className="text-warning">{tracking.warning}</p>}
                     {tracking?.positions && tracking.positions.length > 0 && (
                       <div>
                         <strong>Recent movement history</strong>
-                        <ul>
+                        <ul className="list-disc ml-5 mt-1 space-y-0.5">
                           {tracking.positions.slice(0, 5).map((position, index) => (
-                            <li key={`${position.id || index}`}>
-                              {`${position.fixTime || position.deviceTime || 'Unknown time'} — ${position.latitude}, ${position.longitude}`}
+                            <li key={`${position.id || index}`} className="text-xs text-text-secondary">
+                              {`${position.fixTime || position.deviceTime || 'Unknown time'} \u2014 ${position.latitude}, ${position.longitude}`}
                             </li>
                           ))}
                         </ul>
@@ -376,9 +376,9 @@ const Car = () => {
                     {tracking?.geofences && tracking.geofences.length > 0 && (
                       <div>
                         <strong>Geofences</strong>
-                        <ul>
+                        <ul className="list-disc ml-5 mt-1 space-y-0.5">
                           {tracking.geofences.slice(0, 5).map((geofence, index) => (
-                            <li key={`${geofence.id || index}`}>{geofence.name || geofence.description || `Geofence ${index + 1}`}</li>
+                            <li key={`${geofence.id || index}`} className="text-xs text-text-secondary">{geofence.name || geofence.description || `Geofence ${index + 1}`}</li>
                           ))}
                         </ul>
                       </div>
@@ -388,11 +388,11 @@ const Car = () => {
               </div>
             </section>
             {edit && (
-              <section className="buttons max-md:float-none max-md:w-auto max-md:m-[5px] md:text-right md:m-2.5">
-                <Button variant="contained" className="btn-primary btn-margin btn-margin-bottom" size="small" onClick={() => navigate(`/update-car?cr=${car._id}`)}>
+              <section className="flex flex-wrap gap-3 p-4 max-md:justify-center md:justify-end">
+                <Button variant="contained" className="!bg-primary !text-white !rounded-xl !normal-case !font-semibold !px-5 !py-2 !shadow-none hover:!bg-primary-dark" size="small" onClick={() => navigate(`/update-car?cr=${car._id}`)}>
                   {commonStrings.UPDATE}
                 </Button>
-                <Button variant="contained" className="btn-margin-bottom" color="error" size="small" onClick={handleDelete}>
+                <Button variant="contained" className="!bg-danger !text-white !rounded-xl !normal-case !font-medium !px-5 !py-2 !shadow-none" size="small" onClick={handleDelete}>
                   {commonStrings.DELETE}
                 </Button>
               </section>
@@ -415,22 +415,22 @@ const Car = () => {
         </div>
       )}
       <Dialog disableEscapeKeyDown maxWidth="xs" open={openInfoDialog}>
-        <DialogTitle className="dialog-header">{commonStrings.INFO}</DialogTitle>
+        <DialogTitle className="!font-semibold !text-text">{commonStrings.INFO}</DialogTitle>
         <DialogContent>{strings.CANNOT_DELETE_CAR}</DialogContent>
-        <DialogActions className="dialog-actions">
-          <Button onClick={handleCloseInfo} variant="contained" className="btn-secondary">
+        <DialogActions className="!p-4">
+          <Button onClick={handleCloseInfo} variant="contained" className="!bg-border !text-text-secondary !rounded-xl !normal-case !shadow-none">
             {commonStrings.CLOSE}
           </Button>
         </DialogActions>
       </Dialog>
       <Dialog disableEscapeKeyDown maxWidth="xs" open={openDeleteDialog}>
-        <DialogTitle className="dialog-header">{commonStrings.CONFIRM_TITLE}</DialogTitle>
+        <DialogTitle className="!font-semibold !text-text">{commonStrings.CONFIRM_TITLE}</DialogTitle>
         <DialogContent>{strings.DELETE_CAR}</DialogContent>
-        <DialogActions className="dialog-actions">
-          <Button onClick={handleCancelDelete} variant="contained" className="btn-secondary">
+        <DialogActions className="!p-4">
+          <Button onClick={handleCancelDelete} variant="contained" className="!bg-border !text-text-secondary !rounded-xl !normal-case !shadow-none">
             {commonStrings.CANCEL}
           </Button>
-          <Button onClick={handleConfirmDelete} variant="contained" color="error">
+          <Button onClick={handleConfirmDelete} variant="contained" className="!bg-danger !text-white !rounded-xl !normal-case !shadow-none">
             {commonStrings.DELETE}
           </Button>
         </DialogActions>

@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Input, InputLabel, FormControl, FormHelperText, Button } from '@mui/material'
+import { Input, InputLabel, FormControl, FormHelperText } from '@mui/material'
 import * as bookcarsTypes from ':bookcars-types'
 import * as UserService from '@/services/UserService'
 import Layout from '@/components/Layout'
@@ -98,9 +98,13 @@ const ForgotPassword = () => {
                 </button>
 
                 <div className="flex justify-center">
-                  <Button variant="outlined" onClick={() => navigate('/')}>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/')}
+                    className="border border-border text-text-secondary px-6 py-2.5 rounded-xl font-medium text-sm hover:bg-background transition-colors"
+                  >
                     {commonStrings.CANCEL}
-                  </Button>
+                  </button>
                 </div>
               </form>
             </div>

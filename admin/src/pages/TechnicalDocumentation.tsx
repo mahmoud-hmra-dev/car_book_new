@@ -8,7 +8,7 @@ const TechnicalDocumentation = () => (
       <h1>{strings.TITLE}</h1>
       <p>{strings.INTRO}</p>
 
-      <section className="border border-[#e4e4e4] rounded-lg p-4 mb-4 bg-white">
+      <section className="border border-border rounded-lg p-4 mb-4 bg-white">
         <h2>{strings.ARCHITECTURE_TITLE}</h2>
         <ul>
           <li>{strings.ARCHITECTURE_ITEM1}</li>
@@ -18,7 +18,7 @@ const TechnicalDocumentation = () => (
         </ul>
       </section>
 
-      <section className="border border-[#e4e4e4] rounded-lg p-4 mb-4 bg-white">
+      <section className="border border-border rounded-lg p-4 mb-4 bg-white">
         <h2>{strings.MODULES_TITLE}</h2>
         <ul>
           <li>{strings.MODULES_ITEM1}</li>
@@ -28,7 +28,7 @@ const TechnicalDocumentation = () => (
         </ul>
       </section>
 
-      <section className="border border-[#e4e4e4] rounded-lg p-4 mb-4 bg-white">
+      <section className="border border-border rounded-lg p-4 mb-4 bg-white">
         <h2>{strings.DATA_TITLE}</h2>
         <ul>
           <li>{strings.DATA_ITEM1}</li>
@@ -37,7 +37,7 @@ const TechnicalDocumentation = () => (
         </ul>
       </section>
 
-      <section className="border border-[#e4e4e4] rounded-lg p-4 mb-4 bg-white">
+      <section className="border border-border rounded-lg p-4 mb-4 bg-white">
         <h2>{strings.SECURITY_TITLE}</h2>
         <ul>
           <li>{strings.SECURITY_ITEM1}</li>
@@ -47,7 +47,7 @@ const TechnicalDocumentation = () => (
         </ul>
       </section>
 
-      <section className="border border-[#e4e4e4] rounded-lg p-4 mb-4 bg-white">
+      <section className="border border-border rounded-lg p-4 mb-4 bg-white">
         <h2>{strings.OPERATIONS_TITLE}</h2>
         <ol>
           <li>{strings.OPERATIONS_ITEM1}</li>
@@ -57,7 +57,7 @@ const TechnicalDocumentation = () => (
         </ol>
       </section>
 
-      <section className="border border-[#e4e4e4] rounded-lg p-4 mb-4 bg-white">
+      <section className="border border-border rounded-lg p-4 mb-4 bg-white">
         <h2>{strings.TROUBLESHOOTING_TITLE}</h2>
         <ul>
           <li>{strings.TROUBLESHOOTING_ITEM1}</li>

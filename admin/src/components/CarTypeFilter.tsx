@@ -284,83 +284,83 @@ const CarType = ({
 
   return (
     <Accordion title={strings.ENGINE} collapse={collapse} className={className}>
-      <div className="px-1.5 py-2">
-        <div className="flex items-center gap-2 py-1.5 px-1">
-          <input ref={dieselRef} type="checkbox" className="cursor-pointer" onChange={handleCheckDieselChange} />
+      <div className="py-2 space-y-0.5">
+        <div className="text-center py-1">
+          <span
+            onClick={handleUncheckAllChange}
+            className="text-xs text-primary hover:underline cursor-pointer"
+            role="button"
+            tabIndex={0}
+          >
+            {allChecked ? commonStrings.UNCHECK_ALL : commonStrings.CHECK_ALL}
+          </span>
+        </div>
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
+          <input ref={dieselRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckDieselChange} />
           <span
             onClick={handleDieselClick}
             role="button"
             tabIndex={0}
-            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
+            className="text-sm text-text"
           >
             {strings.DIESEL}
           </span>
         </div>
-        <div className="flex items-center gap-2 py-1.5 px-1">
-          <input ref={gasolineRef} type="checkbox" className="cursor-pointer" onChange={handleCheckGasolineChange} />
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
+          <input ref={gasolineRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckGasolineChange} />
           <span
             onClick={handleGasolineClick}
             role="button"
             tabIndex={0}
-            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
+            className="text-sm text-text"
           >
             {strings.GASOLINE}
           </span>
         </div>
-        <div className="flex items-center gap-2 py-1.5 px-1">
-          <input ref={electricRef} type="checkbox" className="cursor-pointer" onChange={handleCheckElectricChange} />
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
+          <input ref={electricRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckElectricChange} />
           <span
             onClick={handleElectricClick}
             role="button"
             tabIndex={0}
-            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
+            className="text-sm text-text"
           >
             {strings.ELECTRIC}
           </span>
         </div>
-        <div className="flex items-center gap-2 py-1.5 px-1">
-          <input ref={hybridRef} type="checkbox" className="cursor-pointer" onChange={handleCheckHybridChange} />
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
+          <input ref={hybridRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckHybridChange} />
           <span
             onClick={handleHybridClick}
             role="button"
             tabIndex={0}
-            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
+            className="text-sm text-text"
           >
             {strings.HYBRID}
           </span>
         </div>
-        <div className="flex items-center gap-2 py-1.5 px-1">
-          <input ref={plugInHybridRef} type="checkbox" className="cursor-pointer" onChange={handleCheckPlugInHybridChange} />
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
+          <input ref={plugInHybridRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckPlugInHybridChange} />
           <span
             onClick={handlePlugInHybridClick}
             role="button"
             tabIndex={0}
-            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
+            className="text-sm text-text"
           >
             {strings.PLUG_IN_HYBRID}
           </span>
         </div>
-        <div className="flex items-center gap-2 py-1.5 px-1">
-          <input ref={unknownRef} type="checkbox" className="cursor-pointer" onChange={handleCheckUnknownChange} />
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
+          <input ref={unknownRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckUnknownChange} />
           <span
             onClick={handleUnknownClick}
             role="button"
             tabIndex={0}
-            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
+            className="text-sm text-text"
           >
             {strings.UNKNOWN}
           </span>
         </div>
-      </div>
-      <div className="text-center pb-2.5">
-        <span
-          onClick={handleUncheckAllChange}
-          className="text-xs text-primary underline cursor-pointer"
-          role="button"
-          tabIndex={0}
-        >
-          {allChecked ? commonStrings.UNCHECK_ALL : commonStrings.CHECK_ALL}
-        </span>
       </div>
     </Accordion>
   )

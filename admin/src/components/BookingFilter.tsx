@@ -137,14 +137,14 @@ const BookingFilter = ({
                       inputRef.current?.focus()
                     }}
                   >
-                    <ClearIcon className="d-adornment-icon" />
+                    <ClearIcon className="!w-5 !h-5 !text-text-muted" />
                   </IconButton>
                 ) : (
-                  <SearchIcon className="d-adornment-icon" />
+                  <SearchIcon className="!w-5 !h-5 !text-text-muted" />
                 ),
               }
             }}
-            className="mt-[7px]"
+            className="mt-2"
           />
         </FormControl>
         <Button type="submit" variant="contained" className="!bg-primary !text-white !px-5 !py-2.5 !rounded-lg !font-semibold hover:!bg-primary-dark !transition-colors !normal-case !my-5" fullWidth disabled={isSubmitting}>

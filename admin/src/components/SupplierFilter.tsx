@@ -27,18 +27,7 @@ const SupplierFilter = ({
 
   useEffect(() => {
     setSuppliers(__suppliers)
-    // setCheckedSuppliers(bookcarsHelper.flattenSuppliers(supliesFromProps))
   }, [__suppliers])
-
-  // useEffect(() => {
-  //   if (suppliers.length > 0) {
-  //     refs.current.forEach((checkbox) => {
-  //       if (checkbox) {
-  //         checkbox.checked = true
-  //       }
-  //     })
-  //   }
-  // }, [suppliers])
 
   const handleCheckSupplierChange = (e: React.ChangeEvent<HTMLInputElement> | React.MouseEvent<HTMLElement>) => {
     const supplierId = e.currentTarget.getAttribute('data-id') as string
@@ -114,45 +103,48 @@ const SupplierFilter = ({
           title={commonStrings.SUPPLIER}
           collapse={collapse}
           offsetHeight={Math.floor((suppliers.length / 2) * env.SUPPLIER_IMAGE_HEIGHT)}
-          className={`${className ? `${className} ` : ''}supplier-filter`}
+          className={`${className ? `${className} ` : ''}bg-white mt-2.5 mr-2.5 border border-border rounded-xl shadow-sm text-[13px]`}
         >
-          <ul className="supplier-list">
-            {suppliers.map((supplier, index) => (
-              <li key={supplier._id}>
-                <input
-                  ref={(ref) => {
-                    refs.current[index] = ref
-                  }}
-                  type="checkbox"
-                  data-id={supplier._id}
-                  className="supplier-checkbox"
-                  onChange={handleCheckSupplierChange}
-                />
-                <span
-                  role="button"
-                  tabIndex={0}
-                  onClick={handleSupplierClick}
-                  className="supplier"
-                >
-                  <img
-                    src={helper.supplierImageURL(supplier.avatar)}
-                    alt={supplier.fullName}
-                    title={supplier.fullName}
+          <div className="py-2 space-y-0.5">
+            <ul className="list-none m-0 p-3 flex flex-wrap gap-3 justify-center">
+              {suppliers.map((supplier, index) => (
+                <li key={supplier._id} className="flex items-center gap-2">
+                  <input
+                    ref={(ref) => {
+                      refs.current[index] = ref
+                    }}
+                    type="checkbox"
+                    data-id={supplier._id}
+                    className="w-4 h-4 rounded border-border text-primary accent-primary cursor-pointer"
+                    onChange={handleCheckSupplierChange}
                   />
-                </span>
-                {!!supplier.carCount && <span className="car-count">{`(${supplier.carCount})`}</span>}
-              </li>
-            ))}
-          </ul>
-          <div className="filter-actions">
-            <span
-              onClick={handleUncheckAllChange}
-              className="uncheckall"
-              role="button"
-              tabIndex={0}
-            >
-              {allChecked ? commonStrings.UNCHECK_ALL : commonStrings.CHECK_ALL}
-            </span>
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    onClick={handleSupplierClick}
+                    className="cursor-pointer flex items-center justify-center w-[60px] h-[30px] border border-border rounded-md hover:border-primary transition-colors"
+                  >
+                    <img
+                      src={helper.supplierImageURL(supplier.avatar)}
+                      alt={supplier.fullName}
+                      title={supplier.fullName}
+                      className="max-w-full max-h-full object-contain"
+                    />
+                  </span>
+                  {!!supplier.carCount && <span className="text-xs text-text-muted">{`(${supplier.carCount})`}</span>}
+                </li>
+              ))}
+            </ul>
+            <div className="text-center py-1">
+              <span
+                onClick={handleUncheckAllChange}
+                className="text-xs text-primary hover:underline cursor-pointer"
+                role="button"
+                tabIndex={0}
+              >
+                {allChecked ? commonStrings.UNCHECK_ALL : commonStrings.CHECK_ALL}
+              </span>
+            </div>
           </div>
         </Accordion>
       )

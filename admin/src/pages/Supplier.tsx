@@ -136,7 +136,7 @@ const Supplier = () => {
     <Layout onLoad={onLoad} strict>
       {visible && supplier && suppliers && (
         <div className="max-w-5xl mx-auto space-y-6">
-          <div className="bg-white rounded-xl border border-border p-6">
+          <div className="bg-white rounded-xl border border-border shadow-sm p-6">
             <div className="flex flex-col md:flex-row gap-6">
               <div className="flex flex-col items-center md:w-[240px] shrink-0">
                 <section className="flex justify-center">
@@ -151,7 +151,7 @@ const Supplier = () => {
                       onChange={onAvatarChange}
                       readonly={!edit}
                       color="disabled"
-                      className="supplier-avatar"
+                      className="rounded-xl overflow-hidden"
                     />
                   ) : (
                     <div className="flex items-center justify-start">
@@ -163,27 +163,27 @@ const Supplier = () => {
                   )}
                 </section>
                 {edit && (
-                  <Typography variant="h4" className="text-center font-semibold mt-4 break-words text-text">
+                  <Typography variant="h4" className="!text-center !font-semibold !mt-4 break-words !text-text">
                     {supplier.fullName}
                   </Typography>
                 )}
                 {supplier.bio && (
                   helper.isValidURL(supplier.bio)
                     ? (
-                      <Link href={supplier.bio} target="_blank" rel="noreferrer" className="overflow-hidden break-words line-clamp-2 text-center px-2.5 text-primary mt-2">{supplier.bio}</Link>
+                      <Link href={supplier.bio} target="_blank" rel="noreferrer" className="overflow-hidden break-words line-clamp-2 text-center px-2.5 !text-primary !mt-2">{supplier.bio}</Link>
                     ) : (
-                      <Typography variant="h6" className="text-center font-normal mt-2 text-text-secondary break-words">
+                      <Typography variant="h6" className="!text-center !font-normal !mt-2 !text-text-secondary break-words">
                         {supplier.bio}
                       </Typography>
                     )
                 )}
                 {supplier.location && supplier.location !== '' && (
-                  <Typography variant="h6" className="text-center font-normal mt-2 text-text-secondary break-words">
+                  <Typography variant="h6" className="!text-center !font-normal !mt-2 !text-text-secondary break-words">
                     {supplier.location}
                   </Typography>
                 )}
                 {supplier.phone && supplier.phone !== '' && (
-                  <Typography variant="h6" className="text-center font-normal mt-2 text-text-secondary break-words">
+                  <Typography variant="h6" className="!text-center !font-normal !mt-2 !text-text-secondary break-words">
                     {supplier.phone}
                   </Typography>
                 )}
@@ -222,13 +222,13 @@ const Supplier = () => {
         </div>
       )}
       <Dialog disableEscapeKeyDown maxWidth="xs" open={openDeleteDialog}>
-        <DialogTitle className="dialog-header">{commonStrings.CONFIRM_TITLE}</DialogTitle>
+        <DialogTitle className="!font-semibold !text-text">{commonStrings.CONFIRM_TITLE}</DialogTitle>
         <DialogContent>{clStrings.DELETE_SUPPLIER}</DialogContent>
-        <DialogActions className="dialog-actions">
-          <Button onClick={handleCancelDelete} variant="contained" className="btn-secondary">
+        <DialogActions className="!p-4">
+          <Button onClick={handleCancelDelete} variant="contained" className="!bg-border !text-text-secondary !rounded-xl !normal-case !shadow-none">
             {commonStrings.CANCEL}
           </Button>
-          <Button onClick={handleConfirmDelete} variant="contained" color="error">
+          <Button onClick={handleConfirmDelete} variant="contained" className="!bg-danger !text-white !rounded-xl !normal-case !shadow-none">
             {commonStrings.DELETE}
           </Button>
         </DialogActions>

@@ -42,7 +42,7 @@ const User = () => {
 
   useEffect(() => {
     if (visible) {
-      const col1 = document.querySelector('.col-1')
+      const col1 = document.querySelector('.user-detail-sidebar')
       if (col1) {
         setOffset(col1.clientHeight)
       }
@@ -153,8 +153,8 @@ const User = () => {
   return (
     <Layout onLoad={onLoad} strict>
       {loggedUser && user && visible && (
-        <div className="user absolute bottom-0 right-0 left-0 max-md:top-[56px] max-md:overflow-auto md:top-[64px] md:overflow-auto">
-          <div className="max-md:pt-2.5 max-md:pb-[15px] max-md:bg-[#fefefe] max-md:border-b max-md:border-[#eee] md:absolute md:top-0 md:bottom-0 md:left-0 md:w-[300px] md:pt-5 md:bg-[#fefefe] md:border-r md:border-[#eee]">
+        <div className="absolute bottom-0 right-0 left-0 top-0 overflow-auto">
+          <div className="user-detail-sidebar max-md:pt-2.5 max-md:pb-4 max-md:bg-white max-md:border-b max-md:border-border md:absolute md:top-0 md:bottom-0 md:left-0 md:w-[300px] md:pt-5 md:bg-white md:border-r md:border-border">
             <section className="max-md:flex max-md:justify-center md:relative md:left-1/2 md:-translate-x-[30%]">
               <Avatar
                 record={user}
@@ -165,38 +165,38 @@ const User = () => {
                 onBeforeUpload={onBeforeUpload}
                 onChange={onAvatarChange}
                 color="disabled"
-                className={supplier ? 'supplier-avatar' : 'user-avatar'}
+                className={supplier ? 'rounded-xl overflow-hidden' : 'rounded-full overflow-hidden'}
                 readonly
                 verified
               />
             </section>
-            <Typography variant="h4" className="text-center font-semibold mt-[15px]">
+            <Typography variant="h4" className="!text-center !font-semibold !mt-4 !text-text">
               {user.fullName}
             </Typography>
             {user.bio && (
-              <Typography variant="h6" className="text-center font-normal mt-2.5 text-[#676767]">
+              <Typography variant="h6" className="!text-center !font-normal !mt-2.5 !text-text-secondary">
                 {user.bio}
               </Typography>
             )}
             {user.location && (
-              <Typography variant="h6" className="text-center font-normal mt-2.5 text-[#676767]">
+              <Typography variant="h6" className="!text-center !font-normal !mt-2.5 !text-text-secondary">
                 {user.location}
               </Typography>
             )}
             {user.phone && (
-              <Typography variant="h6" className="text-center font-normal mt-2.5 text-[#676767]">
+              <Typography variant="h6" className="!text-center !font-normal !mt-2.5 !text-text-secondary">
                 {user.phone}
               </Typography>
             )}
             {user.license && (
-              <div className="flex flex-col p-[5px]">
-                <span className="text-[#676767]">{commonStrings.LICENSE}</span>
+              <div className="flex flex-col p-1.5">
+                <span className="text-text-secondary">{commonStrings.LICENSE}</span>
                 <Link href={bookcarsHelper.joinURL(env.CDN_LICENSES, user.license)} target="_blank">
                   {user.license}
                 </Link>
               </div>
             )}
-            <div className="text-center">
+            <div className="text-center mt-2">
               {edit && (
                 <Tooltip title={commonStrings.UPDATE}>
                   <IconButton onClick={() => navigate(`/update-user?u=${user._id}`)}>
@@ -232,13 +232,13 @@ const User = () => {
         </div>
       )}
       <Dialog disableEscapeKeyDown maxWidth="xs" open={openDeleteDialog}>
-        <DialogTitle className="dialog-header">{commonStrings.CONFIRM_TITLE}</DialogTitle>
+        <DialogTitle className="!font-semibold !text-text">{commonStrings.CONFIRM_TITLE}</DialogTitle>
         <DialogContent>{ulStrings.DELETE_USER}</DialogContent>
-        <DialogActions className="dialog-actions">
-          <Button onClick={handleCancelDelete} variant="contained" className="btn-secondary">
+        <DialogActions className="!p-4">
+          <Button onClick={handleCancelDelete} variant="contained" className="!bg-border !text-text-secondary !rounded-xl !normal-case !shadow-none">
             {commonStrings.CANCEL}
           </Button>
-          <Button onClick={handleConfirmDelete} variant="contained" color="error">
+          <Button onClick={handleConfirmDelete} variant="contained" className="!bg-danger !text-white !rounded-xl !normal-case !shadow-none">
             {commonStrings.DELETE}
           </Button>
         </DialogActions>

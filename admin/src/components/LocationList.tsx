@@ -202,34 +202,34 @@ const LocationList = ({
 
   return user && (
     <>
-      <section className="location-list">
+      <section className="space-y-1">
         {rows.length === 0 ? (
           !init
           && !loading
           && (
-            <Card variant="outlined" className="empty-list">
+            <Card variant="outlined" className="!rounded-xl !border-border">
               <CardContent>
                 <Typography color="textSecondary">{strings.EMPTY_LIST}</Typography>
               </CardContent>
             </Card>
           )
         ) : (
-          <List className="location-list-items">
+          <List className="space-y-1 !p-0">
             {rows.map((location, index) => (
               <ListItem
-                className="location-list-item"
+                className="!bg-white !rounded-xl !border !border-border hover:!shadow-md !transition-shadow !px-4"
                 key={location._id}
                 secondaryAction={
                   (helper.admin(user) || location.supplier?._id === user._id) && (
-                    <div>
+                    <div className="flex items-center gap-1">
                       <Tooltip title={commonStrings.UPDATE}>
-                        <IconButton edge="end" onClick={() => navigate(`/update-location?loc=${location._id}`)}>
-                          <EditIcon />
+                        <IconButton edge="end" onClick={() => navigate(`/update-location?loc=${location._id}`)} className="!w-8 !h-8 !rounded-lg hover:!bg-background !text-text-muted hover:!text-primary !transition-colors">
+                          <EditIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
                       <Tooltip title={commonStrings.DELETE}>
-                        <IconButton edge="end" data-id={location._id} data-index={index} onClick={handleDelete}>
-                          <DeleteIcon />
+                        <IconButton edge="end" data-id={location._id} data-index={index} onClick={handleDelete} className="!w-8 !h-8 !rounded-lg hover:!bg-background !text-text-muted hover:!text-danger !transition-colors">
+                          <DeleteIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
                     </div>
@@ -244,12 +244,12 @@ const LocationList = ({
                     size="medium"
                     readonly
                     color="disabled"
-                    className="location-image"
+                    className="!w-10 !h-10 !rounded-lg"
                   />
                 </ListItemAvatar>
                 <ListItemText
                   primary={
-                    <Typography className="location-title">{location.name}</Typography>
+                    <Typography className="!font-semibold !text-sm !text-text">{location.name}</Typography>
                   }
                   secondary={location.country?.name && location.country.name}
                 />
@@ -258,20 +258,20 @@ const LocationList = ({
           </List>
         )}
         <Dialog disableEscapeKeyDown maxWidth="xs" open={openInfoDialog}>
-          <DialogTitle className="dialog-header">{commonStrings.INFO}</DialogTitle>
+          <DialogTitle className="!text-center !font-semibold">{commonStrings.INFO}</DialogTitle>
           <DialogContent>{strings.CANNOT_DELETE_LOCATION}</DialogContent>
-          <DialogActions className="dialog-actions">
-            <Button onClick={handleCloseInfo} variant="contained" className="btn-secondary">
+          <DialogActions className="!mr-1 !mb-2">
+            <Button onClick={handleCloseInfo} variant="contained" className="!bg-transparent !text-text-secondary !border !border-border !rounded-lg !h-11 !px-6 !font-semibold !normal-case !text-sm !shadow-none hover:!bg-background">
               {commonStrings.CLOSE}
             </Button>
           </DialogActions>
         </Dialog>
 
         <Dialog disableEscapeKeyDown maxWidth="xs" open={openDeleteDialog}>
-          <DialogTitle className="dialog-header">{commonStrings.CONFIRM_TITLE}</DialogTitle>
+          <DialogTitle className="!text-center !font-semibold">{commonStrings.CONFIRM_TITLE}</DialogTitle>
           <DialogContent>{strings.DELETE_LOCATION}</DialogContent>
-          <DialogActions className="dialog-actions">
-            <Button onClick={handleCancelDelete} variant="contained" className="btn-secondary">
+          <DialogActions className="!mr-1 !mb-2">
+            <Button onClick={handleCancelDelete} variant="contained" className="!bg-transparent !text-text-secondary !border !border-border !rounded-lg !h-11 !px-6 !font-semibold !normal-case !text-sm !shadow-none hover:!bg-background">
               {commonStrings.CANCEL}
             </Button>
             <Button onClick={handleConfirmDelete} variant="contained" color="error">

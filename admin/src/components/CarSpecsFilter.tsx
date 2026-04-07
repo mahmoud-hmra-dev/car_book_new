@@ -170,50 +170,50 @@ const CarSpecsFilter = ({
 
   return (
     <Accordion title={strings.CAR_SPECS} collapse={collapse} className={className}>
-      <div className="px-1.5 py-2">
-        <div className="flex items-center gap-2 py-1.5 px-1">
-          <input ref={airconRef} type="checkbox" className="cursor-pointer" onChange={handleCheckAirconChange} />
+      <div className="py-2 space-y-0.5">
+        <div className="text-center py-1">
+          <span
+            onClick={handleUncheckAllChange}
+            className="text-xs text-primary hover:underline cursor-pointer"
+            role="button"
+            tabIndex={0}
+          >
+            {allChecked ? commonStrings.UNCHECK_ALL : commonStrings.CHECK_ALL}
+          </span>
+        </div>
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
+          <input ref={airconRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckAirconChange} />
           <span
             onClick={handleAirconClick}
             role="button"
             tabIndex={0}
-            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
+            className="text-sm text-text"
           >
             {strings.AIRCON}
           </span>
         </div>
-        <div className="flex items-center gap-2 py-1.5 px-1">
-          <input ref={moreThanFourDoorsRef} type="checkbox" className="cursor-pointer" onChange={handleCheckMoreThanFourDoorsChange} />
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
+          <input ref={moreThanFourDoorsRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckMoreThanFourDoorsChange} />
           <span
             onClick={handleMoreThanFourDoorsClick}
             role="button"
             tabIndex={0}
-            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
+            className="text-sm text-text"
           >
             {strings.MORE_THAN_FOOR_DOORS}
           </span>
         </div>
-        <div className="flex items-center gap-2 py-1.5 px-1">
-          <input ref={moreThanFiveSeatsRef} type="checkbox" className="cursor-pointer" onChange={handleCheckMoreThanFiveSeatsChange} />
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
+          <input ref={moreThanFiveSeatsRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckMoreThanFiveSeatsChange} />
           <span
             onClick={handleMoreThanFiveSeatsClick}
             role="button"
             tabIndex={0}
-            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
+            className="text-sm text-text"
           >
             {strings.MORE_THAN_FIVE_SEATS}
           </span>
         </div>
-      </div>
-      <div className="text-center pb-2.5">
-        <span
-          onClick={handleUncheckAllChange}
-          className="text-xs text-primary underline cursor-pointer"
-          role="button"
-          tabIndex={0}
-        >
-          {allChecked ? commonStrings.UNCHECK_ALL : commonStrings.CHECK_ALL}
-        </span>
       </div>
     </Accordion>
   )

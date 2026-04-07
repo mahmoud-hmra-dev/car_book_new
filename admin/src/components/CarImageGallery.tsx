@@ -135,7 +135,7 @@ const CarImageGallery = ({
 
   return (
     <div className="mt-2 mb-4">
-      <h3 className="my-4 mb-2 text-base font-medium text-black/60">Additional Images &amp; Videos</h3>
+      <h3 className="my-4 mb-2 text-base font-medium text-text-secondary">Additional Images &amp; Videos</h3>
       <div className="grid grid-cols-4 gap-3 max-md:grid-cols-3 max-sm:grid-cols-2">
         {images.map((img, index) => {
           const url = bookcarsHelper.joinURL(env.CDN_CARS, img)
@@ -146,7 +146,7 @@ const CarImageGallery = ({
           return (
             <div
               key={img}
-              className={`relative rounded-xl overflow-hidden aspect-[4/3] bg-[#f1f5f9] cursor-grab transition-[opacity,border-color] duration-200 border-2 border-transparent active:cursor-grabbing ${isDragging ? 'opacity-50 !border-dashed !border-primary' : ''} ${isDragOver ? '!border-dashed !border-primary' : ''}`}
+              className={`relative rounded-xl overflow-hidden aspect-[4/3] bg-background cursor-grab transition-[opacity,border-color] duration-200 border-2 border-transparent active:cursor-grabbing ${isDragging ? 'opacity-50 !border-dashed !border-primary' : ''} ${isDragOver ? '!border-dashed !border-primary' : ''}`}
               draggable={!disabled}
               onDragStart={(e) => handleDragStart(e, index)}
               onDragOver={(e) => handleDragOver(e, index)}
@@ -179,7 +179,7 @@ const CarImageGallery = ({
         })}
 
         {uploading && (
-          <div className="flex items-center justify-center aspect-[4/3] rounded-xl border-2 border-dashed border-[#cbd5e1] bg-primary/[0.04]">
+          <div className="flex items-center justify-center aspect-[4/3] rounded-xl border-2 border-dashed border-border bg-primary/5">
             <CircularProgress size={32} />
           </div>
         )}
@@ -187,7 +187,7 @@ const CarImageGallery = ({
         {!disabled && (
           <button
             type="button"
-            className="border-2 border-dashed border-[#cbd5e1] rounded-xl flex flex-col items-center justify-center cursor-pointer aspect-[4/3] bg-transparent transition-[border-color,background] duration-200 gap-1 p-0 hover:border-primary hover:bg-primary/[0.04] [&_svg]:w-8 [&_svg]:h-8 [&_svg]:text-text-muted [&_span]:text-xs [&_span]:text-text-muted"
+            className="border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center cursor-pointer aspect-[4/3] bg-transparent transition-[border-color,background] duration-200 gap-1 p-0 hover:border-primary hover:bg-primary/5 [&_svg]:w-8 [&_svg]:h-8 [&_svg]:text-text-muted [&_span]:text-xs [&_span]:text-text-muted"
             onClick={handleAddClick}
           >
             <AddIcon />

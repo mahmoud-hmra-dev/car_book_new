@@ -34,8 +34,8 @@ const DateBasedPriceEditList = (
   }, [_values])
 
   return (
-    <div className="p-5 bg-[#f7f7f7]">
-      {title && <span className="text-[#919191]">{title}</span>}
+    <div className="p-5 bg-background rounded-xl">
+      {title && <span className="text-text-muted text-sm font-medium">{title}</span>}
 
       <div>
         {
@@ -43,7 +43,7 @@ const DateBasedPriceEditList = (
             <div key={dateBasedPrice._id || index}>
 
               <div className="flex flex-row">
-                <FormControl margin="dense" className="pr-6">
+                <FormControl margin="dense" className="pr-4">
                   <DatePicker
                     label={commonStrings.START_DATE}
                     required
@@ -71,7 +71,7 @@ const DateBasedPriceEditList = (
                   />
                 </FormControl>
 
-                <FormControl margin="dense" className="pr-6">
+                <FormControl margin="dense" className="pr-4">
                   <DatePicker
                     label={commonStrings.END_DATE}
                     required
@@ -121,13 +121,13 @@ const DateBasedPriceEditList = (
                 autoComplete="off"
                 value={dateBasedPrice.dailyPrice.toString()}
                 fullWidth
-                className="pr-6"
+                className="pr-4"
               />
 
-              <div className="flex flex-row justify-end my-2.5">
+              <div className="flex justify-end my-2.5">
                 <Button
                   variant="outlined"
-                  className="btn-margin-bottom"
+                  className="text-danger border-danger hover:bg-danger/5 normal-case rounded-lg"
                   size="small"
                   color="error"
                   onClick={() => {
@@ -147,10 +147,10 @@ const DateBasedPriceEditList = (
         }
       </div>
 
-      <div className="flex flex-row justify-end mt-2.5">
+      <div className="flex justify-end mt-4">
         <Button
           variant="outlined"
-          className="btn-margin-bottom"
+          className="border-border text-text hover:bg-primary/5 normal-case rounded-lg"
           size="small"
           color="inherit"
           onClick={() => {

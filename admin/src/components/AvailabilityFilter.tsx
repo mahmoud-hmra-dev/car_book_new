@@ -137,17 +137,17 @@ const AvailabilityFilter = ({
 
   return (
     <Accordion title={strings.AVAILABILITY} className={className}>
-      <div className="px-1.5 py-2">
-        <div className="flex items-center gap-2 py-1.5 px-1">
-          <input ref={availableRef} type="checkbox" className="cursor-pointer" onChange={handleAvailableChange} />
-          <span role="button" tabIndex={0} onClick={handleAvailableClick} className="cursor-pointer text-xs font-normal text-text hover:text-primary">{strings.AVAILABLE}</span>
+      <div className="py-2 space-y-0.5">
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
+          <input ref={availableRef} type="checkbox" className="w-4 h-4 rounded border-border text-primary accent-primary cursor-pointer" onChange={handleAvailableChange} />
+          <span role="button" tabIndex={0} onClick={handleAvailableClick} className="text-sm text-text cursor-pointer hover:text-primary transition-colors">{strings.AVAILABLE}</span>
         </div>
-        <div className="flex items-center gap-2 py-1.5 px-1">
-          <input ref={unavailableRef} type="checkbox" className="cursor-pointer" onChange={handleUnavailableChange} />
-          <span role="button" tabIndex={0} onClick={handleUnavailableClick} className="cursor-pointer text-xs font-normal text-text hover:text-primary">{strings.UNAVAILABLE}</span>
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
+          <input ref={unavailableRef} type="checkbox" className="w-4 h-4 rounded border-border text-primary accent-primary cursor-pointer" onChange={handleUnavailableChange} />
+          <span role="button" tabIndex={0} onClick={handleUnavailableClick} className="text-sm text-text cursor-pointer hover:text-primary transition-colors">{strings.UNAVAILABLE}</span>
         </div>
-        <div className="text-center pb-2.5">
-          <span role="button" tabIndex={0} onClick={handleUncheckAllChange} className="text-xs text-primary underline cursor-pointer">
+        <div className="text-center py-1">
+          <span role="button" tabIndex={0} onClick={handleUncheckAllChange} className="text-xs text-primary hover:underline cursor-pointer">
             {allChecked ? commonStrings.UNCHECK_ALL : commonStrings.CHECK_ALL}
           </span>
         </div>

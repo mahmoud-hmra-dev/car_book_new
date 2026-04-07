@@ -1,6 +1,5 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button } from '@mui/material'
 import { strings } from '@/lang/about'
 import Layout from '@/components/Layout'
 

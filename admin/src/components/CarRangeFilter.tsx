@@ -328,94 +328,94 @@ const CarRangeFilter = ({
 
   return (
     <Accordion title={strings.RANGE} collapse={collapse} className={className}>
-      <div className="px-1.5 py-2">
-        <div className="flex items-center gap-2 py-1.5 px-1">
-          <input ref={miniRef} type="checkbox" className="cursor-pointer" onChange={handleCheckMiniChange} />
+      <div className="py-2 space-y-0.5">
+        <div className="text-center py-1">
+          <span
+            onClick={handleUncheckAllChange}
+            className="text-xs text-primary hover:underline cursor-pointer"
+            role="button"
+            tabIndex={0}
+          >
+            {allChecked ? commonStrings.UNCHECK_ALL : commonStrings.CHECK_ALL}
+          </span>
+        </div>
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
+          <input ref={miniRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckMiniChange} />
           <span
             onClick={handleMiniClick}
             role="button"
             tabIndex={0}
-            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
+            className="text-sm text-text"
           >
             {helper.getCarRange(bookcarsTypes.CarRange.Mini)}
           </span>
         </div>
-        <div className="flex items-center gap-2 py-1.5 px-1">
-          <input ref={midiRef} type="checkbox" className="cursor-pointer" onChange={handleCheckMidiChange} />
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
+          <input ref={midiRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckMidiChange} />
           <span
             onClick={handleMidiClick}
             role="button"
             tabIndex={0}
-            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
+            className="text-sm text-text"
           >
             {helper.getCarRange(bookcarsTypes.CarRange.Midi)}
           </span>
         </div>
-        <div className="flex items-center gap-2 py-1.5 px-1">
-          <input ref={maxiRef} type="checkbox" className="cursor-pointer" onChange={handleCheckMaxiChange} />
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
+          <input ref={maxiRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckMaxiChange} />
           <span
             onClick={handleMaxiClick}
             role="button"
             tabIndex={0}
-            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
+            className="text-sm text-text"
           >
             {helper.getCarRange(bookcarsTypes.CarRange.Maxi)}
           </span>
         </div>
-        <div className="flex items-center gap-2 py-1.5 px-1">
-          <input ref={scooterRef} type="checkbox" className="cursor-pointer" onChange={handleCheckScooterChange} />
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
+          <input ref={scooterRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckScooterChange} />
           <span
             onClick={handleScooterClick}
             role="button"
             tabIndex={0}
-            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
+            className="text-sm text-text"
           >
             {helper.getCarRange(bookcarsTypes.CarRange.Scooter)}
           </span>
         </div>
-        <div className="flex items-center gap-2 py-1.5 px-1">
-          <input ref={busRef} type="checkbox" className="cursor-pointer" onChange={handleCheckBusChange} />
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
+          <input ref={busRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckBusChange} />
           <span
             onClick={handleBusClick}
             role="button"
             tabIndex={0}
-            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
+            className="text-sm text-text"
           >
             {helper.getCarRange(bookcarsTypes.CarRange.Bus)}
           </span>
         </div>
-        <div className="flex items-center gap-2 py-1.5 px-1">
-          <input ref={truckRef} type="checkbox" className="cursor-pointer" onChange={handleCheckTruckChange} />
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
+          <input ref={truckRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckTruckChange} />
           <span
             onClick={handleTruckClick}
             role="button"
             tabIndex={0}
-            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
+            className="text-sm text-text"
           >
             {helper.getCarRange(bookcarsTypes.CarRange.Truck)}
           </span>
         </div>
-        <div className="flex items-center gap-2 py-1.5 px-1">
-          <input ref={caravanRef} type="checkbox" className="cursor-pointer" onChange={handleCheckCaravanChange} />
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
+          <input ref={caravanRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckCaravanChange} />
           <span
             onClick={handleCaravanClick}
             role="button"
             tabIndex={0}
-            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
+            className="text-sm text-text"
           >
             {helper.getCarRange(bookcarsTypes.CarRange.Caravan)}
           </span>
         </div>
-      </div>
-      <div className="text-center pb-2.5">
-        <span
-          onClick={handleUncheckAllChange}
-          className="text-xs text-primary underline cursor-pointer"
-          role="button"
-          tabIndex={0}
-        >
-          {allChecked ? commonStrings.UNCHECK_ALL : commonStrings.CHECK_ALL}
-        </span>
       </div>
     </Accordion>
   )

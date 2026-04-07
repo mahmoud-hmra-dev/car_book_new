@@ -134,37 +134,37 @@ const MileageFilter = ({
 
   return (
     <Accordion title={strings.MILEAGE} collapse={collapse} className={className}>
-      <div className="px-1.5 py-2">
-        <div className="flex items-center gap-2 py-1.5 px-1">
-          <input ref={limitedRef} type="checkbox" className="cursor-pointer" onChange={handleLimitedMileageChange} />
-          <span
-            onClick={handleLimitedMileageClick}
-            role="button"
-            tabIndex={0}
-            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
-          >
-            {strings.LIMITED}
-          </span>
-        </div>
-        <div className="flex items-center gap-2 py-1.5 px-1">
-          <input ref={unlimitedRef} type="checkbox" className="cursor-pointer" onChange={handleUnlimitedMileageChange} />
-          <span
-            onClick={handleUnlimitedMileageClick}
-            role="button"
-            tabIndex={0}
-            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
-          >
-            {strings.UNLIMITED}
-          </span>
-        </div>
-        <div className="text-center pb-2.5">
+      <div className="py-2 space-y-0.5">
+        <div className="text-center py-1">
           <span
             onClick={handleUncheckAllChange}
-            className="text-xs text-primary underline cursor-pointer"
+            className="text-xs text-primary hover:underline cursor-pointer"
             role="button"
             tabIndex={0}
           >
             {allChecked ? commonStrings.UNCHECK_ALL : commonStrings.CHECK_ALL}
+          </span>
+        </div>
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
+          <input ref={limitedRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleLimitedMileageChange} />
+          <span
+            onClick={handleLimitedMileageClick}
+            role="button"
+            tabIndex={0}
+            className="text-sm text-text"
+          >
+            {strings.LIMITED}
+          </span>
+        </div>
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
+          <input ref={unlimitedRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleUnlimitedMileageChange} />
+          <span
+            onClick={handleUnlimitedMileageClick}
+            role="button"
+            tabIndex={0}
+            className="text-sm text-text"
+          >
+            {strings.UNLIMITED}
           </span>
         </div>
       </div>

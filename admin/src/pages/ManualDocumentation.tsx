@@ -8,7 +8,7 @@ const ManualDocumentation = () => (
       <h1>{strings.TITLE}</h1>
       <p>{strings.INTRO}</p>
 
-      <section className="border border-[#e4e4e4] rounded-lg p-4 mb-4 bg-white">
+      <section className="border border-border rounded-lg p-4 mb-4 bg-white">
         <h2>{strings.SYSTEM_OVERVIEW_TITLE}</h2>
         <ul>
           <li>{strings.SYSTEM_OVERVIEW_ITEM1}</li>
@@ -17,7 +17,7 @@ const ManualDocumentation = () => (
         </ul>
       </section>
 
-      <section className="border border-[#e4e4e4] rounded-lg p-4 mb-4 bg-white">
+      <section className="border border-border rounded-lg p-4 mb-4 bg-white">
         <h2>{strings.ROLES_TITLE}</h2>
 
         <h3>{strings.ADMIN_TITLE}</h3>
@@ -48,7 +48,7 @@ const ManualDocumentation = () => (
         </ul>
       </section>
 
-      <section className="border border-[#e4e4e4] rounded-lg p-4 mb-4 bg-white">
+      <section className="border border-border rounded-lg p-4 mb-4 bg-white">
         <h2>{strings.OPERATIONS_TITLE}</h2>
         <ol>
           <li>{strings.OPERATIONS_ITEM1}</li>
@@ -60,7 +60,7 @@ const ManualDocumentation = () => (
         </ol>
       </section>
 
-      <section className="border border-[#e4e4e4] rounded-lg p-4 mb-4 bg-white">
+      <section className="border border-border rounded-lg p-4 mb-4 bg-white">
         <h2>{strings.BEST_PRACTICES_TITLE}</h2>
         <ul>
           <li>{strings.BEST_PRACTICES_ITEM1}</li>

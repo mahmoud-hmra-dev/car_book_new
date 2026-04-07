@@ -181,12 +181,12 @@ const SupplierList = ({
 
   return (
     <>
-      <section className="supplier-list">
+      <section className="space-y-3">
         {rows.length === 0
           ? !init
           && !loading
           && (
-            <Card variant="outlined" className="empty-list">
+            <Card variant="outlined" className="!rounded-xl !border-border">
               <CardContent>
                 <Typography color="textSecondary">{strings.EMPTY_LIST}</Typography>
               </CardContent>
@@ -197,36 +197,36 @@ const SupplierList = ({
             const canDelete = admin
 
             return (
-              <article key={supplier._id}>
-                <div className="supplier-item">
-                  <div className="supplier-item-avatar">
-                    <img src={helper.supplierImageURL(supplier.avatar)} alt={supplier.fullName} />
-                  </div>
-                  <span className="supplier-item-title">{supplier.fullName}</span>
+              <article key={supplier._id} className="bg-white rounded-xl border border-border p-4 flex items-center gap-4 hover:shadow-md transition-shadow">
+                <div className="w-12 h-12 rounded-lg bg-background flex items-center justify-center shrink-0">
+                  <img src={helper.supplierImageURL(supplier.avatar)} alt={supplier.fullName} className="max-w-full max-h-full object-contain rounded-lg" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-sm text-text truncate">{supplier.fullName}</div>
                   {
                     supplier.carCount != undefined ? (
-                      <span className="supplier-item-subtitle">{`${supplier.carCount} ${supplier.carCount > 1 ? commonStrings.CARS : commonStrings.CAR}`}</span>
+                      <div className="text-xs text-text-muted mt-0.5">{`${supplier.carCount} ${supplier.carCount > 1 ? commonStrings.CARS : commonStrings.CAR}`}</div>
                     ) : null
                   }
                 </div>
-                <div className="supplier-actions">
+                <div className="flex items-center gap-1 shrink-0">
                   {canDelete && (
                     <Tooltip title={commonStrings.DELETE}>
-                      <IconButton data-id={supplier._id} data-index={index} onClick={handleDelete}>
-                        <DeleteIcon />
+                      <IconButton data-id={supplier._id} data-index={index} onClick={handleDelete} className="!w-8 !h-8 !rounded-lg hover:!bg-background !text-text-muted hover:!text-danger !transition-colors">
+                        <DeleteIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
                   )}
                   {edit && (
                     <Tooltip title={commonStrings.UPDATE}>
-                      <IconButton onClick={() => navigate(`/update-supplier?c=${supplier._id}`)}>
-                        <EditIcon />
+                      <IconButton onClick={() => navigate(`/update-supplier?c=${supplier._id}`)} className="!w-8 !h-8 !rounded-lg hover:!bg-background !text-text-muted hover:!text-primary !transition-colors">
+                        <EditIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
                   )}
                   <Tooltip title={strings.VIEW_SUPPLIER}>
-                    <IconButton onClick={() => navigate(`/supplier?c=${supplier._id}`)}>
-                      <ViewIcon />
+                    <IconButton onClick={() => navigate(`/supplier?c=${supplier._id}`)} className="!w-8 !h-8 !rounded-lg hover:!bg-background !text-text-muted hover:!text-primary !transition-colors">
+                      <ViewIcon fontSize="small" />
                     </IconButton>
                   </Tooltip>
                 </div>
@@ -237,10 +237,10 @@ const SupplierList = ({
         {loading && <Progress />}
 
         <Dialog disableEscapeKeyDown maxWidth="xs" open={openDeleteDialog}>
-          <DialogTitle className="dialog-header">{commonStrings.CONFIRM_TITLE}</DialogTitle>
+          <DialogTitle className="!text-center !font-semibold">{commonStrings.CONFIRM_TITLE}</DialogTitle>
           <DialogContent>{strings.DELETE_SUPPLIER}</DialogContent>
-          <DialogActions className="dialog-actions">
-            <Button onClick={handleCancelDelete} variant="contained" className="btn-secondary">
+          <DialogActions className="!mr-1 !mb-2">
+            <Button onClick={handleCancelDelete} variant="contained" className="!bg-transparent !text-text-secondary !border !border-border !rounded-lg !h-11 !px-6 !font-semibold !normal-case !text-sm !shadow-none hover:!bg-background">
               {commonStrings.CANCEL}
             </Button>
             <Button onClick={handleConfirmDelete} variant="contained" color="error">

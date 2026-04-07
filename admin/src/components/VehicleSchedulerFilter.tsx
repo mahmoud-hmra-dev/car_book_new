@@ -67,7 +67,7 @@ const VehicleSchedulerFilter = ({
   }
 
   return (
-    <Accordion title={commonStrings.SEARCH} collapse={collapse} className={`${className ? `${className} ` : ''}bg-[#fafafa] mt-2.5 mr-2.5 border border-[#dadada] text-[13px]`}>
+    <Accordion title={commonStrings.SEARCH} collapse={collapse} className={`${className ? `${className} ` : ''}bg-white mt-2.5 mr-2.5 border border-border rounded-xl shadow-sm text-[13px]`}>
       <form autoComplete="off" onSubmit={handleSubmit}>
         <input autoComplete="false" name="hidden" type="text" style={{ display: 'none' }} />
         <FormControl fullWidth margin="dense">
@@ -102,17 +102,17 @@ const VehicleSchedulerFilter = ({
                       inputRef.current?.focus()
                     }}
                   >
-                    <ClearIcon className="d-adornment-icon" />
+                    <ClearIcon className="!w-5 !h-5 !text-text-muted" />
                   </IconButton>
                 ) : (
-                  <SearchIcon className="d-adornment-icon" />
+                  <SearchIcon className="!w-5 !h-5 !text-text-muted" />
                 ),
               }
             }}
             className="mt-2"
           />
         </FormControl>
-        <Button type="submit" variant="contained" className="btn-primary my-5" fullWidth>
+        <Button type="submit" variant="contained" className="!bg-primary !text-white !px-5 !py-2.5 !rounded-lg !font-semibold hover:!bg-primary-dark !transition-colors !normal-case !my-5" fullWidth>
           {commonStrings.SEARCH}
         </Button>
       </form>

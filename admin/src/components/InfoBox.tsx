@@ -7,9 +7,9 @@ interface InfoBoxProps {
 }
 
 const InfoBox = ({ className, value }: InfoBoxProps) => (
-  <div className={`bg-primary/5 border border-primary/20 rounded-xl px-5 py-3 my-2.5 flex flex-row items-center gap-3${className ? ` ${className}` : ''}`}>
-    <InfoIcon className="shrink-0 text-primary !w-5 !h-5" />
-    <span className="text-text grow text-sm font-semibold">{value}</span>
+  <div className={`bg-info/10 border border-info/20 rounded-xl p-4 flex items-start gap-3 text-sm text-info${className ? ` ${className}` : ''}`}>
+    <InfoIcon className="shrink-0 !w-5 !h-5" />
+    <span>{value}</span>
   </div>
   )
 

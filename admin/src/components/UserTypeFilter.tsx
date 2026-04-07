@@ -10,6 +10,12 @@ interface UserTypeFilterProps {
   onChange?: (types: bookcarsTypes.UserType[]) => void
 }
 
+const userTypeBadgeMap: Record<string, string> = {
+  admin: 'bg-text text-white',
+  supplier: 'bg-warning text-white',
+  user: 'bg-success text-white',
+}
+
 const UserTypeFilter = ({
   className,
   onChange
@@ -85,22 +91,22 @@ const UserTypeFilter = ({
   }
 
   return (
-    <div className={`${className ? `${className} ` : ''}user-type-filter`}>
-      <ul className="user-type-list">
+    <div className={`${className ? `${className} ` : ''}bg-white border border-border rounded-xl shadow-sm p-3`}>
+      <ul className="list-none m-0 p-0 flex flex-wrap gap-2 justify-center">
         {userTypes.map((userType, index) => (
-          <li key={userType.value}>
+          <li key={userType.value} className="flex items-center gap-2">
             <input
               ref={(ref) => {
                 refs.current[index] = ref as HTMLInputElement
               }}
               type="checkbox"
               data-value={userType.value}
-              className="user-type-checkbox"
+              className="w-4 h-4 rounded border-border text-primary accent-primary cursor-pointer"
               onChange={handleUserTypeChange}
             />
             <span
               onClick={handleUserTypeClick}
-              className={`bs bs-${userType.value}`}
+              className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold cursor-pointer ${userTypeBadgeMap[userType.value?.toLowerCase()] || 'bg-text-muted/10 text-text-muted'}`}
               role="button"
               tabIndex={0}
             >
@@ -109,10 +115,10 @@ const UserTypeFilter = ({
           </li>
         ))}
       </ul>
-      <div className="filter-actions">
+      <div className="text-center pt-2">
         <span
           onClick={handleUncheckAllChange}
-          className="uncheckall"
+          className="text-xs text-primary hover:underline cursor-pointer"
           role="button"
           tabIndex={0}
         >

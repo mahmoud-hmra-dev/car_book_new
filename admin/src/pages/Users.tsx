@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button } from '@mui/material'
 import * as bookcarsTypes from ':bookcars-types'
 import Layout from '@/components/Layout'
 import env from '@/config/env.config'
@@ -41,27 +40,31 @@ const Users = () => {
   return (
     <Layout onLoad={onLoad} strict>
       {user && (
-        <div className="flex flex-col gap-6 min-h-0">
-          <div className="bg-white rounded-xl shadow-sm py-5 px-6 flex items-center justify-between flex-wrap gap-4">
-            <h1 className="text-2xl font-bold text-text m-0 leading-snug">{headerStrings.USERS}</h1>
-            <Button variant="contained" className="btn-primary !rounded-lg !normal-case !font-semibold !text-sm !py-2 !px-5 !shadow-none" size="small" onClick={() => navigate('/create-user')}>
+        <div className="space-y-6">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <h1 className="text-2xl font-bold text-text">{headerStrings.USERS}</h1>
+            <button
+              type="button"
+              className="flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-primary-dark transition-colors"
+              onClick={() => navigate('/create-user')}
+            >
               {strings.NEW_USER}
-            </Button>
+            </button>
           </div>
-          <div className="bg-white rounded-xl shadow-sm py-5 px-6 w-full">
+          <div className="bg-white rounded-xl border border-border shadow-sm p-5">
             <div className="flex flex-wrap gap-3 items-center w-full max-md:flex-col">
               <Search onSubmit={handleSearch} className="w-full max-w-[400px] max-md:max-w-full" />
 
               {admin
                 && (
                   <UserTypeFilter
-                    className="bg-gray-100 border-border rounded-lg m-0 max-md:hidden"
+                    className="rounded-lg m-0 max-md:hidden"
                     onChange={handleUserTypeFilterChange}
                   />
                 )}
             </div>
           </div>
-          <div className="bg-white rounded-xl shadow-sm min-h-[300px] flex-1 overflow-hidden">
+          <div className="bg-white rounded-xl border border-border shadow-sm min-h-[300px] flex-1 overflow-hidden">
             <UserList
               user={user}
               types={types}

@@ -184,58 +184,58 @@ const CarSeatsFilter = ({
 
   return (
     <Accordion title={strings.SEATS} collapse={collapse} className={className}>
-      <div className="px-1.5 py-2">
-        <div className="flex items-center gap-2 py-1.5 px-1">
-          <input ref={twoRef} type="radio" className="cursor-pointer" onChange={handleCheckTwoChange} />
+      <div className="py-2 space-y-0.5">
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
+          <input ref={twoRef} type="radio" className="w-4 h-4 accent-primary" onChange={handleCheckTwoChange} />
           <span
             onClick={handleTwoClick}
             role="button"
             tabIndex={0}
-            className="cursor-pointer text-xs font-normal capitalize text-text hover:text-primary"
+            className="text-sm text-text"
           >
             {strings.TWO}
           </span>
         </div>
-        <div className="flex items-center gap-2 py-1.5 px-1">
-          <input ref={fourRef} type="radio" className="cursor-pointer" onChange={handleCheckFourChange} />
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
+          <input ref={fourRef} type="radio" className="w-4 h-4 accent-primary" onChange={handleCheckFourChange} />
           <span
             onClick={handleFourClick}
             role="button"
             tabIndex={0}
-            className="cursor-pointer text-xs font-normal capitalize text-text hover:text-primary"
+            className="text-sm text-text"
           >
             {strings.FOUR}
           </span>
         </div>
-        <div className="flex items-center gap-2 py-1.5 px-1">
-          <input ref={fiveRef} type="radio" className="cursor-pointer" onChange={handleCheckFiveChange} />
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
+          <input ref={fiveRef} type="radio" className="w-4 h-4 accent-primary" onChange={handleCheckFiveChange} />
           <span
             onClick={handleFiveClick}
             role="button"
             tabIndex={0}
-            className="cursor-pointer text-xs font-normal capitalize text-text hover:text-primary"
+            className="text-sm text-text"
           >
             {strings.FIVE}
           </span>
         </div>
-        <div className="flex items-center gap-2 py-1.5 px-1">
-          <input ref={fivePlusRef} type="radio" className="cursor-pointer" onChange={handleCheckFivePlusChange} />
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
+          <input ref={fivePlusRef} type="radio" className="w-4 h-4 accent-primary" onChange={handleCheckFivePlusChange} />
           <span
             onClick={handleFivePlusClick}
             role="button"
             tabIndex={0}
-            className="cursor-pointer text-xs font-normal capitalize text-text hover:text-primary"
+            className="text-sm text-text"
           >
             {strings.FIVE_PLUS}
           </span>
         </div>
-        <div className="flex items-center gap-2 py-1.5 px-1">
-          <input ref={anyRef} type="radio" className="cursor-pointer" onChange={handleAnyChange} />
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
+          <input ref={anyRef} type="radio" className="w-4 h-4 accent-primary" onChange={handleAnyChange} />
           <span
             onClick={handleAnyClick}
             role="button"
             tabIndex={0}
-            className="cursor-pointer text-xs font-normal capitalize text-text hover:text-primary"
+            className="text-sm text-text"
           >
             {commonStrings.ANY}
           </span>

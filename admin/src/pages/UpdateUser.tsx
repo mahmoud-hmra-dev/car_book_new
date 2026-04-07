@@ -6,7 +6,6 @@ import {
   FormControl,
   FormHelperText,
   Button,
-  Paper,
   Select,
   MenuItem,
   FormControlLabel,
@@ -266,9 +265,14 @@ const UpdateUser = () => {
   return (
     <Layout onLoad={onLoad} strict>
       {loggedUser && user && visible && (
-        <div className="flex flex-col flex-1 items-center my-11">
-          <Paper className="w-[360px] p-[30px] md:w-[550px] my-8" elevation={10}>
-            <h1 className="text-center capitalize text-[#121212]">{strings.UPDATE_USER_HEADING}</h1>
+        <div className="max-w-4xl mx-auto space-y-6 py-6">
+          <div className="flex items-center gap-3">
+            <button type="button" onClick={() => navigate('/users')} className="w-9 h-9 rounded-lg border border-border flex items-center justify-center hover:bg-background transition-colors">
+              <span className="text-text-secondary text-lg">&larr;</span>
+            </button>
+            <h1 className="text-2xl font-bold text-text">{strings.UPDATE_USER_HEADING}</h1>
+          </div>
+          <div className="bg-white rounded-xl border border-border shadow-sm p-6 space-y-5">
             <form onSubmit={handleSubmit(onSubmit)}>
               <Avatar
                 type={type}
@@ -279,13 +283,13 @@ const UpdateUser = () => {
                 onBeforeUpload={onBeforeUpload}
                 onChange={onAvatarChange}
                 color="disabled"
-                className="avatar-ctn"
+                className="rounded-xl overflow-hidden"
                 hideDelete={type === bookcarsTypes.RecordType.Supplier}
               />
 
               {supplier && (
-                <div className="info">
-                  <InfoIcon />
+                <div className="flex items-center gap-2 text-text-muted text-sm mt-2">
+                  <InfoIcon className="!text-base" />
                   <span>{csStrings.RECOMMENDED_IMAGE_SIZE}</span>
                 </div>
               )}
@@ -495,8 +499,8 @@ const UpdateUser = () => {
                 </>
               )}
 
-              <div className="info">
-                <InfoIcon />
+              <div className="flex items-center gap-2 text-text-muted text-sm mt-4 mb-2">
+                <InfoIcon className="!text-base" />
                 <span>{commonStrings.OPTIONAL}</span>
               </div>
 
@@ -539,9 +543,10 @@ const UpdateUser = () => {
               </FormControl>
 
               {activate && (
-                <FormControl fullWidth margin="dense" className="cursor-pointer mt-5 mb-2.5">
+                <FormControl fullWidth margin="dense" className="!mt-5 !mb-2.5">
                   <Button
                     variant="outlined"
+                    className="!rounded-xl !normal-case"
                     onClick={handleResendActivationLink}
                   >
                     {commonStrings.RESEND_ACTIVATION_LINK}
@@ -549,26 +554,24 @@ const UpdateUser = () => {
                 </FormControl>
               )}
 
-              <div className="buttons">
-                <Button variant="contained" className="btn-primary btn-margin btn-margin-bottom" size="small" onClick={() => navigate(`/change-password?u=${user._id}`)}>
+              <div className="flex flex-wrap justify-end gap-3 mt-6">
+                <Button variant="contained" className="!bg-border !text-text-secondary !rounded-xl !normal-case !font-medium !px-6 !py-2.5 !shadow-none" size="small" onClick={handleCancel}>
+                  {commonStrings.CANCEL}
+                </Button>
+                <Button variant="contained" className="!bg-primary !text-white !rounded-xl !normal-case !font-medium !px-6 !py-2.5 !shadow-none hover:!bg-primary-dark" size="small" onClick={() => navigate(`/change-password?u=${user._id}`)}>
                   {commonStrings.RESET_PASSWORD}
                 </Button>
-
-                <Button type="submit" variant="contained" className="btn-primary btn-margin-bottom" size="small" disabled={isSubmitting}>
+                <Button type="submit" variant="contained" className="!bg-primary !text-white !rounded-xl !normal-case !font-semibold !px-6 !py-2.5 !shadow-none hover:!bg-primary-dark" size="small" disabled={isSubmitting}>
                   {commonStrings.SAVE}
-                </Button>
-
-                <Button variant="contained" className="btn-secondary btn-margin-bottom" size="small" onClick={handleCancel}>
-                  {commonStrings.CANCEL}
                 </Button>
               </div>
 
-              <div className="form-error">
+              <div className="mt-4">
                 {formError && <Error message={commonStrings.GENERIC_ERROR} />}
                 {avatarError && <Error message={commonStrings.IMAGE_REQUIRED} />}
               </div>
             </form>
-          </Paper>
+          </div>
         </div>
       )}
       {(loading || isSubmitting) && <Backdrop text={commonStrings.PLEASE_WAIT} disableMargin />}

@@ -61,7 +61,7 @@ const StatusList = ({
   return (
     <div style={style || {}}>
       {disabled ? (
-        <span className={`inline-block text-center font-extralight p-0.5 opacity-93 ${getStatusClass(value)}`} style={{ marginTop: 5 }}>
+        <span className={`inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-bold mt-1 ${getStatusClass(value)}`}>
           {helper.getBookingStatus(value as bookcarsTypes.BookingStatus)}
         </span>
       ) : (
@@ -75,30 +75,30 @@ const StatusList = ({
             required={required}
             fullWidth
             renderValue={(_value) => (
-              <span className={`inline-block text-center font-extralight p-0.5 opacity-93 ${getStatusClass(_value)}`}>
+              <span className={`inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-bold ${getStatusClass(_value)}`}>
                 {helper.getBookingStatus(_value as bookcarsTypes.BookingStatus)}
               </span>
             )}
           >
-            <MenuItem value={bookcarsTypes.BookingStatus.Void} className={`!p-2 !text-center !font-extralight !text-white !m-px !flex !justify-center !items-center hover:!opacity-93 ${getStatusClass('void')}`}>
+            <MenuItem value={bookcarsTypes.BookingStatus.Void} className={`!p-2 !text-center !font-semibold !m-px !flex !justify-center !items-center !rounded-md hover:!opacity-90 ${getStatusClass('void')}`}>
               {commonStrings.BOOKING_STATUS_VOID}
             </MenuItem>
-            <MenuItem value={bookcarsTypes.BookingStatus.Pending} className={`!p-2 !text-center !font-extralight !text-white !m-px !flex !justify-center !items-center hover:!opacity-93 ${getStatusClass('pending')}`}>
+            <MenuItem value={bookcarsTypes.BookingStatus.Pending} className={`!p-2 !text-center !font-semibold !m-px !flex !justify-center !items-center !rounded-md hover:!opacity-90 ${getStatusClass('pending')}`}>
               {commonStrings.BOOKING_STATUS_PENDING}
             </MenuItem>
-            <MenuItem value={bookcarsTypes.BookingStatus.Deposit} className={`!p-2 !text-center !font-extralight !text-white !m-px !flex !justify-center !items-center hover:!opacity-93 ${getStatusClass('deposit')}`}>
+            <MenuItem value={bookcarsTypes.BookingStatus.Deposit} className={`!p-2 !text-center !font-semibold !m-px !flex !justify-center !items-center !rounded-md hover:!opacity-90 ${getStatusClass('deposit')}`}>
               {commonStrings.BOOKING_STATUS_DEPOSIT}
             </MenuItem>
-            <MenuItem value={bookcarsTypes.BookingStatus.Paid} className={`!p-2 !text-center !font-extralight !text-white !m-px !flex !justify-center !items-center hover:!opacity-93 ${getStatusClass('paid')}`}>
+            <MenuItem value={bookcarsTypes.BookingStatus.Paid} className={`!p-2 !text-center !font-semibold !m-px !flex !justify-center !items-center !rounded-md hover:!opacity-90 ${getStatusClass('paid')}`}>
               {commonStrings.BOOKING_STATUS_PAID}
             </MenuItem>
-            <MenuItem value={bookcarsTypes.BookingStatus.PaidInFull} className={`!p-2 !text-center !font-extralight !text-white !m-px !flex !justify-center !items-center hover:!opacity-93 ${getStatusClass('paidinfull')}`}>
+            <MenuItem value={bookcarsTypes.BookingStatus.PaidInFull} className={`!p-2 !text-center !font-semibold !m-px !flex !justify-center !items-center !rounded-md hover:!opacity-90 ${getStatusClass('paidinfull')}`}>
               {commonStrings.BOOKING_STATUS_PAID_IN_FULL}
             </MenuItem>
-            <MenuItem value={bookcarsTypes.BookingStatus.Reserved} className={`!p-2 !text-center !font-extralight !text-white !m-px !flex !justify-center !items-center hover:!opacity-93 ${getStatusClass('reserved')}`}>
+            <MenuItem value={bookcarsTypes.BookingStatus.Reserved} className={`!p-2 !text-center !font-semibold !m-px !flex !justify-center !items-center !rounded-md hover:!opacity-90 ${getStatusClass('reserved')}`}>
               {commonStrings.BOOKING_STATUS_RESERVED}
             </MenuItem>
-            <MenuItem value={bookcarsTypes.BookingStatus.Cancelled} className={`!p-2 !text-center !font-extralight !text-white !m-px !flex !justify-center !items-center hover:!opacity-93 ${getStatusClass('cancelled')}`}>
+            <MenuItem value={bookcarsTypes.BookingStatus.Cancelled} className={`!p-2 !text-center !font-semibold !m-px !flex !justify-center !items-center !rounded-md hover:!opacity-90 ${getStatusClass('cancelled')}`}>
               {commonStrings.BOOKING_STATUS_CANCELLED}
             </MenuItem>
           </Select>

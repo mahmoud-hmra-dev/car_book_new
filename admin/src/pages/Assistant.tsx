@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { Alert, Avatar, Box, Card, CardContent, Chip, Paper, Stack, Typography } from '@mui/material'
+import { Alert, Chip } from '@mui/material'
 import SmartToyRoundedIcon from '@mui/icons-material/SmartToyRounded'
 import * as bookcarsTypes from ':bookcars-types'
 import Layout from '@/components/Layout'
@@ -49,7 +49,9 @@ const Assistant = () => {
 
   const submit = async (override?: string) => {
     const text = (override ?? message).trim()
-    if (!text || loading || transcribing || recording) return
+    if (!text || loading || transcribing || recording) {
+      return
+    }
 
     const userMessage: AssistantConversationMessage = { id: `u-${Date.now()}`, role: 'user', text }
     const nextHistory = [...messages, userMessage]
@@ -77,7 +79,9 @@ const Assistant = () => {
   }
 
   const handleVoiceUpload = async (audioBlob: Blob) => {
-    if (!audioBlob.size) return
+    if (!audioBlob.size) {
+      return
+    }
     setTranscribing(true)
 
     try {
@@ -96,7 +100,9 @@ const Assistant = () => {
   }
 
   const startRecording = async () => {
-    if (!voiceSupported || loading || transcribing || recording) return
+    if (!voiceSupported || loading || transcribing || recording) {
+      return
+    }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
       const recorder = new MediaRecorder(stream)
@@ -104,7 +110,9 @@ const Assistant = () => {
       mediaRecorderRef.current = recorder
       audioChunksRef.current = []
       recorder.addEventListener('dataavailable', (event) => {
-        if (event.data.size > 0) audioChunksRef.current.push(event.data)
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data)
+        }
       })
       recorder.addEventListener('stop', () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: recorder.mimeType || 'audio/webm' })
@@ -134,38 +142,41 @@ const Assistant = () => {
 
   return (
     <Layout onLoad={onLoad} strict admin>
-      <Box sx={{ p: { xs: 2, md: 3 } }}>
-        <Stack spacing={3}>
-          <Paper elevation={0} sx={{ p: 3, borderRadius: 5, border: '1px solid', borderColor: 'divider' }}>
-            <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} justifyContent="space-between">
-              <Stack direction="row" spacing={1.5} alignItems="center">
-                <Avatar sx={{ width: 52, height: 52, bgcolor: 'primary.main' }}><SmartToyRoundedIcon /></Avatar>
-                <Box>
-                  <Typography variant="h4">{strings.TITLE}</Typography>
-                  <Typography variant="body1" color="text.secondary">{strings.SUBTITLE}</Typography>
-                  <Typography variant="body2" color="text.secondary">{strings.CHAT_HELPER}</Typography>
-                </Box>
-              </Stack>
-              <Card variant="outlined" sx={{ minWidth: 320, borderRadius: 4 }}>
-                <CardContent>
-                  <Typography variant="subtitle1" gutterBottom>{strings.EXAMPLES_TITLE}</Typography>
-                  <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-                    {quickPrompts.map((prompt) => <Chip key={prompt} label={prompt} clickable color="primary" variant="outlined" onClick={() => setMessage(prompt)} />)}
-                  </Stack>
-                </CardContent>
-              </Card>
-            </Stack>
-          </Paper>
+      <div className="p-2 md:p-3">
+        <div className="space-y-6">
+          <div className="bg-white rounded-2xl border border-border p-6">
+            <div className="flex flex-col md:flex-row md:justify-between gap-4">
+              <div className="flex flex-row gap-3 items-center">
+                <div className="w-[52px] h-[52px] bg-primary rounded-full flex items-center justify-center shrink-0">
+                  <SmartToyRoundedIcon className="text-white" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-text">{strings.TITLE}</h2>
+                  <p className="text-base text-text-secondary">{strings.SUBTITLE}</p>
+                  <p className="text-sm text-text-secondary">{strings.CHAT_HELPER}</p>
+                </div>
+              </div>
+              <div className="min-w-[320px] border border-border rounded-2xl p-4">
+                <h3 className="text-base font-semibold text-text mb-2">{strings.EXAMPLES_TITLE}</h3>
+                <div className="flex flex-row flex-wrap gap-2">
+                  {quickPrompts.map((prompt) => <Chip key={prompt} label={prompt} clickable color="primary" variant="outlined" onClick={() => setMessage(prompt)} />)}
+                </div>
+              </div>
+            </div>
+          </div>
 
           {!canUseAssistant ? (
             <Alert severity="warning" variant="outlined">Admin access is required to use the assistant.</Alert>
           ) : (
-            <Stack spacing={2}>
+            <div className="space-y-4">
               <AssistantMessageList
                 messages={messages}
                 loading={loading}
                 transcribing={transcribing}
-                onSuggestion={(text) => { setMessage(text); void submit(text) }}
+                onSuggestion={(text) => {
+                  setMessage(text)
+                  void submit(text)
+                }}
                 onUseText={(text) => setMessage(text)}
               />
 
@@ -176,14 +187,18 @@ const Assistant = () => {
                 transcribing={transcribing}
                 voiceSupported={voiceSupported}
                 onChange={setMessage}
-                onSubmit={() => { void submit() }}
-                onStartRecording={() => { void startRecording() }}
+                onSubmit={() => {
+                  void submit()
+                }}
+                onStartRecording={() => {
+                  void startRecording()
+                }}
                 onStopRecording={stopRecording}
               />
-            </Stack>
+            </div>
           )}
-        </Stack>
-      </Box>
+        </div>
+      </div>
     </Layout>
   )
 }

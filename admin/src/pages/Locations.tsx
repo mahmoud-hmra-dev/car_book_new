@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button } from '@mui/material'
 import * as bookcarsTypes from ':bookcars-types'
 import Layout from '@/components/Layout'
 import { strings } from '@/lang/locations'
@@ -33,7 +32,7 @@ const Locations = () => {
   return (
     <Layout onLoad={onLoad} strict>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-4">
           <h1 className="text-2xl font-bold text-text">
             {headerStrings.LOCATIONS}
             {rowCount > 0 && (
@@ -43,17 +42,21 @@ const Locations = () => {
             )}
           </h1>
           {rowCount > -1 && (
-            <Button variant="contained" className="btn-primary !rounded-xl !normal-case !font-semibold !text-sm !py-2.5 !px-5 !shadow-none" size="small" onClick={() => navigate('/create-location')}>
+            <button
+              type="button"
+              className="flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-primary-dark transition-colors"
+              onClick={() => navigate('/create-location')}
+            >
               {strings.NEW_LOCATION}
-            </Button>
+            </button>
           )}
         </div>
-        <div className="bg-white rounded-xl border border-border p-5">
+        <div className="bg-white rounded-xl border border-border shadow-sm p-5">
           <div className="flex flex-wrap items-end gap-4">
             <Search className="w-full max-w-[400px] flex justify-start max-md:max-w-full" onSubmit={handleSearch} />
           </div>
         </div>
-        <div className="bg-white rounded-xl border border-border p-5 min-h-[300px] flex flex-col items-center flex-1">
+        <div className="bg-white rounded-xl border border-border shadow-sm p-5 min-h-[300px] flex flex-col items-center flex-1">
           <LocationList
             keyword={keyword}
             onLoad={handleLocationListLoad}

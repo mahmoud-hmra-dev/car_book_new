@@ -67,8 +67,8 @@ const AdditionalDriverForm = ({ control, register, errors, clearErrors, trigger,
 
   return (
     <>
-      <div className="info">
-        <DriverIcon />
+      <div className="flex items-center gap-2 text-text-muted text-sm mt-4 mb-2">
+        <DriverIcon className="!text-base" />
         <span>{csStrings.ADDITIONAL_DRIVER}</span>
       </div>
       <FormControl fullWidth margin="dense">
@@ -418,8 +418,8 @@ const UpdateBooking = () => {
   return (
     <Layout onLoad={onLoad} strict>
       {visible && booking && (
-        <div className="flex flex-row">
-          <div className="bg-[#fefefe] p-5 max-md:border-b max-md:border-[#eee] md:border-r md:border-[#eee] md:p-[25px] md:flex-[0_1_30%]">
+        <div className="flex flex-col md:flex-row">
+          <div className="bg-white p-5 border-b border-border md:border-b-0 md:border-r md:border-border md:p-6 md:w-[30%] md:min-w-[350px]">
             <form onSubmit={handleSubmit(onSubmit)}>
               {!isSupplier && (
                 <FormControl fullWidth margin="dense">
@@ -622,8 +622,8 @@ const UpdateBooking = () => {
                 />
               </FormControl>
 
-              <div className="info">
-                <InfoIcon />
+              <div className="flex items-center gap-2 text-text-muted text-sm mt-4 mb-2">
+                <InfoIcon className="!text-base" />
                 <span>{commonStrings.OPTIONAL}</span>
               </div>
 
@@ -631,7 +631,6 @@ const UpdateBooking = () => {
                 <FormControlLabel
                   control={
                     <Switch
-                      // {...register('cancellation')}
                       checked={cancellation}
                       color="primary"
                       disabled={!carObj || !helper.carOptionAvailable(carObj, 'cancellation')}
@@ -658,7 +657,7 @@ const UpdateBooking = () => {
                     />
                   }
                   label={csStrings.CANCELLATION}
-                  className="text-black/60 text-[0.9em] leading-[1em]"
+                  className="text-text-secondary text-sm"
                 />
               </FormControl>
 
@@ -666,7 +665,6 @@ const UpdateBooking = () => {
                 <FormControlLabel
                   control={
                     <Switch
-                      // {...register('amendments')}
                       checked={amendments}
                       color="primary"
                       disabled={!carObj || !helper.carOptionAvailable(carObj, 'amendments')}
@@ -693,7 +691,7 @@ const UpdateBooking = () => {
                     />
                   }
                   label={csStrings.AMENDMENTS}
-                  className="text-black/60 text-[0.9em] leading-[1em]"
+                  className="text-text-secondary text-sm"
                 />
               </FormControl>
 
@@ -701,7 +699,6 @@ const UpdateBooking = () => {
                 <FormControlLabel
                   control={
                     <Switch
-                      // {...register('theftProtection')}
                       checked={theftProtection}
                       color="primary"
                       disabled={!carObj || !helper.carOptionAvailable(carObj, 'theftProtection')}
@@ -728,7 +725,7 @@ const UpdateBooking = () => {
                     />
                   }
                   label={csStrings.THEFT_PROTECTION}
-                  className="text-black/60 text-[0.9em] leading-[1em]"
+                  className="text-text-secondary text-sm"
                 />
               </FormControl>
 
@@ -736,7 +733,6 @@ const UpdateBooking = () => {
                 <FormControlLabel
                   control={
                     <Switch
-                      // {...register('collisionDamageWaiver')}
                       checked={collisionDamageWaiver}
                       color="primary"
                       disabled={!carObj || !helper.carOptionAvailable(carObj, 'collisionDamageWaiver')}
@@ -763,7 +759,7 @@ const UpdateBooking = () => {
                     />
                   }
                   label={csStrings.COLLISION_DAMAGE_WAVER}
-                  className="text-black/60 text-[0.9em] leading-[1em]"
+                  className="text-text-secondary text-sm"
                 />
               </FormControl>
 
@@ -771,7 +767,6 @@ const UpdateBooking = () => {
                 <FormControlLabel
                   control={
                     <Switch
-                      // {...register('fullInsurance')}
                       checked={fullInsurance}
                       color="primary"
                       disabled={!carObj || !helper.carOptionAvailable(carObj, 'fullInsurance')}
@@ -798,7 +793,7 @@ const UpdateBooking = () => {
                     />
                   }
                   label={csStrings.FULL_INSURANCE}
-                  className="text-black/60 text-[0.9em] leading-[1em]"
+                  className="text-text-secondary text-sm"
                 />
               </FormControl>
 
@@ -806,7 +801,6 @@ const UpdateBooking = () => {
                 <FormControlLabel
                   control={
                     <Switch
-                      // {...register('additionalDriver')}
                       checked={additionalDriver}
                       color="primary"
                       disabled={!carObj || !helper.carOptionAvailable(carObj, 'additionalDriver')}
@@ -833,7 +827,7 @@ const UpdateBooking = () => {
                     />
                   }
                   label={csStrings.ADDITIONAL_DRIVER}
-                  className="text-black/60 text-[0.9em] leading-[1em]"
+                  className="text-text-secondary text-sm"
                 />
               </FormControl>
 
@@ -849,35 +843,33 @@ const UpdateBooking = () => {
                 />
               )}
 
-              <div>
-                <div className="buttons">
-                  <Button variant="contained" className="btn-primary btn-margin-bottom" size="small" type="submit" disabled={isSubmitting}>
-                    {commonStrings.SAVE}
-                  </Button>
-                  <Button variant="contained" className="btn-margin-bottom" color="error" size="small" onClick={handleDelete}>
-                    {commonStrings.DELETE}
-                  </Button>
-                  <Button variant="contained" className="btn-secondary btn-margin-bottom" size="small" onClick={() => navigate('/')}>
-                    {commonStrings.CANCEL}
-                  </Button>
-                </div>
+              <div className="flex flex-wrap gap-3 mt-6">
+                <Button variant="contained" className="!bg-primary !text-white !rounded-xl !normal-case !font-semibold !px-6 !py-2.5 !shadow-none hover:!bg-primary-dark" size="small" type="submit" disabled={isSubmitting}>
+                  {commonStrings.SAVE}
+                </Button>
+                <Button variant="contained" className="!bg-danger !text-white !rounded-xl !normal-case !font-medium !px-6 !py-2.5 !shadow-none hover:!bg-red-600" size="small" onClick={handleDelete}>
+                  {commonStrings.DELETE}
+                </Button>
+                <Button variant="contained" className="!bg-border !text-text-secondary !rounded-xl !normal-case !font-medium !px-6 !py-2.5 !shadow-none" size="small" onClick={() => navigate('/')}>
+                  {commonStrings.CANCEL}
+                </Button>
               </div>
             </form>
           </div>
           <div className="max-md:hidden md:flex-1 md:pt-2.5">
             {
               days > 0 && (
-                <div className="text-right md:pr-[25px] md:flex md:flex-row md:justify-end">
+                <div className="text-right md:pr-6 md:flex md:flex-row md:justify-end">
                   <div className="w-fit">
-                    <span className="text-[13px] text-[#a1a1a1] table-row text-right">{helper.getDays(days)}</span>
-                    <span className="text-[#383838] text-[2em] font-bold leading-[1em] whitespace-nowrap table-row text-right">{bookcarsHelper.formatPrice(price as number, commonStrings.CURRENCY, language)}</span>
-                    <span className="text-[13px] text-[#a1a1a1] table-row text-right">{`${csStrings.PRICE_PER_DAY} ${bookcarsHelper.formatPrice((price as number) / days, commonStrings.CURRENCY, language)}`}</span>
+                    <span className="text-xs text-text-muted table-row text-right">{helper.getDays(days)}</span>
+                    <span className="text-text text-2xl font-bold leading-tight whitespace-nowrap table-row text-right">{bookcarsHelper.formatPrice(price as number, commonStrings.CURRENCY, language)}</span>
+                    <span className="text-xs text-text-muted table-row text-right">{`${csStrings.PRICE_PER_DAY} ${bookcarsHelper.formatPrice((price as number) / days, commonStrings.CURRENCY, language)}`}</span>
                   </div>
                 </div>
               )
             }
             <CarList
-              className="car"
+              className="mt-4"
               user={user}
               booking={booking}
               cars={((carObj && [booking.car]) as bookcarsTypes.Car[]) || []}
@@ -887,13 +879,13 @@ const UpdateBooking = () => {
           </div>
 
           <Dialog disableEscapeKeyDown maxWidth="xs" open={openDeleteDialog}>
-            <DialogTitle className="dialog-header">{commonStrings.CONFIRM_TITLE}</DialogTitle>
+            <DialogTitle className="!font-semibold !text-text">{commonStrings.CONFIRM_TITLE}</DialogTitle>
             <DialogContent>{strings.DELETE_BOOKING}</DialogContent>
-            <DialogActions className="dialog-actions">
-              <Button onClick={handleCancelDelete} variant="contained" className="btn-secondary">
+            <DialogActions className="!p-4">
+              <Button onClick={handleCancelDelete} variant="contained" className="!bg-border !text-text-secondary !rounded-xl !normal-case !shadow-none">
                 {commonStrings.CANCEL}
               </Button>
-              <Button onClick={handleConfirmDelete} variant="contained" color="error">
+              <Button onClick={handleConfirmDelete} variant="contained" className="!bg-danger !text-white !rounded-xl !normal-case !shadow-none">
                 {commonStrings.DELETE}
               </Button>
             </DialogActions>

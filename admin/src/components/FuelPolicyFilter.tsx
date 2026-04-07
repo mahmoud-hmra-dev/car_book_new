@@ -212,61 +212,61 @@ const FuelPolicyFilter = ({
 
   return (
     <Accordion title={strings.FUEL_POLICY} collapse={collapse} className={className}>
-      <div className="px-1.5 py-2">
-        <div className="flex items-center gap-2 py-1.5 px-1">
-          <input ref={freeTankRef} type="checkbox" className="cursor-pointer" onChange={handleCheckFreeTankChange} />
+      <div className="py-2 space-y-0.5">
+        <div className="text-center py-1">
+          <span
+            onClick={handleUncheckAllChange}
+            className="text-xs text-primary hover:underline cursor-pointer"
+            role="button"
+            tabIndex={0}
+          >
+            {allChecked ? commonStrings.UNCHECK_ALL : commonStrings.CHECK_ALL}
+          </span>
+        </div>
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
+          <input ref={freeTankRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckFreeTankChange} />
           <span
             onClick={handleFreeTankClick}
             role="button"
             tabIndex={0}
-            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
+            className="text-sm text-text"
           >
             {strings.FUEL_POLICY_FREE_TANK}
           </span>
         </div>
-        <div className="flex items-center gap-2 py-1.5 px-1">
-          <input ref={likeForLikeRef} type="checkbox" className="cursor-pointer" onChange={handleCheckLikeForLikeChange} />
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
+          <input ref={likeForLikeRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckLikeForLikeChange} />
           <span
             onClick={handleLikeForLikeClick}
             role="button"
             tabIndex={0}
-            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
+            className="text-sm text-text"
           >
             {strings.FUEL_POLICY_LIKE_FOR_LIKE}
           </span>
         </div>
-        <div className="flex items-center gap-2 py-1.5 px-1">
-          <input ref={fullToFullRef} type="checkbox" className="cursor-pointer" onChange={handleCheckFullToFullChange} />
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
+          <input ref={fullToFullRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckFullToFullChange} />
           <span
             onClick={handleFullToFullClick}
             role="button"
             tabIndex={0}
-            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
+            className="text-sm text-text"
           >
             {strings.FUEL_POLICY_FULL_TO_FULL}
           </span>
         </div>
-        <div className="flex items-center gap-2 py-1.5 px-1">
-          <input ref={fullToEmptyRef} type="checkbox" className="cursor-pointer" onChange={handleCheckFullToEmptyChange} />
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
+          <input ref={fullToEmptyRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckFullToEmptyChange} />
           <span
             onClick={handleFullToEmptyClick}
             role="button"
             tabIndex={0}
-            className="cursor-pointer text-xs font-normal text-text hover:text-primary"
+            className="text-sm text-text"
           >
             {strings.FUEL_POLICY_FULL_TO_EMPTY}
           </span>
         </div>
-      </div>
-      <div className="text-center pb-2.5">
-        <span
-          onClick={handleUncheckAllChange}
-          className="text-xs text-primary underline cursor-pointer"
-          role="button"
-          tabIndex={0}
-        >
-          {allChecked ? commonStrings.UNCHECK_ALL : commonStrings.CHECK_ALL}
-        </span>
       </div>
     </Accordion>
   )

@@ -181,38 +181,38 @@ const CarRatingFilter = ({
 
   return (
     <Accordion title={strings.RATING} collapse={collapse} className={className}>
-      <div className="px-1.5 py-2">
-        <div className="flex flex-row items-center w-fit m-1.5">
-          <input ref={rating1Ref} type="radio" className="cursor-pointer ml-1.5" onChange={handleCheckRating1Change} />
-          <span onClick={handleRating1Click} role="presentation" className="cursor-pointer inline-block px-1">
-            <Rating value={1} className="relative -bottom-1" readOnly />
+      <div className="py-2 space-y-0.5">
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
+          <input ref={rating1Ref} type="radio" className="w-4 h-4 accent-primary" onChange={handleCheckRating1Change} />
+          <span onClick={handleRating1Click} role="presentation" className="cursor-pointer inline-flex items-center gap-1">
+            <Rating value={1} className="relative -bottom-0.5" readOnly size="small" />
           </span>
-          <span className="text-xs text-text-muted mt-1">{strings.RATING_1}</span>
+          <span className="text-xs text-text-muted">{strings.RATING_1}</span>
         </div>
-        <div className="flex flex-row items-center w-fit m-1.5">
-          <input ref={rating2Ref} type="radio" className="cursor-pointer ml-1.5" onChange={handleCheckRating2Change} />
-          <span onClick={handleRating2Click} role="presentation" className="cursor-pointer inline-block px-1">
-            <Rating value={2} className="relative -bottom-1" readOnly />
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
+          <input ref={rating2Ref} type="radio" className="w-4 h-4 accent-primary" onChange={handleCheckRating2Change} />
+          <span onClick={handleRating2Click} role="presentation" className="cursor-pointer inline-flex items-center gap-1">
+            <Rating value={2} className="relative -bottom-0.5" readOnly size="small" />
           </span>
-          <span className="text-xs text-text-muted mt-1">{strings.RATING_2}</span>
+          <span className="text-xs text-text-muted">{strings.RATING_2}</span>
         </div>
-        <div className="flex flex-row items-center w-fit m-1.5" role="presentation">
-          <input ref={rating3Ref} type="radio" className="cursor-pointer ml-1.5" onChange={handleCheckRating3Change} />
-          <span onClick={handleRating3Click} role="presentation" className="cursor-pointer inline-block px-1">
-            <Rating value={3} className="relative -bottom-1" readOnly />
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors" role="presentation">
+          <input ref={rating3Ref} type="radio" className="w-4 h-4 accent-primary" onChange={handleCheckRating3Change} />
+          <span onClick={handleRating3Click} role="presentation" className="cursor-pointer inline-flex items-center gap-1">
+            <Rating value={3} className="relative -bottom-0.5" readOnly size="small" />
           </span>
-          <span className="text-xs text-text-muted mt-1">{strings.RATING_3}</span>
+          <span className="text-xs text-text-muted">{strings.RATING_3}</span>
         </div>
-        <div className="flex flex-row items-center w-fit m-1.5" role="presentation">
-          <input ref={rating4Ref} type="radio" className="cursor-pointer ml-1.5" onChange={handleCheckRating4Change} />
-          <span onClick={handleRating4Click} role="presentation" className="cursor-pointer inline-block px-1">
-            <Rating value={4} className="relative -bottom-1" readOnly />
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors" role="presentation">
+          <input ref={rating4Ref} type="radio" className="w-4 h-4 accent-primary" onChange={handleCheckRating4Change} />
+          <span onClick={handleRating4Click} role="presentation" className="cursor-pointer inline-flex items-center gap-1">
+            <Rating value={4} className="relative -bottom-0.5" readOnly size="small" />
           </span>
-          <span className="text-xs text-text-muted mt-1">{strings.RATING_4}</span>
+          <span className="text-xs text-text-muted">{strings.RATING_4}</span>
         </div>
-        <div className="flex flex-row items-center w-fit m-1.5" role="presentation">
-          <input ref={ratingAnyRef} type="radio" className="cursor-pointer ml-1.5" onChange={handleCheckRatingAnyChange} />
-          <span onClick={handleRatingAnyClick} role="presentation" className="cursor-pointer inline-block px-1">
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors" role="presentation">
+          <input ref={ratingAnyRef} type="radio" className="w-4 h-4 accent-primary" onChange={handleCheckRatingAnyChange} />
+          <span onClick={handleRatingAnyClick} role="presentation" className="text-sm text-text cursor-pointer">
             {commonStrings.ANY}
           </span>
         </div>

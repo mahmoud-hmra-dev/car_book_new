@@ -14,12 +14,12 @@ const Error = ({ message, style, homeLink }: ErrorProps) => {
 
   return (
     <div style={style || {}}>
-      <div className="bg-danger/10 border border-danger/20 rounded-xl p-4 text-center">
-        <span className="text-danger text-sm font-medium">{message}</span>
+      <div className="flex items-center gap-2 text-danger text-sm py-2">
+        <span>{message}</span>
       </div>
       {homeLink && (
         <p>
-          <Button variant="text" onClick={() => navigate('/')} className="btn-lnk">{commonStrings.GO_TO_HOME}</Button>
+          <Button variant="text" onClick={() => navigate('/')} className="text-primary hover:underline text-sm normal-case">{commonStrings.GO_TO_HOME}</Button>
         </p>
       )}
     </div>

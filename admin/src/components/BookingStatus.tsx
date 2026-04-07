@@ -73,7 +73,7 @@ const BookingStatus = ({
     role="presentation"
   >
     {showIcon && getIcon(value)}
-    <span className={`px-3 py-1 text-center inline-flex text-xs font-bold justify-center items-center rounded-full ${badgeStyleMap[value?.toLowerCase()] || ''}`}>{helper.getBookingStatus(value)}</span>
+    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${badgeStyleMap[value?.toLowerCase()] || ''}`}>{helper.getBookingStatus(value)}</span>
   </div>
 )
 

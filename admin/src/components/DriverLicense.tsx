@@ -78,28 +78,28 @@ const DriverLicense = ({
   }
 
   return (
-    <div className={`flex flex-row items-center ${className || ''}`}>
+    <div className={`flex items-center gap-2 ${className || ''}`}>
       {variant === 'standard' ? (
         <Input
           value={license || commonStrings.UPLOAD_DRIVER_LICENSE}
           readOnly
           onClick={handleClick}
-          className="w-full max-md:w-[210px] mr-[5px] text-[#666]"
+          className="w-full max-md:w-[210px] text-text-secondary cursor-pointer"
         />
       ) : (
         <OutlinedInput
           value={license || commonStrings.UPLOAD_DRIVER_LICENSE}
           readOnly
           onClick={handleClick}
-          className="w-full max-md:w-[210px] mr-[5px] text-[#666]"
+          className="w-full max-md:w-[210px] text-text-secondary cursor-pointer"
         />
       )}
-      <div className="flex flex-row">
+      <div className="flex items-center gap-1">
         <IconButton
           size="small"
           onClick={handleClick}
         >
-          <UploadIcon className="icon" />
+          <UploadIcon className="text-primary" />
         </IconButton>
 
         {license && (
@@ -111,7 +111,7 @@ const DriverLicense = ({
                 helper.downloadURI(url)
               }}
             >
-              <ViewIcon className="icon" />
+              <ViewIcon className="text-info" />
             </IconButton>
             <IconButton
               size="small"
@@ -138,7 +138,7 @@ const DriverLicense = ({
                 }
               }}
             >
-              <DeleteIcon className="icon" />
+              <DeleteIcon className="text-danger" />
             </IconButton>
           </>
         )}

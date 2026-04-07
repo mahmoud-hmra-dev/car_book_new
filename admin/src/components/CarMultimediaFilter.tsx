@@ -212,61 +212,61 @@ const CarMultimediaFilter = ({
 
   return (
     <Accordion title={strings.MULTIMEDIA} collapse={collapse} className={className}>
-      <div className="px-1.5 py-2">
-        <div className="flex items-center gap-2 py-1.5 px-1">
-          <input ref={touchscreenRef} type="checkbox" className="cursor-pointer" onChange={handleCheckTouchscreenChange} />
+      <div className="py-2 space-y-0.5">
+        <div className="text-center py-1">
+          <span
+            onClick={handleUncheckAllChange}
+            className="text-xs text-primary hover:underline cursor-pointer"
+            role="button"
+            tabIndex={0}
+          >
+            {allChecked ? commonStrings.UNCHECK_ALL : commonStrings.CHECK_ALL}
+          </span>
+        </div>
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
+          <input ref={touchscreenRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckTouchscreenChange} />
           <span
             onClick={handleTouchscreenClick}
             role="button"
             tabIndex={0}
-            className="cursor-pointer text-xs font-normal capitalize text-text hover:text-primary"
+            className="text-sm text-text"
           >
             {strings.TOUCHSCREEN}
           </span>
         </div>
-        <div className="flex items-center gap-2 py-1.5 px-1">
-          <input ref={bluetoothRef} type="checkbox" className="cursor-pointer" onChange={handleCheckBluetoothChange} />
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
+          <input ref={bluetoothRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckBluetoothChange} />
           <span
             onClick={handleBluetoothClick}
             role="button"
             tabIndex={0}
-            className="cursor-pointer text-xs font-normal capitalize text-text hover:text-primary"
+            className="text-sm text-text"
           >
             {strings.BLUETOOTH}
           </span>
         </div>
-        <div className="flex items-center gap-2 py-1.5 px-1">
-          <input ref={androidAutoRef} type="checkbox" className="cursor-pointer" onChange={handleCheckAndroidAutoChange} />
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
+          <input ref={androidAutoRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckAndroidAutoChange} />
           <span
             onClick={handleAndroidAutoClick}
             role="button"
             tabIndex={0}
-            className="cursor-pointer text-xs font-normal capitalize text-text hover:text-primary"
+            className="text-sm text-text"
           >
             {strings.ANDROID_AUTO}
           </span>
         </div>
-        <div className="flex items-center gap-2 py-1.5 px-1">
-          <input ref={appleCarPlayRef} type="checkbox" className="cursor-pointer" onChange={handleCheckAppleCarPlayChange} />
+        <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors">
+          <input ref={appleCarPlayRef} type="checkbox" className="w-4 h-4 accent-primary" onChange={handleCheckAppleCarPlayChange} />
           <span
             onClick={handleAppleCarPlayClick}
             role="button"
             tabIndex={0}
-            className="cursor-pointer text-xs font-normal capitalize text-text hover:text-primary"
+            className="text-sm text-text"
           >
             {strings.APPLE_CAR_PLAY}
           </span>
         </div>
-      </div>
-      <div className="text-center pb-2.5">
-        <span
-          onClick={handleUncheckAllChange}
-          className="text-xs text-primary underline cursor-pointer"
-          role="button"
-          tabIndex={0}
-        >
-          {allChecked ? commonStrings.UNCHECK_ALL : commonStrings.CHECK_ALL}
-        </span>
       </div>
     </Accordion>
   )
