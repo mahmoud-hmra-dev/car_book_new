@@ -349,6 +349,17 @@ export const ADMIN_HOST = __env__('BC_ADMIN_HOST', true)
 export const FRONTEND_HOST = __env__('BC_FRONTEND_HOST', true)
 
 /**
+ * Additional browser origins allowed to access the backend.
+ * Comma-separated list, mainly useful when multiple local/dev hosts exist.
+ *
+ * @type {string[]}
+ */
+export const ALLOWED_ORIGINS = __env__('BC_ALLOWED_ORIGINS', false, '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean)
+
+/**
  * Default language. Default is en. Available options: en, ar, fr, es.
  *
  * @type {string}

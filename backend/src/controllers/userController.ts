@@ -22,6 +22,7 @@ import NotificationCounter from '../models/NotificationCounter'
 import Car from '../models/Car'
 import AdditionalDriver from '../models/AdditionalDriver'
 import * as logger from '../utils/logger'
+import { isOriginAllowed } from '../utils/originHelper'
 
 /**
  * Get status message as HTML.
@@ -1969,12 +1970,8 @@ export const verifyRecaptcha = async (req: Request, res: Response) => {
  */
 export const sendEmail = async (req: Request, res: Response) => {
   try {
-    const whitelist = [
-      helper.trimEnd(env.ADMIN_HOST, '/'),
-      helper.trimEnd(env.FRONTEND_HOST, '/'),
-    ]
     const { origin } = req.headers
-    if (!origin || whitelist.indexOf(helper.trimEnd(origin, '/')) === -1) {
+    if (!origin || !isOriginAllowed(origin)) {
       throw new Error('Unauthorized!')
     }
 
