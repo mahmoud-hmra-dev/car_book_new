@@ -63,6 +63,7 @@ services:
     ports:
       - 8382:8082
       - 5000:5000
+      - 5055:5055
     depends_on:
       - traccar-db
     volumes:

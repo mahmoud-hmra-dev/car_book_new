@@ -6,7 +6,9 @@
     "scheme": "bookcars-admin",
     "slug": "bookcars-admin",
     "icon": "./assets/icon.png",
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "splash": {
       "backgroundColor": "#6B3CE6",
       "image": "./assets/splash.png"
@@ -24,7 +26,10 @@
         "googleMaps": {
           "apiKey": "YOUR_GOOGLE_MAPS_API_KEY"
         }
-      }
+      },
+      "permissions": [
+        "android.permission.INTERNET"
+      ]
     },
     "ios": {
       "buildNumber": "1.0.0",
@@ -33,6 +38,16 @@
       "bundleIdentifier": "com.bookcars.admin",
       "config": {
         "googleMapsApiKey": "YOUR_GOOGLE_MAPS_API_KEY"
+      },
+      "infoPlist": {
+        "SKAdNetworkItems": [
+          {
+            "SKAdNetworkIdentifier": "v9wttpbfk9.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "n38lu8286q.skadnetwork"
+          }
+        ]
       }
     },
     "plugins": [
@@ -78,6 +93,12 @@
     },
     "runtimeVersion": {
       "policy": "appVersion"
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "947b8576-8c50-4838-ac9c-bbdcfdac60c9"
+      }
     }
   }
 }
