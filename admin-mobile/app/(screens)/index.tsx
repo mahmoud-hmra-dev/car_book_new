@@ -9,6 +9,7 @@ import * as bookcarsTypes from ':bookcars-types'
 import i18n from '@/lang/i18n'
 import * as BookingService from '@/services/BookingService'
 import * as UserService from '@/services/UserService'
+import * as SupplierService from '@/services/SupplierService'
 import * as env from '@/config/env.config'
 import * as helper from '@/utils/helper'
 import { useAuth } from '@/context/AuthContext'
@@ -38,14 +39,23 @@ const Dashboard = () => {
         return
       }
 
-      if (!user) {
-        const _user = await UserService.getUser(currentUser._id)
+      let _user = user
+      if (!_user) {
+        _user = await UserService.getUser(currentUser._id)
         setUser(_user)
+      }
+
+      let supplierIds: string[] = []
+      if (_user.type === bookcarsTypes.RecordType.Admin) {
+        const allSuppliers = await SupplierService.getAllSuppliers()
+        supplierIds = allSuppliers.map((s: bookcarsTypes.User) => s._id as string)
+      } else {
+        supplierIds = [currentUser._id]
       }
 
       const payload: bookcarsTypes.GetBookingsPayload = {
         user: currentUser._id,
-        suppliers: [],
+        suppliers: supplierIds,
         statuses: [],
         filter: search ? { keyword: search } : undefined,
       }

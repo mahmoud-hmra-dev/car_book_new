@@ -19,13 +19,21 @@
       "icon": "./assets/icon.png",
       "softwareKeyboardLayoutMode": "pan",
       "package": "com.bookcars.admin",
-      "backgroundColor": "#00000000"
+      "backgroundColor": "#00000000",
+      "config": {
+        "googleMaps": {
+          "apiKey": "YOUR_GOOGLE_MAPS_API_KEY"
+        }
+      }
     },
     "ios": {
       "buildNumber": "1.0.0",
       "supportsTablet": true,
       "icon": "./assets/icon.png",
-      "bundleIdentifier": "com.bookcars.admin"
+      "bundleIdentifier": "com.bookcars.admin",
+      "config": {
+        "googleMapsApiKey": "YOUR_GOOGLE_MAPS_API_KEY"
+      }
     },
     "plugins": [
       "expo-localization",

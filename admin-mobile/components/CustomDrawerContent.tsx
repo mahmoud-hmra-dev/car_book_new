@@ -98,6 +98,7 @@ const CustomDrawerContent = ({ closeDrawer }: CustomDrawerContentProps) => {
     { path: '/locations', icon: 'location-on', label: i18n.t('LOCATIONS') },
     { path: '/cars', icon: 'directions-car', label: i18n.t('CARS') },
     { path: '/users', icon: 'people', label: i18n.t('USERS') },
+    { path: '/tracking', icon: 'gps-fixed', label: i18n.t('TRACKING') },
   ]
 
   const accountItems: NavItem[] = [

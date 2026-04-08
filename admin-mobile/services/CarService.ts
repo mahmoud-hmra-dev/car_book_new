@@ -111,6 +111,13 @@ export const deleteCarImageFromList = async (id: string, image: string): Promise
     .then((res) => res.status)
 }
 
+export const getTracking = async (id: string): Promise<bookcarsTypes.CarTrackingSnapshot> => {
+  const headers = await UserService.authHeader()
+  return axiosInstance
+    .get(`/api/car-tracking/${encodeURIComponent(id)}`, { headers })
+    .then((res) => res.data)
+}
+
 export const validateLicensePlate = async (licensePlate: string, id?: string): Promise<number> => {
   const headers = await UserService.authHeader()
   const url = id

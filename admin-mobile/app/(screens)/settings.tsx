@@ -6,8 +6,10 @@ import { MaterialIcons } from '@expo/vector-icons'
 import * as ImagePicker from 'expo-image-picker'
 import * as bookcarsHelper from ':bookcars-helper'
 
+import * as bookcarsTypes from ':bookcars-types'
 import i18n from '@/lang/i18n'
 import * as UserService from '@/services/UserService'
+import * as SettingService from '@/services/SettingService'
 import * as env from '@/config/env.config'
 import * as helper from '@/utils/helper'
 import { useAuth } from '@/context/AuthContext'
@@ -29,6 +31,12 @@ const Settings = () => {
   const [bio, setBio] = useState('')
   const [enableEmailNotifications, setEnableEmailNotifications] = useState(false)
   const [avatar, setAvatar] = useState<string | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [savingPlatform, setSavingPlatform] = useState(false)
+  const [minPickupHours, setMinPickupHours] = useState('')
+  const [minRentalHours, setMinRentalHours] = useState('')
+  const [minPickupDropoffHour, setMinPickupDropoffHour] = useState('')
+  const [maxPickupDropoffHour, setMaxPickupDropoffHour] = useState('')
 
   useEffect(() => {
     const init = async () => {
@@ -44,6 +52,22 @@ const Settings = () => {
 
           if (_user.avatar) {
             setAvatar((_user.avatar.startsWith('http') ? _user.avatar : bookcarsHelper.joinURL(env.CDN_USERS, _user.avatar)))
+          }
+
+          setIsAdmin(_user.type === bookcarsTypes.RecordType.Admin)
+
+          if (_user.type === bookcarsTypes.RecordType.Admin) {
+            try {
+              const settings = await SettingService.getSettings()
+              if (settings) {
+                setMinPickupHours(settings.minPickupHours?.toString() || '')
+                setMinRentalHours(settings.minRentalHours?.toString() || '')
+                setMinPickupDropoffHour(settings.minPickupDropoffHour?.toString() || '')
+                setMaxPickupDropoffHour(settings.maxPickupDropoffHour?.toString() || '')
+              }
+            } catch {
+              // Settings may not exist yet
+            }
           }
         }
       } catch (err) {
@@ -155,6 +179,27 @@ const Settings = () => {
     ])
   }
 
+  const handleSavePlatformSettings = async () => {
+    try {
+      setSavingPlatform(true)
+      const status = await SettingService.updateSettings({
+        minPickupHours: Number(minPickupHours) || 0,
+        minRentalHours: Number(minRentalHours) || 0,
+        minPickupDropoffHour: Number(minPickupDropoffHour) || 0,
+        maxPickupDropoffHour: Number(maxPickupDropoffHour) || 0,
+      })
+      if (status === 200) {
+        helper.toast(i18n.t('PLATFORM_SETTINGS_UPDATED'))
+      } else {
+        helper.error()
+      }
+    } catch (err) {
+      helper.error(err)
+    } finally {
+      setSavingPlatform(false)
+    }
+  }
+
   if (loading) return <Indicator />
 
   if (!loggedIn) {
@@ -228,6 +273,48 @@ const Settings = () => {
           />
         </View>
 
+        {/* Platform Settings (Admin only) */}
+        {isAdmin && (
+          <View style={styles.formContainer}>
+            <Text style={styles.sectionTitle}>{i18n.t('PLATFORM_SETTINGS')}</Text>
+
+            <TextInput
+              label={i18n.t('MIN_PICKUP_HOURS')}
+              value={minPickupHours}
+              onChangeText={setMinPickupHours}
+              keyboardType="numeric"
+            />
+
+            <TextInput
+              label={i18n.t('MIN_RENTAL_HOURS')}
+              value={minRentalHours}
+              onChangeText={setMinRentalHours}
+              keyboardType="numeric"
+            />
+
+            <TextInput
+              label={i18n.t('MIN_PICKUP_DROPOFF_HOUR')}
+              value={minPickupDropoffHour}
+              onChangeText={setMinPickupDropoffHour}
+              keyboardType="numeric"
+            />
+
+            <TextInput
+              label={i18n.t('MAX_PICKUP_DROPOFF_HOUR')}
+              value={maxPickupDropoffHour}
+              onChangeText={setMaxPickupDropoffHour}
+              keyboardType="numeric"
+            />
+
+            <Button
+              label={savingPlatform ? i18n.t('LOADING') : i18n.t('SAVE')}
+              onPress={handleSavePlatformSettings}
+              disabled={savingPlatform}
+              style={{ marginTop: 8 }}
+            />
+          </View>
+        )}
+
         {/* Change Password Link */}
         <Pressable style={styles.changePasswordLink} onPress={() => router.push('/change-password')}>
           <MaterialIcons name="lock" size={20} color="#6B3CE6" />
@@ -283,6 +370,12 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#333',
     marginBottom: 16,
   },
   changePasswordLink: {

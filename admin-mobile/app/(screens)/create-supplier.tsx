@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import {
   View,
   Text,
@@ -8,33 +8,26 @@ import {
   Pressable,
   Alert,
 } from 'react-native'
-import { useLocalSearchParams, useRouter } from 'expo-router'
+import { useRouter } from 'expo-router'
 import * as ImagePicker from 'expo-image-picker'
 import { MaterialIcons } from '@expo/vector-icons'
 import * as bookcarsTypes from ':bookcars-types'
-import * as bookcarsHelper from ':bookcars-helper'
 
 import i18n from '@/lang/i18n'
 import * as UserService from '@/services/UserService'
 import * as SupplierService from '@/services/SupplierService'
-import * as env from '@/config/env.config'
 import * as helper from '@/utils/helper'
 import TextInput from '@/components/TextInput'
 import Button from '@/components/Button'
 import Switch from '@/components/Switch'
 import Header from '@/components/Header'
-import Indicator from '@/components/Indicator'
 import Backdrop from '@/components/Backdrop'
 
-const UpdateSupplier = () => {
-  const { id } = useLocalSearchParams<{ id: string }>()
+const CreateSupplier = () => {
   const router = useRouter()
 
-  const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [supplier, setSupplier] = useState<bookcarsTypes.User | null>(null)
   const [avatarUri, setAvatarUri] = useState<string | null>(null)
-  const [avatarChanged, setAvatarChanged] = useState(false)
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
@@ -46,49 +39,11 @@ const UpdateSupplier = () => {
   const [minimumRentalDays, setMinimumRentalDays] = useState('')
   const [priceChangeRate, setPriceChangeRate] = useState('')
   const [notifyAdminOnNewCar, setNotifyAdminOnNewCar] = useState(false)
-  const [blacklisted, setBlacklisted] = useState(false)
 
   const [fullNameError, setFullNameError] = useState(false)
+  const [emailError, setEmailError] = useState(false)
   const [fullNameErrorMsg, setFullNameErrorMsg] = useState('')
-
-  useEffect(() => {
-    const init = async () => {
-      try {
-        if (!id) {
-          setLoading(false)
-          return
-        }
-        const s = await SupplierService.getSupplier(id)
-        if (s) {
-          setSupplier(s)
-          setFullName(s.fullName || '')
-          setEmail(s.email || '')
-          setPhone(s.phone || '')
-          setLocationText(s.location || '')
-          setBio(s.bio || '')
-          setPayLater(!!s.payLater)
-          setLicenseRequired(!!s.licenseRequired)
-          setSupplierCarLimit(s.supplierCarLimit?.toString() || '')
-          setMinimumRentalDays(s.minimumRentalDays?.toString() || '')
-          setPriceChangeRate(s.priceChangeRate?.toString() || '')
-          setNotifyAdminOnNewCar(!!s.notifyAdminOnNewCar)
-          setBlacklisted(!!s.blacklisted)
-
-          if (s.avatar) {
-            const uri = (s.avatar.startsWith('http://') || s.avatar.startsWith('https://'))
-              ? s.avatar
-              : bookcarsHelper.joinURL(env.CDN_USERS, s.avatar)
-            setAvatarUri(uri)
-          }
-        }
-      } catch (err) {
-        helper.error(err)
-      } finally {
-        setLoading(false)
-      }
-    }
-    init()
-  }, [id])
+  const [emailErrorMsg, setEmailErrorMsg] = useState('')
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
@@ -104,13 +59,11 @@ const UpdateSupplier = () => {
     })
     if (!result.canceled && result.assets.length > 0) {
       setAvatarUri(result.assets[0].uri)
-      setAvatarChanged(true)
     }
   }
 
   const removeImage = () => {
     setAvatarUri(null)
-    setAvatarChanged(true)
   }
 
   const validate = async (): Promise<boolean> => {
@@ -120,7 +73,7 @@ const UpdateSupplier = () => {
       setFullNameError(true)
       setFullNameErrorMsg(i18n.t('REQUIRED'))
       valid = false
-    } else if (supplier && supplier.fullName !== fullName.trim()) {
+    } else {
       const status = await SupplierService.validateSupplier({ fullName: fullName.trim() })
       if (status !== 200) {
         setFullNameError(true)
@@ -130,52 +83,68 @@ const UpdateSupplier = () => {
         setFullNameError(false)
         setFullNameErrorMsg('')
       }
+    }
+
+    if (!email.trim()) {
+      setEmailError(true)
+      setEmailErrorMsg(i18n.t('REQUIRED'))
+      valid = false
     } else {
-      setFullNameError(false)
-      setFullNameErrorMsg('')
+      const status = await UserService.validateEmail({ email: email.trim() })
+      if (status !== 200) {
+        setEmailError(true)
+        setEmailErrorMsg(i18n.t('EMAIL_ALREADY_REGISTERED'))
+        valid = false
+      } else {
+        setEmailError(false)
+        setEmailErrorMsg('')
+      }
     }
 
     return valid
   }
 
-  const handleSave = async () => {
+  const handleCreate = async () => {
     const valid = await validate()
-    if (!valid || !id) {
+    if (!valid) {
       return
     }
 
     setSaving(true)
     try {
-      if (avatarChanged && avatarUri && id) {
+      let avatar: string | undefined
+      if (avatarUri) {
         const fileName = avatarUri.split('/').pop() || 'avatar.jpg'
         const fileType = fileName.endsWith('.png') ? 'image/png' : 'image/jpeg'
-        await UserService.updateAvatar(id, {
+        const status = await UserService.updateAvatar('temp', {
           uri: avatarUri,
           name: fileName,
           type: fileType,
         })
-      } else if (avatarChanged && !avatarUri && id) {
-        await UserService.deleteAvatar(id)
+        if (status === 200) {
+          avatar = fileName
+        }
       }
 
-      const data: bookcarsTypes.UpdateSupplierPayload = {
-        _id: id,
+      const data: bookcarsTypes.CreateUserPayload = {
         fullName: fullName.trim(),
+        email: email.trim(),
         phone,
         location: locationText,
         bio,
+        type: bookcarsTypes.RecordType.Supplier,
+        avatar,
         payLater,
         licenseRequired,
         supplierCarLimit: supplierCarLimit ? Number(supplierCarLimit) : undefined,
         minimumRentalDays: minimumRentalDays ? Number(minimumRentalDays) : undefined,
         priceChangeRate: priceChangeRate ? Number(priceChangeRate) : undefined,
         notifyAdminOnNewCar,
-        blacklisted,
       }
-
-      const status = await SupplierService.updateSupplier(data)
+      const status = await UserService.createUser(data)
       if (status === 200) {
-        helper.toast(i18n.t('SUPPLIER_UPDATED'))
+        helper.toast(i18n.t('SUPPLIER_CREATED'))
+        router.back()
       } else {
         helper.error()
       }
@@ -186,46 +155,9 @@ const UpdateSupplier = () => {
     }
   }
 
-  const handleDelete = () => {
-    Alert.alert(
-      i18n.t('CONFIRM_TITLE'),
-      i18n.t('DELETE_SUPPLIER_CONFIRM'),
-      [
-        { text: i18n.t('CANCEL'), style: 'cancel' },
-        {
-          text: i18n.t('DELETE'),
-          style: 'destructive',
-          onPress: async () => {
-            if (!id) {
-              return
-            }
-            setSaving(true)
-            try {
-              const status = await SupplierService.deleteSupplier(id)
-              if (status === 200) {
-                helper.toast(i18n.t('SUPPLIER_DELETED'))
-                router.back()
-              } else {
-                helper.error()
-              }
-            } catch (err) {
-              helper.error(err)
-            } finally {
-              setSaving(false)
-            }
-          },
-        },
-      ],
-    )
-  }
-
-  if (loading) {
-    return <Indicator />
-  }
-
   return (
     <View style={styles.container}>
-      <Header title={i18n.t('UPDATE_SUPPLIER')} loggedIn reload />
+      <Header title={i18n.t('CREATE_SUPPLIER')} loggedIn reload />
       {saving && <Backdrop />}
 
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
@@ -279,10 +211,19 @@ const UpdateSupplier = () => {
             errorMessage={fullNameErrorMsg}
           />
           <TextInput
-            label={i18n.t('EMAIL')}
+            label={`${i18n.t('EMAIL')} *`}
             value={email}
-            editable={false}
-            style={{ backgroundColor: '#f5f5f5', color: '#999' }}
+            onChangeText={(v) => {
+              setEmail(v)
+              if (emailError) {
+                setEmailError(false)
+                setEmailErrorMsg('')
+              }
+            }}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            error={emailError}
+            errorMessage={emailErrorMsg}
           />
         </View>
 
@@ -291,7 +232,6 @@ const UpdateSupplier = () => {
           <Text style={styles.sectionTitle}>{i18n.t('SUPPLIER_SETTINGS')}</Text>
           <View style={styles.sectionDivider} />
 
-          <Switch label={i18n.t('BLACKLISTED')} value={blacklisted} onValueChange={setBlacklisted} />
           <Switch label={i18n.t('PAY_LATER')} value={payLater} onValueChange={setPayLater} />
           <Switch label={i18n.t('LICENSE_REQUIRED')} value={licenseRequired} onValueChange={setLicenseRequired} />
           <Switch label={i18n.t('NOTIFY_ADMIN_ON_NEW_CAR')} value={notifyAdminOnNewCar} onValueChange={setNotifyAdminOnNewCar} />
@@ -341,14 +281,14 @@ const UpdateSupplier = () => {
         {/* Action buttons */}
         <View style={styles.buttonRow}>
           <Button
-            label={i18n.t('DELETE')}
-            variant="danger"
-            onPress={handleDelete}
+            label={i18n.t('CANCEL')}
+            variant="secondary"
+            onPress={() => router.back()}
             style={styles.actionButton}
           />
           <Button
-            label={i18n.t('SAVE')}
-            onPress={handleSave}
+            label={i18n.t('CREATE')}
+            onPress={handleCreate}
             disabled={saving}
             style={styles.actionButton}
           />
@@ -437,4 +377,4 @@ const styles = StyleSheet.create({
   },
 })
 
-export default UpdateSupplier
+export default CreateSupplier

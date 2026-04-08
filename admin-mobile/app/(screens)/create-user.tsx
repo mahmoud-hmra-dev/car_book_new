@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import {
   View,
   Text,
@@ -6,89 +6,60 @@ import {
   ScrollView,
   Image,
   Pressable,
+  Platform,
   Alert,
 } from 'react-native'
-import { useLocalSearchParams, useRouter } from 'expo-router'
+import { useRouter } from 'expo-router'
 import * as ImagePicker from 'expo-image-picker'
+import DateTimePicker from '@react-native-community/datetimepicker'
 import { MaterialIcons } from '@expo/vector-icons'
 import * as bookcarsTypes from ':bookcars-types'
-import * as bookcarsHelper from ':bookcars-helper'
 
 import i18n from '@/lang/i18n'
 import * as UserService from '@/services/UserService'
 import * as SupplierService from '@/services/SupplierService'
-import * as env from '@/config/env.config'
 import * as helper from '@/utils/helper'
 import TextInput from '@/components/TextInput'
 import Button from '@/components/Button'
 import Switch from '@/components/Switch'
 import Header from '@/components/Header'
-import Indicator from '@/components/Indicator'
 import Backdrop from '@/components/Backdrop'
 
-const UpdateSupplier = () => {
-  const { id } = useLocalSearchParams<{ id: string }>()
+const userTypes = [
+  { value: bookcarsTypes.RecordType.Admin, label: i18n.t('RECORD_TYPE_ADMIN') },
+  { value: bookcarsTypes.RecordType.Supplier, label: i18n.t('RECORD_TYPE_SUPPLIER') },
+  { value: bookcarsTypes.RecordType.User, label: i18n.t('RECORD_TYPE_USER') },
+]
+
+const CreateUser = () => {
   const router = useRouter()
 
-  const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [supplier, setSupplier] = useState<bookcarsTypes.User | null>(null)
+  const [type, setType] = useState<string>(bookcarsTypes.RecordType.User)
   const [avatarUri, setAvatarUri] = useState<string | null>(null)
-  const [avatarChanged, setAvatarChanged] = useState(false)
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [locationText, setLocationText] = useState('')
   const [bio, setBio] = useState('')
+  const [birthDate, setBirthDate] = useState<Date | null>(null)
+  const [showDatePicker, setShowDatePicker] = useState(false)
+
+  // Supplier-specific fields
   const [payLater, setPayLater] = useState(false)
   const [licenseRequired, setLicenseRequired] = useState(false)
   const [supplierCarLimit, setSupplierCarLimit] = useState('')
   const [minimumRentalDays, setMinimumRentalDays] = useState('')
   const [priceChangeRate, setPriceChangeRate] = useState('')
   const [notifyAdminOnNewCar, setNotifyAdminOnNewCar] = useState(false)
-  const [blacklisted, setBlacklisted] = useState(false)
 
   const [fullNameError, setFullNameError] = useState(false)
+  const [emailError, setEmailError] = useState(false)
   const [fullNameErrorMsg, setFullNameErrorMsg] = useState('')
+  const [emailErrorMsg, setEmailErrorMsg] = useState('')
 
-  useEffect(() => {
-    const init = async () => {
-      try {
-        if (!id) {
-          setLoading(false)
-          return
-        }
-        const s = await SupplierService.getSupplier(id)
-        if (s) {
-          setSupplier(s)
-          setFullName(s.fullName || '')
-          setEmail(s.email || '')
-          setPhone(s.phone || '')
-          setLocationText(s.location || '')
-          setBio(s.bio || '')
-          setPayLater(!!s.payLater)
-          setLicenseRequired(!!s.licenseRequired)
-          setSupplierCarLimit(s.supplierCarLimit?.toString() || '')
-          setMinimumRentalDays(s.minimumRentalDays?.toString() || '')
-          setPriceChangeRate(s.priceChangeRate?.toString() || '')
-          setNotifyAdminOnNewCar(!!s.notifyAdminOnNewCar)
-          setBlacklisted(!!s.blacklisted)
-
-          if (s.avatar) {
-            const uri = (s.avatar.startsWith('http://') || s.avatar.startsWith('https://'))
-              ? s.avatar
-              : bookcarsHelper.joinURL(env.CDN_USERS, s.avatar)
-            setAvatarUri(uri)
-          }
-        }
-      } catch (err) {
-        helper.error(err)
-      } finally {
-        setLoading(false)
-      }
-    }
-    init()
-  }, [id])
+  const isSupplier = type === bookcarsTypes.RecordType.Supplier
+  const isUser = type === bookcarsTypes.RecordType.User
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
@@ -104,14 +75,26 @@ const UpdateSupplier = () => {
     })
     if (!result.canceled && result.assets.length > 0) {
       setAvatarUri(result.assets[0].uri)
-      setAvatarChanged(true)
     }
   }
 
   const removeImage = () => {
     setAvatarUri(null)
-    setAvatarChanged(true)
   }
+
+  const handleDateChange = (_event: any, selectedDate?: Date) => {
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false)
+    }
+    if (selectedDate) {
+      setBirthDate(selectedDate)
+      if (Platform.OS === 'ios') {
+        setShowDatePicker(false)
+      }
+    }
+  }
+
+  const formatDate = (date: Date) => date.toLocaleDateString()
 
   const validate = async (): Promise<boolean> => {
     let valid = true
@@ -120,7 +103,7 @@ const UpdateSupplier = () => {
       setFullNameError(true)
       setFullNameErrorMsg(i18n.t('REQUIRED'))
       valid = false
-    } else if (supplier && supplier.fullName !== fullName.trim()) {
+    } else if (isSupplier) {
       const status = await SupplierService.validateSupplier({ fullName: fullName.trim() })
       if (status !== 200) {
         setFullNameError(true)
@@ -135,47 +118,76 @@ const UpdateSupplier = () => {
       setFullNameErrorMsg('')
     }
 
+    if (!email.trim()) {
+      setEmailError(true)
+      setEmailErrorMsg(i18n.t('REQUIRED'))
+      valid = false
+    } else {
+      const status = await UserService.validateEmail({ email: email.trim() })
+      if (status !== 200) {
+        setEmailError(true)
+        setEmailErrorMsg(i18n.t('EMAIL_ALREADY_REGISTERED'))
+        valid = false
+      } else {
+        setEmailError(false)
+        setEmailErrorMsg('')
+      }
+    }
+
+    if (isSupplier && !avatarUri) {
+      Alert.alert(i18n.t('ERROR'), i18n.t('IMAGE_REQUIRED'))
+      valid = false
+    }
+
     return valid
   }
 
-  const handleSave = async () => {
+  const handleCreate = async () => {
     const valid = await validate()
-    if (!valid || !id) {
+    if (!valid) {
       return
     }
 
     setSaving(true)
     try {
-      if (avatarChanged && avatarUri && id) {
+      let avatar: string | undefined
+      if (avatarUri) {
         const fileName = avatarUri.split('/').pop() || 'avatar.jpg'
         const fileType = fileName.endsWith('.png') ? 'image/png' : 'image/jpeg'
-        await UserService.updateAvatar(id, {
+        const status = await UserService.updateAvatar('temp', {
           uri: avatarUri,
           name: fileName,
           type: fileType,
         })
-      } else if (avatarChanged && !avatarUri && id) {
-        await UserService.deleteAvatar(id)
+        if (status === 200) {
+          avatar = fileName
+        }
       }
 
-      const data: bookcarsTypes.UpdateSupplierPayload = {
-        _id: id,
+      const data: bookcarsTypes.CreateUserPayload = {
         fullName: fullName.trim(),
+        email: email.trim(),
         phone,
         location: locationText,
         bio,
-        payLater,
-        licenseRequired,
-        supplierCarLimit: supplierCarLimit ? Number(supplierCarLimit) : undefined,
-        minimumRentalDays: minimumRentalDays ? Number(minimumRentalDays) : undefined,
-        priceChangeRate: priceChangeRate ? Number(priceChangeRate) : undefined,
-        notifyAdminOnNewCar,
-        blacklisted,
+        type,
+        avatar,
+        birthDate: isUser && birthDate ? birthDate : undefined,
       }
 
-      const status = await SupplierService.updateSupplier(data)
+      if (isSupplier) {
+        data.payLater = payLater
+        data.licenseRequired = licenseRequired
+        data.supplierCarLimit = supplierCarLimit ? Number(supplierCarLimit) : undefined
+        data.minimumRentalDays = minimumRentalDays ? Number(minimumRentalDays) : undefined
+        data.priceChangeRate = priceChangeRate ? Number(priceChangeRate) : undefined
+        data.notifyAdminOnNewCar = notifyAdminOnNewCar
+      }
+
+      const status = await UserService.createUser(data)
       if (status === 200) {
-        helper.toast(i18n.t('SUPPLIER_UPDATED'))
+        helper.toast(i18n.t('USER_CREATED'))
+        router.back()
       } else {
         helper.error()
       }
@@ -186,49 +198,29 @@ const UpdateSupplier = () => {
     }
   }
 
-  const handleDelete = () => {
-    Alert.alert(
-      i18n.t('CONFIRM_TITLE'),
-      i18n.t('DELETE_SUPPLIER_CONFIRM'),
-      [
-        { text: i18n.t('CANCEL'), style: 'cancel' },
-        {
-          text: i18n.t('DELETE'),
-          style: 'destructive',
-          onPress: async () => {
-            if (!id) {
-              return
-            }
-            setSaving(true)
-            try {
-              const status = await SupplierService.deleteSupplier(id)
-              if (status === 200) {
-                helper.toast(i18n.t('SUPPLIER_DELETED'))
-                router.back()
-              } else {
-                helper.error()
-              }
-            } catch (err) {
-              helper.error(err)
-            } finally {
-              setSaving(false)
-            }
-          },
-        },
-      ],
-    )
-  }
-
-  if (loading) {
-    return <Indicator />
-  }
-
   return (
     <View style={styles.container}>
-      <Header title={i18n.t('UPDATE_SUPPLIER')} loggedIn reload />
+      <Header title={i18n.t('CREATE_USER')} loggedIn reload />
       {saving && <Backdrop />}
 
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        {/* Type selector */}
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>{i18n.t('TYPE')}</Text>
+          <View style={styles.sectionDivider} />
+          <View style={styles.chipWrap}>
+            {userTypes.map((ut) => (
+              <Pressable
+                key={ut.value}
+                style={[styles.chip, type === ut.value && styles.chipActive]}
+                onPress={() => setType(ut.value)}
+              >
+                <Text style={[styles.chipText, type === ut.value && styles.chipTextActive]}>{ut.label}</Text>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+
         {/* Avatar & Identity */}
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>{i18n.t('AVATAR_AND_IDENTITY')}</Text>
@@ -260,10 +252,12 @@ const UpdateSupplier = () => {
             </View>
           </View>
 
-          <Text style={styles.hint}>
-            <MaterialIcons name="info-outline" size={13} color="#999" />
-            {' '}{i18n.t('RECOMMENDED_IMAGE_SIZE')}
-          </Text>
+          {isSupplier && (
+            <Text style={styles.hint}>
+              <MaterialIcons name="info-outline" size={13} color="#999" />
+              {' '}{i18n.t('RECOMMENDED_IMAGE_SIZE')}
+            </Text>
+          )}
 
           <TextInput
             label={`${i18n.t('FULL_NAME')} *`}
@@ -279,46 +273,42 @@ const UpdateSupplier = () => {
             errorMessage={fullNameErrorMsg}
           />
           <TextInput
-            label={i18n.t('EMAIL')}
+            label={`${i18n.t('EMAIL')} *`}
             value={email}
-            editable={false}
-            style={{ backgroundColor: '#f5f5f5', color: '#999' }}
+            onChangeText={(v) => {
+              setEmail(v)
+              if (emailError) {
+                setEmailError(false)
+                setEmailErrorMsg('')
+              }
+            }}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            error={emailError}
+            errorMessage={emailErrorMsg}
           />
-        </View>
 
-        {/* Settings */}
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>{i18n.t('SUPPLIER_SETTINGS')}</Text>
-          <View style={styles.sectionDivider} />
-
-          <Switch label={i18n.t('BLACKLISTED')} value={blacklisted} onValueChange={setBlacklisted} />
-          <Switch label={i18n.t('PAY_LATER')} value={payLater} onValueChange={setPayLater} />
-          <Switch label={i18n.t('LICENSE_REQUIRED')} value={licenseRequired} onValueChange={setLicenseRequired} />
-          <Switch label={i18n.t('NOTIFY_ADMIN_ON_NEW_CAR')} value={notifyAdminOnNewCar} onValueChange={setNotifyAdminOnNewCar} />
-
-          <Text style={styles.hint}>
-            <MaterialIcons name="info-outline" size={13} color="#999" />
-            {' '}{i18n.t('OPTIONAL')}
-          </Text>
-
-          <TextInput
-            label={i18n.t('SUPPLIER_CAR_LIMIT')}
-            value={supplierCarLimit}
-            onChangeText={setSupplierCarLimit}
-            keyboardType="numeric"
-          />
-          <TextInput
-            label={i18n.t('MIN_RENTAL_DAYS')}
-            value={minimumRentalDays}
-            onChangeText={setMinimumRentalDays}
-            keyboardType="numeric"
-          />
-          <TextInput
-            label={i18n.t('PRICE_CHANGE_RATE')}
-            value={priceChangeRate}
-            onChangeText={setPriceChangeRate}
-            keyboardType="numeric"
-          />
+          {/* Birth date - only for User type */}
+          {isUser && (
+            <View style={styles.dateSection}>
+              <Text style={styles.fieldLabel}>{i18n.t('BIRTH_DATE')}</Text>
+              <Pressable style={styles.datePicker} onPress={() => setShowDatePicker(true)}>
+                <Text style={[styles.dateText, !birthDate && styles.datePlaceholder]}>
+                  {birthDate ? formatDate(birthDate) : i18n.t('BIRTH_DATE')}
+                </Text>
+                <MaterialIcons name="calendar-today" size={18} color="#999" />
+              </Pressable>
+              {showDatePicker && (
+                <DateTimePicker
+                  value={birthDate || new Date()}
+                  mode="date"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  onChange={handleDateChange}
+                  maximumDate={new Date()}
+                />
+              )}
+            </View>
+          )}
         </View>
 
         {/* Contact Information */}
@@ -338,17 +328,53 @@ const UpdateSupplier = () => {
           />
         </View>
 
+        {/* Supplier Settings - only for Supplier type */}
+        {isSupplier && (
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>{i18n.t('SUPPLIER_SETTINGS')}</Text>
+            <View style={styles.sectionDivider} />
+
+            <Switch label={i18n.t('PAY_LATER')} value={payLater} onValueChange={setPayLater} />
+            <Switch label={i18n.t('LICENSE_REQUIRED')} value={licenseRequired} onValueChange={setLicenseRequired} />
+            <Switch label={i18n.t('NOTIFY_ADMIN_ON_NEW_CAR')} value={notifyAdminOnNewCar} onValueChange={setNotifyAdminOnNewCar} />
+
+            <Text style={styles.hint}>
+              <MaterialIcons name="info-outline" size={13} color="#999" />
+              {' '}{i18n.t('OPTIONAL')}
+            </Text>
+
+            <TextInput
+              label={i18n.t('SUPPLIER_CAR_LIMIT')}
+              value={supplierCarLimit}
+              onChangeText={setSupplierCarLimit}
+              keyboardType="numeric"
+            />
+            <TextInput
+              label={i18n.t('MIN_RENTAL_DAYS')}
+              value={minimumRentalDays}
+              onChangeText={setMinimumRentalDays}
+              keyboardType="numeric"
+            />
+            <TextInput
+              label={i18n.t('PRICE_CHANGE_RATE')}
+              value={priceChangeRate}
+              onChangeText={setPriceChangeRate}
+              keyboardType="numeric"
+            />
+          </View>
+        )}
+
         {/* Action buttons */}
         <View style={styles.buttonRow}>
           <Button
-            label={i18n.t('DELETE')}
-            variant="danger"
-            onPress={handleDelete}
+            label={i18n.t('CANCEL')}
+            variant="secondary"
+            onPress={() => router.back()}
             style={styles.actionButton}
           />
           <Button
-            label={i18n.t('SAVE')}
-            onPress={handleSave}
+            label={i18n.t('CREATE')}
+            onPress={handleCreate}
             disabled={saving}
             style={styles.actionButton}
           />
@@ -382,6 +408,30 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: '#eee',
     marginBottom: 16,
+  },
+  chipWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  chip: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  chipActive: {
+    borderColor: '#6B3CE6',
+    backgroundColor: '#6B3CE6',
+  },
+  chipText: {
+    color: '#666',
+    fontSize: 14,
+  },
+  chipTextActive: {
+    color: '#fff',
+    fontWeight: '600',
   },
   avatarContainer: {
     flexDirection: 'row',
@@ -426,6 +476,33 @@ const styles = StyleSheet.create({
     color: '#999',
     marginBottom: 16,
   },
+  fieldLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 6,
+  },
+  dateSection: {
+    marginBottom: 16,
+  },
+  datePicker: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    backgroundColor: '#fafafa',
+  },
+  dateText: {
+    fontSize: 15,
+    color: '#333',
+  },
+  datePlaceholder: {
+    color: '#999',
+  },
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
@@ -437,4 +514,4 @@ const styles = StyleSheet.create({
   },
 })
 
-export default UpdateSupplier
+export default CreateUser

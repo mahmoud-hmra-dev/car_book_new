@@ -22,6 +22,7 @@ import {
   BC_DEPOSIT_FILTER_VALUE_3,
   BC_WEBSITE_NAME,
   BC_GOOGLE_WEB_CLIENT_ID,
+  BC_GOOGLE_MAPS_API_KEY,
 } from '@env'
 
 export const LANGUAGES = [
@@ -59,3 +60,4 @@ export const DEPOSIT_FILTER_VALUE_1: number = Number(BC_DEPOSIT_FILTER_VALUE_1)
 export const DEPOSIT_FILTER_VALUE_2: number = Number(BC_DEPOSIT_FILTER_VALUE_2)
 export const DEPOSIT_FILTER_VALUE_3: number = Number(BC_DEPOSIT_FILTER_VALUE_3)
 export const GOOGLE_WEB_CLIENT_ID: string = String(BC_GOOGLE_WEB_CLIENT_ID)
+export const GOOGLE_MAPS_API_KEY: string = String(BC_GOOGLE_MAPS_API_KEY || '')

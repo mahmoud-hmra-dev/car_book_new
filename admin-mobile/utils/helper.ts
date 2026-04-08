@@ -254,6 +254,9 @@ export const getCarRange = (range: bookcarsTypes.CarRange) => {
   }
 }
 
+export const carOptionAvailable = (car: bookcarsTypes.Car | undefined | null, option: string) =>
+  car && option in car && (car[option as keyof bookcarsTypes.Car] as number) > -1
+
 export const getBookingStatusColor = (status: bookcarsTypes.BookingStatus) => {
   switch (status) {
     case bookcarsTypes.BookingStatus.Void:

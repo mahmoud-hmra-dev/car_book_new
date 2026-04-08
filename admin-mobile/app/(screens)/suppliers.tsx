@@ -98,7 +98,7 @@ const Suppliers = () => {
     return (
       <Pressable
         style={styles.itemCard}
-        onPress={() => router.push({ pathname: '/update-supplier', params: { id: item._id } })}
+        onPress={() => router.push({ pathname: '/supplier', params: { id: item._id } })}
       >
         <View style={styles.itemRow}>
           {avatarUrl
@@ -121,6 +121,10 @@ const Suppliers = () => {
       <Header title={i18n.t('SUPPLIERS')} loggedIn reload />
       <View style={styles.toolbar}>
         <Search value={search} onChangeText={setSearch} onClear={() => setSearch('')} />
+        <Pressable style={styles.createButton} onPress={() => router.push('/create-supplier')}>
+          <MaterialIcons name="add" size={20} color="#fff" />
+          <Text style={styles.createButtonText}>{i18n.t('CREATE_SUPPLIER')}</Text>
+        </Pressable>
       </View>
       {loading ? (
         <Indicator />
@@ -145,6 +149,18 @@ const Suppliers = () => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F5F5' },
   toolbar: { padding: 16, paddingBottom: 0 },
+  createButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#6B3CE6',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    alignSelf: 'flex-start',
+    marginBottom: 12,
+    gap: 6,
+  },
+  createButtonText: { color: '#fff', fontWeight: '600', fontSize: 14 },
   list: { padding: 16, paddingTop: 4 },
   itemCard: {
     backgroundColor: '#fff',

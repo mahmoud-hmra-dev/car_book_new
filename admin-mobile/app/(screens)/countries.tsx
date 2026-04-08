@@ -91,7 +91,10 @@ const Countries = () => {
   }
 
   const renderCountry = ({ item }: { item: bookcarsTypes.Country }) => (
-    <View style={styles.itemCard}>
+    <Pressable
+      style={styles.itemCard}
+      onPress={() => router.push({ pathname: '/update-country', params: { id: item._id } })}
+    >
       <View style={styles.itemRow}>
         <MaterialIcons name="public" size={24} color="#6B3CE6" />
         <Text style={styles.itemName}>{item.name}</Text>
@@ -99,7 +102,7 @@ const Countries = () => {
           <MaterialIcons name="delete-outline" size={20} color="#EF4444" />
         </Pressable>
       </View>
-    </View>
+    </Pressable>
   )
 
   return (
