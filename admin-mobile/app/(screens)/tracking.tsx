@@ -17,6 +17,7 @@ import {
   Modal,
 } from 'react-native'
 import { MaterialIcons } from '@expo/vector-icons'
+import { useRouter } from 'expo-router'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { format } from 'date-fns'
 import * as bookcarsTypes from ':bookcars-types'
@@ -32,8 +33,6 @@ import {
   STATUS_COLORS,
   STATUS_LABELS,
   formatRelativeAge,
-  formatDistanceKm,
-  formatDuration,
   formatCoordinate,
   formatTimestamp,
   buildFleetVehicles,
@@ -90,6 +89,8 @@ const buildCircleArea = (lat: number, lng: number, radiusMeters: number) =>
   `CIRCLE (${lat} ${lng}, ${radiusMeters})`
 
 const Tracking = () => {
+  const router = useRouter()
+
   // ── View state ──
   const [view, setView] = useState<'fleet' | 'vehicle'>('fleet')
   const [selectedCarId, setSelectedCarId] = useState<string>('')
@@ -660,54 +661,86 @@ const Tracking = () => {
   }, [view, activeTab, selectedCarId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── My location handler ──
-  const handleMyLocation = useCallback(() => {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { getCurrentPositionAsync, requestForegroundPermissionsAsync } = require('expo-location')
-    ;(async () => {
-      try {
-        const { status } = await requestForegroundPermissionsAsync()
-        if (status !== 'granted') {
-          Alert.alert('Permission denied', 'Location permission is required')
-          return
-        }
-        const location = await getCurrentPositionAsync({ accuracy: 4 })
-        setMyLat(location.coords.latitude)
-        setMyLng(location.coords.longitude)
-        setShowMyLoc(true)
-      } catch (err) {
-        helper.error(err)
+  const fetchMyLocation = useCallback(async () => {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { getCurrentPositionAsync, requestForegroundPermissionsAsync } = require('expo-location')
+      const { status } = await requestForegroundPermissionsAsync()
+      if (status !== 'granted') {
+        Alert.alert('Permission denied', 'Location permission is required')
+        return
       }
-    })()
+      const location = await getCurrentPositionAsync({ accuracy: 4 })
+      setMyLat(location.coords.latitude)
+      setMyLng(location.coords.longitude)
+      setShowMyLoc(true)
+    } catch (err) {
+      helper.error(err)
+    }
   }, [])
+
+  // Handle map press including my-location sentinel
+  const handleFleetMapPress = useCallback((lat: number, lng: number) => {
+    if (lat === -999 && lng === -999) {
+      fetchMyLocation()
+    }
+  }, [fetchMyLocation])
+
+  const handleVehicleMapPress = useCallback((lat: number, lng: number) => {
+    if (lat === -999 && lng === -999) {
+      fetchMyLocation()
+      return
+    }
+    if (geoDrawMode) {
+      handleMapPressForGeo(lat, lng)
+    }
+  }, [geoDrawMode, handleMapPressForGeo, fetchMyLocation])
 
   // ════════════════════════════════════════════════════════════════
   // FLEET VIEW
   // ════════════════════════════════════════════════════════════════
 
+  const onlineCount = counts.moving + counts.idle + counts.stopped
+  const fleetHealthPct = counts.all > 0 ? Math.round((onlineCount / counts.all) * 100) : 0
+
   const renderFleetStatusBar = () => (
-    <View style={st.fleetStatusBar}>
-      {[
-        { label: 'Total', value: counts.all, color: PRIMARY },
-        { label: 'Moving', value: counts.moving, color: GREEN },
-        { label: 'Idle', value: counts.idle, color: ORANGE },
-        { label: 'Stopped', value: counts.stopped, color: BLUE },
-        { label: 'Offline', value: counts.offline, color: TEXT_MUTED_COLOR },
-      ].map((stat) => (
-        <View key={stat.label} style={st.fleetStatusItem}>
-          <Text style={[st.fleetStatusValue, { color: stat.color }]}>{stat.value}</Text>
-          <Text style={st.fleetStatusLabel}>{stat.label}</Text>
+    <View>
+      {/* Fleet health bar */}
+      <View style={st.healthRow}>
+        <View style={st.healthBarTrack}>
+          <View style={[st.healthBarFill, { width: `${fleetHealthPct}%`, backgroundColor: fleetHealthPct > 70 ? GREEN : fleetHealthPct > 40 ? ORANGE : RED }]} />
         </View>
-      ))}
+        <Text style={st.healthPct}>{fleetHealthPct}%</Text>
+      </View>
+      {/* Status counts */}
+      <View style={st.fleetStatusBar}>
+        {[
+          { label: 'Total', value: counts.all, color: PRIMARY, icon: 'apps' as const },
+          { label: 'Moving', value: counts.moving, color: GREEN, icon: 'navigation' as const },
+          { label: 'Idle', value: counts.idle, color: ORANGE, icon: 'pause-circle-outline' as const },
+          { label: 'Stopped', value: counts.stopped, color: BLUE, icon: 'stop-circle' as const },
+          { label: 'Offline', value: counts.offline, color: TEXT_MUTED_COLOR, icon: 'cloud-off' as const },
+        ].map((stat) => (
+          <Pressable key={stat.label} style={st.fleetStatusItem} onPress={() => setStatusFilter(stat.label === 'Total' ? 'all' : stat.label.toLowerCase())}>
+            <MaterialIcons name={stat.icon} size={14} color={stat.color} />
+            <Text style={[st.fleetStatusValue, { color: stat.color }]}>{stat.value}</Text>
+            <Text style={st.fleetStatusLabel}>{stat.label}</Text>
+          </Pressable>
+        ))}
+      </View>
     </View>
   )
 
   const renderVehicleListItem = ({ item }: { item: FleetVehicle }) => {
     const dotColor = STATUS_COLORS[item.status] || '#64748b'
     const statusLabel = STATUS_LABELS[item.status] || item.status
+    const battery = typeof item.batteryLevel === 'number' ? Math.round(item.batteryLevel) : null
+    const batColor = battery !== null ? (battery > 50 ? GREEN : battery > 20 ? ORANGE : RED) : TEXT_MUTED_COLOR
     return (
       <Pressable style={st.vehicleListItem} onPress={() => openVehicle(item.carId)}>
+        {/* Left: car icon + info */}
         <View style={st.vehicleListLeft}>
-          <View style={[st.vehicleIconCircle, { borderColor: dotColor }]}>
+          <View style={[st.vehicleIconCircle, { borderColor: dotColor, backgroundColor: `${dotColor}10` }]}>
             <MaterialIcons name="directions-car" size={18} color={dotColor} />
           </View>
           <View style={st.vehicleListInfo}>
@@ -716,10 +749,37 @@ const Tracking = () => {
               {item.licensePlate || '---'}
               {item.supplier ? ` \u00B7 ${item.supplier}` : ''}
             </Text>
+            {/* Micro indicators row */}
+            <View style={st.microRow}>
+              {/* Speed */}
+              <View style={st.microItem}>
+                <MaterialIcons name="speed" size={10} color={item.speed > 0 ? GREEN : TEXT_MUTED_COLOR} />
+                <Text style={[st.microText, item.speed > 0 && { color: GREEN }]}>{Math.round(item.speed)} km/h</Text>
+              </View>
+              {/* Ignition */}
+              <View style={st.microItem}>
+                <MaterialIcons name="local-fire-department" size={10} color={item.ignition ? GREEN : RED} />
+                <Text style={[st.microText, { color: item.ignition ? GREEN : RED }]}>{item.ignition ? 'ON' : 'OFF'}</Text>
+              </View>
+              {/* Battery */}
+              {battery !== null && (
+                <View style={st.microItem}>
+                  <MaterialIcons name="battery-std" size={10} color={batColor} />
+                  <Text style={[st.microText, { color: batColor }]}>{battery}%</Text>
+                </View>
+              )}
+              {/* Satellites */}
+              {item.sat != null && (
+                <View style={st.microItem}>
+                  <MaterialIcons name="satellite-alt" size={10} color={item.sat >= 8 ? GREEN : item.sat >= 4 ? ORANGE : RED} />
+                  <Text style={st.microText}>{item.sat}</Text>
+                </View>
+              )}
+            </View>
           </View>
         </View>
+        {/* Right: status + time */}
         <View style={st.vehicleListRight}>
-          {item.speed > 0 && <Text style={[st.vehicleListSpeed, { color: GREEN }]}>{Math.round(item.speed)} km/h</Text>}
           <View style={[st.vehicleStatusPill, { backgroundColor: `${dotColor}15` }]}>
             <View style={[st.vehicleStatusDot, { backgroundColor: dotColor }]} />
             <Text style={[st.vehicleStatusText, { color: dotColor }]}>{statusLabel}</Text>
@@ -737,7 +797,7 @@ const Tracking = () => {
         markers={fleetMarkers}
         selectedMarkerId={selectedCarId}
         onMarkerPress={handleFleetMarkerPress}
-        onMyLocationPress={handleMyLocation}
+        onMapPress={handleFleetMapPress}
         showMyLocation={showMyLoc}
         myLocationLat={myLat}
         myLocationLng={myLng}
@@ -886,6 +946,9 @@ const Tracking = () => {
     if (!selectedVehicle) return null
     const battery = typeof selectedVehicle.batteryLevel === 'number' ? Math.round(selectedVehicle.batteryLevel) : null
     const batteryPercent = battery !== null ? Math.min(100, Math.max(0, battery)) : 0
+    const sat = selectedVehicle.sat
+    const satColor = sat != null ? (sat >= 8 ? GREEN : sat >= 4 ? ORANGE : RED) : TEXT_MUTED_COLOR
+    const accColor = selectedVehicle.accuracy != null ? (selectedVehicle.accuracy < 10 ? GREEN : selectedVehicle.accuracy < 30 ? ORANGE : RED) : TEXT_MUTED_COLOR
     const coords =
       selectedVehicle.latitude != null && selectedVehicle.longitude != null
         ? `${formatCoordinate(selectedVehicle.latitude)}, ${formatCoordinate(selectedVehicle.longitude)}`
@@ -893,41 +956,77 @@ const Tracking = () => {
 
     return (
       <ScrollView style={st.tabScroll} showsVerticalScrollIndicator={false}>
-        <View style={st.metricsRow}>
-          <View style={st.metricBox}>
-            <MaterialIcons name="speed" size={20} color={PRIMARY} />
-            <Text style={st.metricVal}>{Math.round(selectedVehicle.speed)}<Text style={st.metricUnit}> km/h</Text></Text>
-            <Text style={st.metricLbl}>SPEED</Text>
+        {/* Connection status bar (like Softrasys) */}
+        <View style={st.connectionBar}>
+          <View style={[st.connDot, { backgroundColor: isLinked ? GREEN : RED }]} />
+          <Text style={[st.connLabel, { color: isLinked ? GREEN : RED }]}>
+            {isLinked ? 'Online' : 'Offline'}
+          </Text>
+          <View style={st.connSpacer} />
+          <Text style={st.connMode}>Mode: GPS</Text>
+          {sat != null && <Text style={[st.connSat, { color: satColor }]}>SAT: {sat}</Text>}
+        </View>
+
+        {/* Main metrics - 2x2 grid */}
+        <View style={st.metricsGrid}>
+          {/* Speed - big */}
+          <View style={[st.metricBoxLg, { borderColor: selectedVehicle.speed > 0 ? `${GREEN}30` : BORDER_COLOR }]}>
+            <MaterialIcons name="speed" size={22} color={selectedVehicle.speed > 0 ? GREEN : TEXT_MUTED_COLOR} />
+            <Text style={[st.metricValLg, selectedVehicle.speed > 0 && { color: GREEN }]}>
+              {Math.round(selectedVehicle.speed)}
+            </Text>
+            <Text style={st.metricUnitLg}>km/h</Text>
           </View>
-          <View style={st.metricBox}>
-            <MaterialIcons name="battery-charging-full" size={20} color={battery !== null ? (battery > 50 ? GREEN : battery > 20 ? ORANGE : RED) : TEXT_MUTED_COLOR} />
-            <Text style={st.metricVal}>{battery !== null ? battery : '-'}<Text style={st.metricUnit}> %</Text></Text>
-            <Text style={st.metricLbl}>BATTERY</Text>
+          {/* Battery */}
+          <View style={[st.metricBoxLg, { borderColor: battery !== null ? `${battery > 50 ? GREEN : battery > 20 ? ORANGE : RED}30` : BORDER_COLOR }]}>
+            <MaterialIcons name="battery-charging-full" size={22} color={battery !== null ? (battery > 50 ? GREEN : battery > 20 ? ORANGE : RED) : TEXT_MUTED_COLOR} />
+            <Text style={st.metricValLg}>{battery !== null ? battery : '-'}</Text>
+            <Text style={st.metricUnitLg}>%</Text>
             {battery !== null && (
               <View style={st.batteryTrack}>
                 <View style={[st.batteryFill, { width: `${batteryPercent}%`, backgroundColor: battery > 50 ? GREEN : battery > 20 ? ORANGE : RED }]} />
               </View>
             )}
           </View>
-          <View style={st.metricBox}>
-            <MaterialIcons name="local-fire-department" size={20} color={selectedVehicle.ignition ? GREEN : RED} />
-            <Text style={[st.metricVal, { color: selectedVehicle.ignition ? GREEN : RED }]}>{selectedVehicle.ignition ? 'ON' : 'OFF'}</Text>
-            <Text style={st.metricLbl}>IGNITION</Text>
+          {/* Ignition */}
+          <View style={[st.metricBoxLg, { borderColor: `${selectedVehicle.ignition ? GREEN : RED}30` }]}>
+            <MaterialIcons name="local-fire-department" size={22} color={selectedVehicle.ignition ? GREEN : RED} />
+            <Text style={[st.metricValLg, { color: selectedVehicle.ignition ? GREEN : RED, fontSize: 18 }]}>
+              {selectedVehicle.ignition ? 'ON' : 'OFF'}
+            </Text>
+            <Text style={st.metricUnitLg}>Engine</Text>
+          </View>
+          {/* GPS Accuracy */}
+          <View style={[st.metricBoxLg, { borderColor: `${accColor}30` }]}>
+            <MaterialIcons name="satellite-alt" size={22} color={satColor} />
+            <Text style={[st.metricValLg, { color: accColor }]}>
+              {selectedVehicle.accuracy != null ? `${Math.round(selectedVehicle.accuracy)}m` : '-'}
+            </Text>
+            <Text style={st.metricUnitLg}>GPS</Text>
           </View>
         </View>
 
+        {/* Detail card */}
         <View style={st.detailCard}>
           <View style={st.detailRow}><MaterialIcons name="memory" size={15} color={TEXT_MUTED_COLOR} /><Text style={st.detailLabel}>Device</Text><Text style={st.detailValue} numberOfLines={1}>{selectedVehicle.deviceName || '-'}</Text></View>
           <View style={st.detailDivider} />
           <View style={st.detailRow}><MaterialIcons name="gps-fixed" size={15} color={TEXT_MUTED_COLOR} /><Text style={st.detailLabel}>Coordinates</Text><Text style={st.detailValue} numberOfLines={1}>{coords}</Text></View>
           <View style={st.detailDivider} />
+          <View style={st.detailRow}><MaterialIcons name="satellite-alt" size={15} color={satColor} /><Text style={st.detailLabel}>Satellites</Text><Text style={[st.detailValue, { color: satColor }]}>{sat != null ? sat : '-'}</Text></View>
+          <View style={st.detailDivider} />
           <View style={st.detailRow}><MaterialIcons name="access-time" size={15} color={TEXT_MUTED_COLOR} /><Text style={st.detailLabel}>Last Update</Text><Text style={st.detailValue} numberOfLines={1}>{formatTimestamp(selectedVehicle.lastUpdate)}</Text></View>
+          {selectedVehicle.totalDistance != null && (<>
+            <View style={st.detailDivider} />
+            <View style={st.detailRow}><MaterialIcons name="straighten" size={15} color={TEXT_MUTED_COLOR} /><Text style={st.detailLabel}>Mileage</Text><Text style={st.detailValue}>{Math.round(selectedVehicle.totalDistance / 1000).toLocaleString()} km</Text></View>
+          </>)}
         </View>
 
+        {/* Address */}
         {!!selectedVehicle.address && (
           <View style={st.addressBar}><MaterialIcons name="place" size={16} color={PRIMARY} /><Text style={st.addressText}>{selectedVehicle.address}</Text></View>
         )}
 
+        {/* Load Snapshot */}
         <Pressable style={[st.actionBtn, (!isLinked || loadingSnapshot) && st.actionBtnDisabled]} onPress={loadSnapshot} disabled={!isLinked || loadingSnapshot}>
           <MaterialIcons name="camera" size={16} color="#fff" />
           <Text style={st.actionBtnText}>{loadingSnapshot ? 'Loading...' : 'Load Snapshot'}</Text>
@@ -941,49 +1040,34 @@ const Tracking = () => {
   }
 
   // ── Route Tab ──
+  const openMovementHistory = () => {
+    if (!selectedVehicle) return
+    router.push({
+      pathname: '/movement-history',
+      params: {
+        carId: selectedVehicle.carId,
+        carName: selectedVehicle.carName,
+        licensePlate: selectedVehicle.licensePlate || '',
+      },
+    })
+  }
+
   const renderRouteTab = () => (
     <ScrollView style={st.tabScroll} showsVerticalScrollIndicator={false}>
-      {renderDatePickers()}
-      <Pressable style={[st.actionBtn, (loadingRoute || !isLinked) && st.actionBtnDisabled]} onPress={loadRoute} disabled={loadingRoute || !isLinked}>
-        <MaterialIcons name="route" size={16} color="#fff" />
-        <Text style={st.actionBtnText}>{loadingRoute ? 'Loading...' : 'Load Route'}</Text>
-      </Pressable>
-
-      {routeStats && (
-        <View style={st.routeGrid}>
-          {[
-            { label: 'DISTANCE', value: formatDistanceKm(routeStats.distance), icon: 'straighten' as const },
-            { label: 'DURATION', value: formatDuration(routeStats.duration), icon: 'timer' as const },
-            { label: 'AVG SPEED', value: routeStats.avgSpeed ? `${Math.round(routeStats.avgSpeed)} km/h` : '-', icon: 'speed' as const },
-            { label: 'MAX SPEED', value: routeStats.maxSpeed ? `${Math.round(routeStats.maxSpeed)} km/h` : '-', icon: 'flash-on' as const },
-          ].map((stat) => (
-            <View key={stat.label} style={st.routeStatBox}>
-              <MaterialIcons name={stat.icon} size={14} color={PRIMARY} />
-              <Text style={st.routeStatVal}>{stat.value}</Text>
-              <Text style={st.routeStatLbl}>{stat.label}</Text>
-            </View>
-          ))}
-        </View>
-      )}
-
-      {reports && reports.trips.length > 0 && (
-        <View>
-          <Text style={st.sectionTitle}>Trips ({reports.trips.length})</Text>
-          {reports.trips.map((trip, index) => (
-            <View key={`trip-${index}`} style={st.tripCard}>
-              <View style={st.tripPoint}><View style={[st.tripDot, { backgroundColor: GREEN }]} /><Text style={st.tripAddr} numberOfLines={1}>{trip.startAddress || 'Unknown'}</Text></View>
-              <View style={st.tripLine} />
-              <View style={st.tripPoint}><View style={[st.tripDot, { backgroundColor: RED }]} /><Text style={st.tripAddr} numberOfLines={1}>{trip.endAddress || 'Unknown'}</Text></View>
-              <View style={st.tripFooter}>
-                <Text style={st.tripFooterText}>{formatDistanceKm(trip.distance || 0)}</Text>
-                <Text style={st.tripFooterDot}>{'\u2022'}</Text>
-                <Text style={st.tripFooterText}>{formatDuration(trip.duration || 0)}</Text>
-              </View>
-            </View>
-          ))}
-        </View>
-      )}
-      {!routeStats && !loadingRoute && <Text style={st.hintText}>Select a date range and load route history</Text>}
+      <View style={st.routeHeroCard}>
+        <MaterialIcons name="route" size={40} color={PRIMARY} />
+        <Text style={st.routeHeroTitle}>Movement History</Text>
+        <Text style={st.routeHeroDesc}>
+          View full route playback with road-snapped paths, live speed tracking, and trip details
+        </Text>
+        <Pressable style={[st.actionBtn, { marginTop: 16 }, !isLinked && st.actionBtnDisabled]} onPress={openMovementHistory} disabled={!isLinked}>
+          <MaterialIcons name="play-circle-outline" size={18} color="#fff" />
+          <Text style={st.actionBtnText}>Open Movement History</Text>
+        </Pressable>
+        {!isLinked && (
+          <View style={st.warnBar}><MaterialIcons name="warning-amber" size={16} color={ORANGE} /><Text style={st.warnText}>Device not linked to this vehicle</Text></View>
+        )}
+      </View>
     </ScrollView>
   )
 
@@ -1197,8 +1281,7 @@ const Tracking = () => {
           route={vehicleRoute}
           circles={geoCircles}
           selectedMarkerId={selectedCarId}
-          onMapPress={geoDrawMode ? handleMapPressForGeo : undefined}
-          onMyLocationPress={handleMyLocation}
+          onMapPress={handleVehicleMapPress}
           showMyLocation={showMyLoc}
           myLocationLat={myLat}
           myLocationLng={myLng}
@@ -1355,10 +1438,14 @@ const st = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 8,
   },
+  healthRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
+  healthBarTrack: { flex: 1, height: 4, backgroundColor: 'rgba(0,0,0,0.08)', borderRadius: 2, overflow: 'hidden' },
+  healthBarFill: { height: '100%', borderRadius: 2 },
+  healthPct: { fontSize: 11, fontWeight: '800', color: TEXT_PRIMARY_COLOR, minWidth: 30, textAlign: 'right' },
   fleetStatusBar: { flexDirection: 'row', justifyContent: 'space-between' },
-  fleetStatusItem: { alignItems: 'center', flex: 1 },
-  fleetStatusValue: { fontSize: 18, fontWeight: '800' },
-  fleetStatusLabel: { fontSize: 9, color: TEXT_MUTED_COLOR, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 2 },
+  fleetStatusItem: { alignItems: 'center', flex: 1, paddingVertical: 2 },
+  fleetStatusValue: { fontSize: 16, fontWeight: '800' },
+  fleetStatusLabel: { fontSize: 8, color: TEXT_MUTED_COLOR, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.4, marginTop: 1 },
 
   // ── Bottom sheet ──
   bottomSheet: {
@@ -1400,9 +1487,11 @@ const st = StyleSheet.create({
   vehicleIconCircle: { width: 40, height: 40, borderRadius: 20, borderWidth: 2, justifyContent: 'center', alignItems: 'center', marginRight: 10 },
   vehicleListInfo: { flex: 1 },
   vehicleListName: { fontSize: 14, fontWeight: '700', color: TEXT_PRIMARY_COLOR },
-  vehicleListMeta: { fontSize: 11, color: TEXT_SECONDARY_COLOR, marginTop: 2 },
+  vehicleListMeta: { fontSize: 11, color: TEXT_SECONDARY_COLOR, marginTop: 1 },
+  microRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 },
+  microItem: { flexDirection: 'row', alignItems: 'center', gap: 2 },
+  microText: { fontSize: 9, fontWeight: '600', color: TEXT_MUTED_COLOR },
   vehicleListRight: { alignItems: 'flex-end', marginLeft: 8 },
-  vehicleListSpeed: { fontSize: 12, fontWeight: '700', marginBottom: 4 },
   vehicleStatusPill: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10, gap: 4 },
   vehicleStatusDot: { width: 6, height: 6, borderRadius: 3 },
   vehicleStatusText: { fontSize: 9, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.3 },
@@ -1471,12 +1560,19 @@ const st = StyleSheet.create({
   // ── Tab scroll ──
   tabScroll: { flex: 1, paddingHorizontal: 16 },
 
-  // ── Metrics ──
-  metricsRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
-  metricBox: { flex: 1, backgroundColor: BG, borderRadius: 14, padding: 12, alignItems: 'center' },
-  metricVal: { fontSize: 20, fontWeight: '800', color: TEXT_PRIMARY_COLOR, marginTop: 6 },
-  metricUnit: { fontSize: 10, fontWeight: '400', color: TEXT_MUTED_COLOR },
-  metricLbl: { fontSize: 8, color: TEXT_MUTED_COLOR, fontWeight: '700', letterSpacing: 0.6, marginTop: 4, textTransform: 'uppercase' },
+  // ── Connection bar (Softrasys-style) ──
+  connectionBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: BG, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, marginBottom: 10, gap: 6 },
+  connDot: { width: 8, height: 8, borderRadius: 4 },
+  connLabel: { fontSize: 12, fontWeight: '700' },
+  connSpacer: { flex: 1 },
+  connMode: { fontSize: 10, color: TEXT_SECONDARY_COLOR, fontWeight: '600' },
+  connSat: { fontSize: 10, fontWeight: '700', marginLeft: 8 },
+
+  // ── Metrics grid ──
+  metricsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 },
+  metricBoxLg: { width: (SCREEN_WIDTH - 56) / 2, backgroundColor: SURFACE, borderRadius: 14, padding: 12, alignItems: 'center', borderWidth: 1.5, borderColor: BORDER_COLOR },
+  metricValLg: { fontSize: 24, fontWeight: '900', color: TEXT_PRIMARY_COLOR, marginTop: 4 },
+  metricUnitLg: { fontSize: 10, color: TEXT_MUTED_COLOR, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.3, marginTop: 2 },
   batteryTrack: { width: '100%', height: 3, backgroundColor: BORDER_COLOR, borderRadius: 2, marginTop: 6 },
   batteryFill: { height: '100%', borderRadius: 2 },
 
@@ -1511,10 +1607,6 @@ const st = StyleSheet.create({
   dateText: { fontSize: 12, color: TEXT_PRIMARY_COLOR },
 
   // ── Route stats ──
-  routeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 14 },
-  routeStatBox: { width: (SCREEN_WIDTH - 56) / 2, backgroundColor: BG, borderRadius: 12, padding: 12, alignItems: 'center' },
-  routeStatVal: { fontSize: 15, fontWeight: '800', color: TEXT_PRIMARY_COLOR, marginTop: 4 },
-  routeStatLbl: { fontSize: 8, color: TEXT_MUTED_COLOR, fontWeight: '700', letterSpacing: 0.6, marginTop: 3, textTransform: 'uppercase' },
 
   // ── Trips ──
   sectionTitle: { fontSize: 15, fontWeight: '800', color: TEXT_PRIMARY_COLOR, marginBottom: 10 },
@@ -1580,6 +1672,11 @@ const st = StyleSheet.create({
   modalBtnRow: { flexDirection: 'row', gap: 10, marginTop: 20, marginBottom: 20 },
   modalCancelBtn: { flex: 1, borderWidth: 1, borderColor: BORDER_COLOR, borderRadius: 12, paddingVertical: 12, alignItems: 'center' },
   modalCancelText: { fontSize: 13, fontWeight: '700', color: TEXT_SECONDARY_COLOR },
+
+  // ── Route hero card ──
+  routeHeroCard: { backgroundColor: SURFACE, borderRadius: 16, padding: 24, alignItems: 'center', borderWidth: 1, borderColor: BORDER_COLOR },
+  routeHeroTitle: { fontSize: 18, fontWeight: '800', color: TEXT_PRIMARY_COLOR, marginTop: 12 },
+  routeHeroDesc: { fontSize: 13, color: TEXT_SECONDARY_COLOR, textAlign: 'center', marginTop: 8, lineHeight: 20 },
 
   // ── Hint ──
   hintText: { color: TEXT_MUTED_COLOR, fontSize: 13, textAlign: 'center', marginTop: 20, marginBottom: 16, lineHeight: 20 },
