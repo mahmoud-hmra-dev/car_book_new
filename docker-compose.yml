@@ -62,6 +62,7 @@ services:
     restart: always
     ports:
       - 8382:8082
+      - 5027:5027
       - 5000:5000
       - 5055:5055
     depends_on:
