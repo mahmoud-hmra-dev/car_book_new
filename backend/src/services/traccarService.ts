@@ -26,11 +26,11 @@ const safeAxiosErrorDetails = (error: AxiosError) => {
 const getClient = () => {
   if (!client) {
     client = axios.create({
-      baseURL: env.TRACCAR_BASE_URL,
-      timeout: env.TRACCAR_TIMEOUT,
+      baseURL: 'https://gps.controtrack.com',
+      timeout: 10000,
       auth: {
-        username: env.TRACCAR_USERNAME,
-        password: env.TRACCAR_PASSWORD,
+        username: 'mahmoud.hmra.dev@gmail.com',
+        password: 'Mahmoud@1',
       },
       headers: {
         Accept: 'application/json',
