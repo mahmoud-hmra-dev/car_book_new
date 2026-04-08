@@ -18,6 +18,10 @@ export interface FleetVehicle {
   longitude?: number
   deviceName?: string
   deviceId?: number
+  course?: number
+  sat?: number
+  accuracy?: number
+  totalDistance?: number
 }
 
 export interface FleetCounts {

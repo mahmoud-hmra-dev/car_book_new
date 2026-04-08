@@ -150,6 +150,11 @@ const Tracking = () => {
   const [geoLinking, setGeoLinking] = useState<number | null>(null)
   const [geoDrawMode, setGeoDrawMode] = useState(false)
 
+  // ── My location ──
+  const [myLat, setMyLat] = useState<number | undefined>(undefined)
+  const [myLng, setMyLng] = useState<number | undefined>(undefined)
+  const [showMyLoc, setShowMyLoc] = useState(false)
+
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   // ── Bottom sheet animation ──
@@ -207,33 +212,35 @@ const Tracking = () => {
 
   const isLinked = useMemo(() => typeof selectedVehicle?.deviceId === 'number', [selectedVehicle])
 
+  const buildMarkerData = (v: FleetVehicle, isSelected: boolean): MapMarker => ({
+    id: v.carId,
+    lat: v.latitude!,
+    lng: v.longitude!,
+    color: STATUS_COLORS[v.status] || '#64748b',
+    label: v.carName,
+    selected: isSelected,
+    status: v.status,
+    speed: v.speed,
+    batteryLevel: v.batteryLevel,
+    ignition: v.ignition,
+    licensePlate: v.licensePlate,
+    course: v.course,
+    sat: v.sat,
+    lastUpdate: v.lastUpdate,
+    address: v.address,
+  })
+
   const fleetMarkers: MapMarker[] = useMemo(
     () =>
       filteredVehicles
         .filter((v) => v.latitude != null && v.longitude != null)
-        .map((v) => ({
-          id: v.carId,
-          lat: v.latitude!,
-          lng: v.longitude!,
-          color: STATUS_COLORS[v.status] || '#64748b',
-          label: v.carName,
-          selected: v.carId === selectedCarId,
-        })),
+        .map((v) => buildMarkerData(v, v.carId === selectedCarId)),
     [filteredVehicles, selectedCarId],
   )
 
   const vehicleMarker: MapMarker[] = useMemo(() => {
     if (!selectedVehicle || selectedVehicle.latitude == null || selectedVehicle.longitude == null) return []
-    return [
-      {
-        id: selectedVehicle.carId,
-        lat: selectedVehicle.latitude!,
-        lng: selectedVehicle.longitude!,
-        color: STATUS_COLORS[selectedVehicle.status] || '#64748b',
-        label: selectedVehicle.carName,
-        selected: true,
-      },
-    ]
+    return [buildMarkerData(selectedVehicle, true)]
   }, [selectedVehicle])
 
   const vehicleRoute: MapRoute | undefined = useMemo(() => {
@@ -652,6 +659,27 @@ const Tracking = () => {
     if (activeTab === 'device') loadCommandTypes()
   }, [view, activeTab, selectedCarId]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ── My location handler ──
+  const handleMyLocation = useCallback(() => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { getCurrentPositionAsync, requestForegroundPermissionsAsync } = require('expo-location')
+    ;(async () => {
+      try {
+        const { status } = await requestForegroundPermissionsAsync()
+        if (status !== 'granted') {
+          Alert.alert('Permission denied', 'Location permission is required')
+          return
+        }
+        const location = await getCurrentPositionAsync({ accuracy: 4 })
+        setMyLat(location.coords.latitude)
+        setMyLng(location.coords.longitude)
+        setShowMyLoc(true)
+      } catch (err) {
+        helper.error(err)
+      }
+    })()
+  }, [])
+
   // ════════════════════════════════════════════════════════════════
   // FLEET VIEW
   // ════════════════════════════════════════════════════════════════
@@ -705,7 +733,16 @@ const Tracking = () => {
   const renderFleetView = () => (
     <View style={st.fullScreen}>
       {/* Full-screen map - rendered directly, no absolute wrapper */}
-      <TrackingMap markers={fleetMarkers} selectedMarkerId={selectedCarId} onMarkerPress={handleFleetMarkerPress} height={SCREEN_HEIGHT} />
+      <TrackingMap
+        markers={fleetMarkers}
+        selectedMarkerId={selectedCarId}
+        onMarkerPress={handleFleetMarkerPress}
+        onMyLocationPress={handleMyLocation}
+        showMyLocation={showMyLoc}
+        myLocationLat={myLat}
+        myLocationLng={myLng}
+        height={SCREEN_HEIGHT}
+      />
 
       {/* Floating status overlay */}
       <View style={st.fleetOverlay}>
@@ -1161,6 +1198,10 @@ const Tracking = () => {
           circles={geoCircles}
           selectedMarkerId={selectedCarId}
           onMapPress={geoDrawMode ? handleMapPressForGeo : undefined}
+          onMyLocationPress={handleMyLocation}
+          showMyLocation={showMyLoc}
+          myLocationLat={myLat}
+          myLocationLng={myLng}
           height={SCREEN_HEIGHT}
         />
 

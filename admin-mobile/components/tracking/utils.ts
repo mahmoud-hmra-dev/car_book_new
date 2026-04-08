@@ -83,6 +83,10 @@ export const buildFleetVehicles = (
     longitude: item.position?.longitude,
     deviceName: (item as any).deviceName,
     deviceId: item.deviceId,
+    course: item.position?.course,
+    sat: item.position?.attributes?.sat,
+    accuracy: item.position?.accuracy,
+    totalDistance: item.position?.attributes?.totalDistance,
   }))
 
 export const buildFleetCounts = (vehicles: FleetVehicle[]): FleetCounts => {
