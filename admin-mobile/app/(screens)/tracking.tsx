@@ -11,6 +11,10 @@ import {
   Platform,
   TextInput,
   Dimensions,
+  Animated,
+  StatusBar,
+  PanResponder,
+  Modal,
 } from 'react-native'
 import { MaterialIcons } from '@expo/vector-icons'
 import DateTimePicker from '@react-native-community/datetimepicker'
@@ -19,9 +23,8 @@ import * as bookcarsTypes from ':bookcars-types'
 
 import Header from '@/components/Header'
 import Indicator from '@/components/Indicator'
-import EmptyList from '@/components/EmptyList'
 import TrackingMap from '@/components/tracking/TrackingMap'
-import type { MapMarker, MapRoute } from '@/components/tracking/TrackingMap'
+import type { MapMarker, MapRoute, MapCircle } from '@/components/tracking/TrackingMap'
 import * as TraccarService from '@/services/TraccarService'
 import * as helper from '@/utils/helper'
 import type { FleetVehicle, TrackingTab } from '@/components/tracking/types'
@@ -29,7 +32,6 @@ import {
   STATUS_COLORS,
   STATUS_LABELS,
   formatRelativeAge,
-  formatSpeed,
   formatDistanceKm,
   formatDuration,
   formatCoordinate,
@@ -42,32 +44,57 @@ import {
   getEventBorderColor,
 } from '@/components/tracking/utils'
 
-const PURPLE = '#6B3CE6'
-const { height: SCREEN_HEIGHT } = Dimensions.get('window')
-const MAP_HEIGHT = Math.round(SCREEN_HEIGHT * 0.35)
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
+
+// ── App theme colors ──
+const PRIMARY = '#6B3CE6'
+const PRIMARY_LIGHT = '#ede7f9'
+const PRIMARY_DARK = '#5228c4'
+const BG = '#f5f5f5'
+const SURFACE = '#ffffff'
+const TEXT_PRIMARY_COLOR = '#333333'
+const TEXT_SECONDARY_COLOR = '#666666'
+const TEXT_MUTED_COLOR = '#999999'
+const BORDER_COLOR = '#e8e8e8'
+const GREEN = '#22C55E'
+const RED = '#EF4444'
+const ORANGE = '#e98003'
+const BLUE = '#188ace'
+
+// ── Bottom sheet constants ──
+const SHEET_MIN = 130
+const SHEET_MID = SCREEN_HEIGHT * 0.45
+const SHEET_MAX = SCREEN_HEIGHT * 0.82
+const TOOLBAR_HEIGHT = 60
+const SNAP_THRESHOLD = 50
 
 const FILTER_OPTIONS = [
-  { key: 'all', label: 'All' },
-  { key: 'moving', label: 'Moving' },
-  { key: 'idle', label: 'Idle' },
-  { key: 'stopped', label: 'Stopped' },
-  { key: 'offline', label: 'Offline' },
-  { key: 'stale', label: 'Stale' },
+  { key: 'all', label: 'All', icon: 'apps' as const },
+  { key: 'moving', label: 'Moving', icon: 'navigation' as const },
+  { key: 'idle', label: 'Idle', icon: 'pause-circle-outline' as const },
+  { key: 'stopped', label: 'Stopped', icon: 'stop-circle' as const },
+  { key: 'offline', label: 'Offline', icon: 'cloud-off' as const },
+  { key: 'stale', label: 'Stale', icon: 'schedule' as const },
 ]
 
-const TABS: { key: TrackingTab, label: string, icon: keyof typeof MaterialIcons.glyphMap }[] = [
-  { key: 'status', label: 'Status', icon: 'dashboard' },
-  { key: 'route', label: 'Route', icon: 'route' },
+const TOOLBAR_TABS: { key: TrackingTab; label: string; icon: keyof typeof MaterialIcons.glyphMap }[] = [
+  { key: 'status', label: 'Status', icon: 'info-outline' },
+  { key: 'route', label: 'Route', icon: 'timeline' },
   { key: 'zones', label: 'Zones', icon: 'fence' },
-  { key: 'events', label: 'Events', icon: 'timeline' },
-  { key: 'device', label: 'Device', icon: 'devices' },
+  { key: 'events', label: 'Events', icon: 'notifications-none' },
+  { key: 'device', label: 'Device', icon: 'settings-remote' },
 ]
+
+// ── Geofence area builders ──
+const buildCircleArea = (lat: number, lng: number, radiusMeters: number) =>
+  `CIRCLE (${lat} ${lng}, ${radiusMeters})`
 
 const Tracking = () => {
   // ── View state ──
   const [view, setView] = useState<'fleet' | 'vehicle'>('fleet')
   const [selectedCarId, setSelectedCarId] = useState<string>('')
   const [activeTab, setActiveTab] = useState<TrackingTab>('status')
+  const [sheetOpen, setSheetOpen] = useState(false)
 
   // ── Fleet data ──
   const [loading, setLoading] = useState(true)
@@ -75,6 +102,7 @@ const Tracking = () => {
   const [integrationEnabled, setIntegrationEnabled] = useState(false)
   const [vehicles, setVehicles] = useState<FleetVehicle[]>([])
   const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [searchQuery, setSearchQuery] = useState('')
 
   // ── Vehicle detail data ──
   const [reports, setReports] = useState<bookcarsTypes.TraccarVehicleReportBundle | null>(null)
@@ -83,6 +111,7 @@ const Tracking = () => {
   const [geofences, setGeofences] = useState<bookcarsTypes.TraccarGeofence[]>([])
   const [linkedGeofences, setLinkedGeofences] = useState<bookcarsTypes.TraccarGeofence[]>([])
   const [commandTypes, setCommandTypes] = useState<bookcarsTypes.TraccarCommandType[]>([])
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [devices, setDevices] = useState<bookcarsTypes.TraccarDevice[]>([])
 
   // ── Loading states ──
@@ -94,11 +123,13 @@ const Tracking = () => {
   const [sendingCommand, setSendingCommand] = useState(false)
   const [deviceSaving, setDeviceSaving] = useState(false)
 
-  // ── Date pickers ──
+  // ── Date pickers (separate date and time for Android compat) ──
   const [fromDate, setFromDate] = useState(new Date(Date.now() - 24 * 60 * 60 * 1000))
   const [toDate, setToDate] = useState(new Date())
-  const [showFromPicker, setShowFromPicker] = useState(false)
-  const [showToPicker, setShowToPicker] = useState(false)
+  const [showFromDatePicker, setShowFromDatePicker] = useState(false)
+  const [showFromTimePicker, setShowFromTimePicker] = useState(false)
+  const [showToDatePicker, setShowToDatePicker] = useState(false)
+  const [showToTimePicker, setShowToTimePicker] = useState(false)
 
   // ── Device form ──
   const [deviceIdInput, setDeviceIdInput] = useState('')
@@ -107,84 +138,168 @@ const Tracking = () => {
   const [selectedCommandType, setSelectedCommandType] = useState('')
   const [eventTypeFilter, setEventTypeFilter] = useState<string>('all')
 
+  // ── Geofence form ──
+  const [geoModalVisible, setGeoModalVisible] = useState(false)
+  const [geoEditId, setGeoEditId] = useState<number | null>(null)
+  const [geoName, setGeoName] = useState('')
+  const [geoDescription, setGeoDescription] = useState('')
+  const [geoLatitude, setGeoLatitude] = useState('')
+  const [geoLongitude, setGeoLongitude] = useState('')
+  const [geoRadius, setGeoRadius] = useState('500')
+  const [geoSaving, setGeoSaving] = useState(false)
+  const [geoLinking, setGeoLinking] = useState<number | null>(null)
+  const [geoDrawMode, setGeoDrawMode] = useState(false)
+
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  // ── Bottom sheet animation ──
+  const sheetAnim = useRef(new Animated.Value(SHEET_MIN)).current
+  const sheetSnapRef = useRef(SHEET_MIN)
+  const vehicleSheetAnim = useRef(new Animated.Value(0)).current
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gs) => Math.abs(gs.dy) > 5,
+      onPanResponderMove: (_, gs) => {
+        const newVal = Math.max(SHEET_MIN, Math.min(SHEET_MAX, sheetSnapRef.current - gs.dy))
+        sheetAnim.setValue(newVal)
+      },
+      onPanResponderRelease: (_, gs) => {
+        const current = sheetSnapRef.current - gs.dy
+        let target: number
+        if (gs.vy < -0.5 || (gs.dy < -SNAP_THRESHOLD && gs.vy <= 0)) {
+          target = sheetSnapRef.current === SHEET_MIN ? SHEET_MID : SHEET_MAX
+        } else if (gs.vy > 0.5 || (gs.dy > SNAP_THRESHOLD && gs.vy >= 0)) {
+          target = sheetSnapRef.current === SHEET_MAX ? SHEET_MID : SHEET_MIN
+        } else {
+          const distances = [SHEET_MIN, SHEET_MID, SHEET_MAX].map((snap) => Math.abs(current - snap))
+          const minIndex = distances.indexOf(Math.min(...distances))
+          target = [SHEET_MIN, SHEET_MID, SHEET_MAX][minIndex]
+        }
+        sheetSnapRef.current = target
+        Animated.spring(sheetAnim, { toValue: target, useNativeDriver: false, tension: 80, friction: 12 }).start()
+      },
+    }),
+  ).current
 
   // ── Derived data ──
   const counts = useMemo(() => buildFleetCounts(vehicles), [vehicles])
 
   const filteredVehicles = useMemo(() => {
-    if (statusFilter === 'all') return vehicles
-    return vehicles.filter((v) => v.status === statusFilter)
-  }, [vehicles, statusFilter])
-
-  const selectedVehicle = useMemo(
-    () => vehicles.find((v) => v.carId === selectedCarId),
-    [vehicles, selectedCarId],
-  )
-
-  const isLinked = useMemo(
-    () => typeof selectedVehicle?.deviceId === 'number',
-    [selectedVehicle],
-  )
-
-  // ── Fleet markers for map ──
-  const fleetMarkers: MapMarker[] = useMemo(() =>
-    filteredVehicles
-      .filter((v) => v.latitude != null && v.longitude != null)
-      .map((v) => ({
-        id: v.carId,
-        lat: v.latitude!,
-        lng: v.longitude!,
-        color: STATUS_COLORS[v.status] || '#64748b',
-        label: v.carName,
-        selected: v.carId === selectedCarId,
-      })),
-  [filteredVehicles, selectedCarId])
-
-  // ── Single vehicle marker ──
-  const vehicleMarker: MapMarker[] = useMemo(() => {
-    if (!selectedVehicle || selectedVehicle.latitude == null || selectedVehicle.longitude == null) {
-      return []
+    let result = vehicles
+    if (statusFilter !== 'all') {
+      result = result.filter((v) => v.status === statusFilter)
     }
-    return [{
-      id: selectedVehicle.carId,
-      lat: selectedVehicle.latitude!,
-      lng: selectedVehicle.longitude!,
-      color: STATUS_COLORS[selectedVehicle.status] || '#64748b',
-      label: selectedVehicle.carName,
-      selected: true,
-    }]
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase()
+      result = result.filter(
+        (v) =>
+          v.carName.toLowerCase().includes(q)
+          || (v.licensePlate && v.licensePlate.toLowerCase().includes(q))
+          || (v.supplier && v.supplier.toLowerCase().includes(q)),
+      )
+    }
+    return result
+  }, [vehicles, statusFilter, searchQuery])
+
+  const selectedVehicle = useMemo(() => vehicles.find((v) => v.carId === selectedCarId), [vehicles, selectedCarId])
+
+  const isLinked = useMemo(() => typeof selectedVehicle?.deviceId === 'number', [selectedVehicle])
+
+  const fleetMarkers: MapMarker[] = useMemo(
+    () =>
+      filteredVehicles
+        .filter((v) => v.latitude != null && v.longitude != null)
+        .map((v) => ({
+          id: v.carId,
+          lat: v.latitude!,
+          lng: v.longitude!,
+          color: STATUS_COLORS[v.status] || '#64748b',
+          label: v.carName,
+          selected: v.carId === selectedCarId,
+        })),
+    [filteredVehicles, selectedCarId],
+  )
+
+  const vehicleMarker: MapMarker[] = useMemo(() => {
+    if (!selectedVehicle || selectedVehicle.latitude == null || selectedVehicle.longitude == null) return []
+    return [
+      {
+        id: selectedVehicle.carId,
+        lat: selectedVehicle.latitude!,
+        lng: selectedVehicle.longitude!,
+        color: STATUS_COLORS[selectedVehicle.status] || '#64748b',
+        label: selectedVehicle.carName,
+        selected: true,
+      },
+    ]
   }, [selectedVehicle])
 
-  // ── Route polyline ──
   const vehicleRoute: MapRoute | undefined = useMemo(() => {
     if (routePositions.length < 2) return undefined
     return {
       points: routePositions
         .filter((p) => Number.isFinite(p.latitude) && Number.isFinite(p.longitude))
         .map((p) => [p.latitude, p.longitude] as [number, number]),
-      color: '#3b82f6',
+      color: PRIMARY,
     }
   }, [routePositions])
 
-  // ── Route stats ──
   const routeStats = useMemo(() => {
     if (!reports?.summary && (!reports?.trips || reports.trips.length === 0)) return null
-    const distance = reports?.summary?.distance
-      ?? reports?.trips?.reduce((sum, t) => sum + (t.distance || 0), 0) ?? 0
-    const duration = reports?.trips?.length
-      ? reports.trips.reduce((sum, t) => sum + (t.duration || 0), 0)
-      : 0
+    const distance = reports?.summary?.distance ?? reports?.trips?.reduce((sum, t) => sum + (t.distance || 0), 0) ?? 0
+    const duration = reports?.trips?.length ? reports.trips.reduce((sum, t) => sum + (t.duration || 0), 0) : 0
     const avgSpeed = reports?.summary?.averageSpeed ?? 0
     const maxSpeed = reports?.summary?.maxSpeed ?? 0
     return { distance, duration, avgSpeed, maxSpeed }
   }, [reports])
 
-  // ── Linked geofence IDs ──
   const linkedGeofenceIds = useMemo(
     () => new Set(linkedGeofences.map((g) => g.id).filter((id): id is number => typeof id === 'number')),
     [linkedGeofences],
   )
+
+  // ── Geofence circles for map ──
+  const geoCircles: MapCircle[] = useMemo(() => {
+    const result: MapCircle[] = []
+    // Show existing geofences on the map
+    for (const geo of geofences) {
+      const circleMatch = geo.area?.match(/CIRCLE\s*\(\s*([-\d.]+)\s+([-\d.]+)\s*,\s*([-\d.]+)\s*\)/)
+      if (circleMatch) {
+        const isLinked = typeof geo.id === 'number' && linkedGeofenceIds.has(geo.id)
+        result.push({
+          id: `geo-${geo.id}`,
+          lat: parseFloat(circleMatch[1]),
+          lng: parseFloat(circleMatch[2]),
+          radius: parseFloat(circleMatch[3]),
+          color: isLinked ? GREEN : '#94a3b8',
+          fillColor: isLinked ? 'rgba(34,197,94,0.12)' : 'rgba(148,163,184,0.1)',
+          label: geo.name,
+        })
+      }
+    }
+    // Show the geofence being drawn/edited
+    if (geoLatitude && geoLongitude && (geoDrawMode || geoModalVisible)) {
+      result.push({
+        id: 'geo-draft',
+        lat: parseFloat(geoLatitude),
+        lng: parseFloat(geoLongitude),
+        radius: parseFloat(geoRadius) || 500,
+        color: PRIMARY,
+        fillColor: 'rgba(107,60,230,0.2)',
+        label: geoName || 'New Geofence',
+      })
+    }
+    return result
+  }, [geofences, linkedGeofenceIds, geoLatitude, geoLongitude, geoRadius, geoDrawMode, geoModalVisible, geoName])
+
+  // ── Handle map press for geofence drawing ──
+  const handleMapPressForGeo = useCallback((lat: number, lng: number) => {
+    if (!geoDrawMode) return
+    setGeoLatitude(lat.toFixed(6))
+    setGeoLongitude(lng.toFixed(6))
+  }, [geoDrawMode])
 
   // ── API calls ──
   const fetchFleet = useCallback(async () => {
@@ -231,24 +346,40 @@ const Tracking = () => {
     setEventTypeFilter('all')
   }
 
-  const openVehicle = useCallback((carId: string) => {
-    setSelectedCarId(carId)
-    setActiveTab('status')
-    resetDetailState()
-    setView('vehicle')
-  }, [])
+  const openVehicle = useCallback(
+    (carId: string) => {
+      setSelectedCarId(carId)
+      setActiveTab('status')
+      resetDetailState()
+      setSheetOpen(false)
+      setView('vehicle')
+      vehicleSheetAnim.setValue(0)
+    },
+    [vehicleSheetAnim],
+  )
 
   const backToFleet = () => {
-    setView('fleet')
-    setSelectedCarId('')
-    resetDetailState()
+    Animated.timing(vehicleSheetAnim, { toValue: 0, duration: 200, useNativeDriver: false }).start(() => {
+      setView('fleet')
+      setSelectedCarId('')
+      setSheetOpen(false)
+      resetDetailState()
+    })
   }
 
-  const handleFleetMarkerPress = useCallback((id: string) => {
-    openVehicle(id)
-  }, [openVehicle])
+  const handleFleetMarkerPress = useCallback((id: string) => openVehicle(id), [openVehicle])
 
-  // ── Route loading ──
+  const toggleVehicleSheet = (tab: TrackingTab) => {
+    if (sheetOpen && activeTab === tab) {
+      setSheetOpen(false)
+      Animated.spring(vehicleSheetAnim, { toValue: 0, useNativeDriver: false, tension: 80, friction: 12 }).start()
+    } else {
+      setActiveTab(tab)
+      setSheetOpen(true)
+      Animated.spring(vehicleSheetAnim, { toValue: SHEET_MID, useNativeDriver: false, tension: 80, friction: 12 }).start()
+    }
+  }
+
   const loadRoute = async () => {
     if (!selectedCarId) return
     setLoadingRoute(true)
@@ -266,7 +397,6 @@ const Tracking = () => {
     }
   }
 
-  // ── Snapshot loading ──
   const loadSnapshot = async () => {
     if (!selectedCarId) return
     setLoadingSnapshot(true)
@@ -275,12 +405,7 @@ const Tracking = () => {
         TraccarService.getReports(selectedCarId, fromDate.toISOString(), toDate.toISOString()),
         TraccarService.getRoute(selectedCarId, fromDate.toISOString(), toDate.toISOString()),
         TraccarService.getGeofences(selectedCarId),
-        TraccarService.getEventCenter({
-          carId: selectedCarId,
-          from: fromDate.toISOString(),
-          to: toDate.toISOString(),
-          limit: 50,
-        }),
+        TraccarService.getEventCenter({ carId: selectedCarId, from: fromDate.toISOString(), to: toDate.toISOString(), limit: 50 }),
       ])
       setReports(reportData)
       setRoutePositions(positions)
@@ -293,7 +418,6 @@ const Tracking = () => {
     }
   }
 
-  // ── Events loading ──
   const loadEvents = async () => {
     if (!selectedCarId) return
     setLoadingEvents(true)
@@ -313,15 +437,11 @@ const Tracking = () => {
     }
   }
 
-  // ── Zones loading ──
   const loadZones = async () => {
     if (!selectedCarId) return
     setLoadingZones(true)
     try {
-      const [allGeo, linkedGeo] = await Promise.all([
-        TraccarService.getGeofences(),
-        TraccarService.getGeofences(selectedCarId),
-      ])
+      const [allGeo, linkedGeo] = await Promise.all([TraccarService.getGeofences(), TraccarService.getGeofences(selectedCarId)])
       setGeofences(allGeo)
       setLinkedGeofences(linkedGeo)
     } catch (err) {
@@ -331,20 +451,14 @@ const Tracking = () => {
     }
   }
 
-  // ── Commands loading ──
   const loadCommandTypes = async () => {
     if (!selectedCarId) return
     setLoadingCommands(true)
     try {
-      const [cmds, devs] = await Promise.all([
-        TraccarService.getCommandTypes(selectedCarId),
-        TraccarService.getDevices(),
-      ])
+      const [cmds, devs] = await Promise.all([TraccarService.getCommandTypes(selectedCarId), TraccarService.getDevices()])
       setCommandTypes(cmds)
       setDevices(devs)
-      if (cmds.length > 0 && !selectedCommandType) {
-        setSelectedCommandType(cmds[0].type || '')
-      }
+      if (cmds.length > 0 && !selectedCommandType) setSelectedCommandType(cmds[0].type || '')
     } catch (err) {
       helper.error(err)
     } finally {
@@ -353,37 +467,29 @@ const Tracking = () => {
   }
 
   const sendCommand = (commandType: string) => {
-    Alert.alert(
-      'Send Command',
-      `Are you sure you want to send "${commandType}"?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Send',
-          onPress: async () => {
-            setSendingCommand(true)
-            try {
-              await TraccarService.sendCommand(selectedCarId, {
-                type: commandType,
-                deviceId: selectedVehicle?.deviceId,
-              })
-              helper.toast('Command sent successfully')
-            } catch (err) {
-              helper.error(err)
-            } finally {
-              setSendingCommand(false)
-            }
-          },
+    Alert.alert('Send Command', `Are you sure you want to send "${commandType}"?`, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Send',
+        onPress: async () => {
+          setSendingCommand(true)
+          try {
+            await TraccarService.sendCommand(selectedCarId, { type: commandType, deviceId: selectedVehicle?.deviceId })
+            helper.toast('Command sent successfully')
+          } catch (err) {
+            helper.error(err)
+          } finally {
+            setSendingCommand(false)
+          }
         },
-      ],
-    )
+      },
+    ])
   }
 
   const handleLinkDevice = async () => {
     if (!selectedCarId || !deviceIdInput) return
     setDeviceSaving(true)
     try {
-      // Link device API call would go here
       helper.toast('Device linked successfully')
     } catch (err) {
       helper.error(err)
@@ -413,125 +519,323 @@ const Tracking = () => {
     ])
   }
 
-  // ── Auto-load tab data ──
+  // ── Geofence CRUD ──
+  const openGeoCreate = () => {
+    setGeoEditId(null)
+    setGeoName('')
+    setGeoDescription('')
+    setGeoLatitude(selectedVehicle?.latitude?.toFixed(6) || '')
+    setGeoLongitude(selectedVehicle?.longitude?.toFixed(6) || '')
+    setGeoRadius('500')
+    setGeoDrawMode(true)
+    // Close the detail sheet so user can see the map and tap
+    setSheetOpen(false)
+    Animated.spring(vehicleSheetAnim, { toValue: 0, useNativeDriver: false, tension: 80, friction: 12 }).start()
+  }
+
+  const openGeoEdit = (geo: bookcarsTypes.TraccarGeofence) => {
+    setGeoEditId(typeof geo.id === 'number' ? geo.id : null)
+    setGeoName(geo.name || '')
+    setGeoDescription(geo.description || '')
+    const circleMatch = geo.area?.match(/CIRCLE\s*\(\s*([-\d.]+)\s+([-\d.]+)\s*,\s*([-\d.]+)\s*\)/)
+    if (circleMatch) {
+      setGeoLatitude(circleMatch[1])
+      setGeoLongitude(circleMatch[2])
+      setGeoRadius(circleMatch[3])
+    } else {
+      setGeoLatitude('')
+      setGeoLongitude('')
+      setGeoRadius('500')
+    }
+    setGeoDrawMode(true)
+    setSheetOpen(false)
+    Animated.spring(vehicleSheetAnim, { toValue: 0, useNativeDriver: false, tension: 80, friction: 12 }).start()
+  }
+
+  const cancelGeoDraw = () => {
+    setGeoDrawMode(false)
+    setGeoLatitude('')
+    setGeoLongitude('')
+    setGeoName('')
+    setGeoDescription('')
+    setGeoEditId(null)
+  }
+
+  const confirmGeoDraw = () => {
+    if (!geoLatitude || !geoLongitude) {
+      Alert.alert('Tap on map', 'Tap on the map to place the geofence center')
+      return
+    }
+    setGeoDrawMode(false)
+    setGeoModalVisible(true)
+  }
+
+  const handleGeoSave = async () => {
+    if (!geoName.trim()) {
+      Alert.alert('Error', 'Name is required')
+      return
+    }
+    if (!geoLatitude || !geoLongitude) {
+      Alert.alert('Error', 'Latitude and longitude are required')
+      return
+    }
+
+    setGeoSaving(true)
+    try {
+      const area = buildCircleArea(parseFloat(geoLatitude), parseFloat(geoLongitude), parseFloat(geoRadius) || 500)
+      const payload: bookcarsTypes.UpsertTraccarGeofencePayload = {
+        name: geoName.trim(),
+        description: geoDescription.trim() || undefined,
+        area,
+      }
+
+      if (geoEditId) {
+        await TraccarService.updateGeofence(geoEditId, payload)
+        helper.toast('Geofence updated')
+      } else {
+        await TraccarService.createGeofence(payload)
+        helper.toast('Geofence created')
+      }
+      setGeoModalVisible(false)
+      loadZones()
+    } catch (err) {
+      helper.error(err)
+    } finally {
+      setGeoSaving(false)
+    }
+  }
+
+  const handleGeoDelete = (geo: bookcarsTypes.TraccarGeofence) => {
+    if (typeof geo.id !== 'number') return
+    Alert.alert('Delete Geofence', `Delete "${geo.name}"?`, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await TraccarService.deleteGeofence(geo.id as number)
+            helper.toast('Geofence deleted')
+            loadZones()
+          } catch (err) {
+            helper.error(err)
+          }
+        },
+      },
+    ])
+  }
+
+  const handleGeoToggleLink = async (geo: bookcarsTypes.TraccarGeofence) => {
+    if (!selectedCarId || typeof geo.id !== 'number') return
+    const geoId = geo.id as number
+    const isCurrentlyLinked = linkedGeofenceIds.has(geoId)
+    setGeoLinking(geoId)
+    try {
+      if (isCurrentlyLinked) {
+        await TraccarService.unlinkGeofence(selectedCarId, geoId)
+        helper.toast('Geofence unlinked')
+      } else {
+        await TraccarService.linkGeofence(selectedCarId, geoId)
+        helper.toast('Geofence linked')
+      }
+      loadZones()
+    } catch (err) {
+      helper.error(err)
+    } finally {
+      setGeoLinking(null)
+    }
+  }
+
   useEffect(() => {
     if (view !== 'vehicle' || !selectedCarId) return
     if (activeTab === 'zones') loadZones()
     if (activeTab === 'device') loadCommandTypes()
   }, [view, activeTab, selectedCarId]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ────────────────────────────────────────────────────────────
-  // RENDER: Stats Strip
-  // ────────────────────────────────────────────────────────────
-  const renderStatsStrip = () => (
-    <View style={styles.statsRow}>
+  // ════════════════════════════════════════════════════════════════
+  // FLEET VIEW
+  // ════════════════════════════════════════════════════════════════
+
+  const renderFleetStatusBar = () => (
+    <View style={st.fleetStatusBar}>
       {[
-        { label: 'Total', value: counts.all, color: PURPLE },
-        { label: 'Online', value: counts.moving + counts.idle, color: '#10b981' },
-        { label: 'Moving', value: counts.moving, color: '#3b82f6' },
-        { label: 'Offline', value: counts.offline, color: '#64748b' },
+        { label: 'Total', value: counts.all, color: PRIMARY },
+        { label: 'Moving', value: counts.moving, color: GREEN },
+        { label: 'Idle', value: counts.idle, color: ORANGE },
+        { label: 'Stopped', value: counts.stopped, color: BLUE },
+        { label: 'Offline', value: counts.offline, color: TEXT_MUTED_COLOR },
       ].map((stat) => (
-        <View key={stat.label} style={styles.statCard}>
-          <Text style={[styles.statValue, { color: stat.color }]}>{stat.value}</Text>
-          <Text style={styles.statLabel}>{stat.label}</Text>
+        <View key={stat.label} style={st.fleetStatusItem}>
+          <Text style={[st.fleetStatusValue, { color: stat.color }]}>{stat.value}</Text>
+          <Text style={st.fleetStatusLabel}>{stat.label}</Text>
         </View>
       ))}
     </View>
   )
 
-  // ────────────────────────────────────────────────────────────
-  // RENDER: Filter Pills
-  // ────────────────────────────────────────────────────────────
-  const renderFilterPills = () => (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.filterRow}
-    >
-      {FILTER_OPTIONS.map((opt) => {
-        const isSelected = statusFilter === opt.key
-        const count = opt.key === 'all' ? counts.all : (counts as any)[opt.key] || 0
-        return (
-          <Pressable
-            key={opt.key}
-            style={[styles.filterPill, isSelected && styles.filterPillActive]}
-            onPress={() => setStatusFilter(opt.key)}
-          >
-            <Text style={[styles.filterPillText, isSelected && styles.filterPillTextActive]}>
-              {opt.label}
-            </Text>
-            <Text style={[styles.filterPillCount, isSelected && styles.filterPillCountActive]}>
-              {count}
-            </Text>
-          </Pressable>
-        )
-      })}
-    </ScrollView>
-  )
-
-  // ────────────────────────────────────────────────────────────
-  // RENDER: Vehicle List Item
-  // ────────────────────────────────────────────────────────────
-  const renderVehicleItem = ({ item }: { item: FleetVehicle }) => {
+  const renderVehicleListItem = ({ item }: { item: FleetVehicle }) => {
     const dotColor = STATUS_COLORS[item.status] || '#64748b'
+    const statusLabel = STATUS_LABELS[item.status] || item.status
     return (
-      <Pressable style={styles.vehicleCard} onPress={() => openVehicle(item.carId)}>
-        <View style={styles.vehicleRow}>
-          <View style={[styles.statusDot, { backgroundColor: dotColor }]} />
-          <View style={styles.vehicleInfo}>
-            <View style={styles.vehicleNameRow}>
-              <Text style={styles.vehicleName} numberOfLines={1}>{item.carName}</Text>
-              <Text style={item.speed > 0 ? styles.vehicleSpeedActive : styles.vehicleSpeed}>
-                {Math.round(item.speed)} km/h
-              </Text>
-            </View>
-            <View style={styles.vehicleMetaRow}>
-              <Text style={styles.vehiclePlate} numberOfLines={1}>
-                {item.licensePlate || '---'}
-                {item.supplier ? ` \u00B7 ${item.supplier}` : ''}
-              </Text>
-              <Text style={styles.vehicleAge}>{formatRelativeAge(item.lastUpdate)}</Text>
-            </View>
+      <Pressable style={st.vehicleListItem} onPress={() => openVehicle(item.carId)}>
+        <View style={st.vehicleListLeft}>
+          <View style={[st.vehicleIconCircle, { borderColor: dotColor }]}>
+            <MaterialIcons name="directions-car" size={18} color={dotColor} />
           </View>
+          <View style={st.vehicleListInfo}>
+            <Text style={st.vehicleListName} numberOfLines={1}>{item.carName}</Text>
+            <Text style={st.vehicleListMeta} numberOfLines={1}>
+              {item.licensePlate || '---'}
+              {item.supplier ? ` \u00B7 ${item.supplier}` : ''}
+            </Text>
+          </View>
+        </View>
+        <View style={st.vehicleListRight}>
+          {item.speed > 0 && <Text style={[st.vehicleListSpeed, { color: GREEN }]}>{Math.round(item.speed)} km/h</Text>}
+          <View style={[st.vehicleStatusPill, { backgroundColor: `${dotColor}15` }]}>
+            <View style={[st.vehicleStatusDot, { backgroundColor: dotColor }]} />
+            <Text style={[st.vehicleStatusText, { color: dotColor }]}>{statusLabel}</Text>
+          </View>
+          <Text style={st.vehicleListAge}>{formatRelativeAge(item.lastUpdate)}</Text>
         </View>
       </Pressable>
     )
   }
 
-  // ────────────────────────────────────────────────────────────
-  // RENDER: Date Pickers
-  // ────────────────────────────────────────────────────────────
+  const renderFleetView = () => (
+    <View style={st.fullScreen}>
+      {/* Full-screen map - rendered directly, no absolute wrapper */}
+      <TrackingMap markers={fleetMarkers} selectedMarkerId={selectedCarId} onMarkerPress={handleFleetMarkerPress} height={SCREEN_HEIGHT} />
+
+      {/* Floating status overlay */}
+      <View style={st.fleetOverlay}>
+        {renderFleetStatusBar()}
+      </View>
+
+      {/* Bottom sheet */}
+      <Animated.View style={[st.bottomSheet, { height: sheetAnim }]}>
+        <View {...panResponder.panHandlers} style={st.sheetHandleArea}>
+          <View style={st.sheetHandle} />
+          <Text style={st.sheetTitle}>Vehicles ({filteredVehicles.length})</Text>
+        </View>
+
+        <View style={st.sheetHeader}>
+          <View style={st.searchBar}>
+            <MaterialIcons name="search" size={18} color={TEXT_MUTED_COLOR} />
+            <TextInput
+              style={st.searchInput}
+              placeholder="Search vehicles..."
+              placeholderTextColor={TEXT_MUTED_COLOR}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+            {searchQuery.length > 0 && (
+              <Pressable onPress={() => setSearchQuery('')}>
+                <MaterialIcons name="close" size={16} color={TEXT_MUTED_COLOR} />
+              </Pressable>
+            )}
+          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={st.filterChipsRow}>
+            {FILTER_OPTIONS.map((opt) => {
+              const isSelected = statusFilter === opt.key
+              const count = opt.key === 'all' ? counts.all : (counts as any)[opt.key] || 0
+              return (
+                <Pressable key={opt.key} style={[st.filterChip, isSelected && st.filterChipActive]} onPress={() => setStatusFilter(opt.key)}>
+                  <MaterialIcons name={opt.icon} size={12} color={isSelected ? '#fff' : TEXT_SECONDARY_COLOR} />
+                  <Text style={[st.filterChipText, isSelected && st.filterChipTextActive]}>{opt.label}</Text>
+                  <Text style={[st.filterChipCount, isSelected && st.filterChipCountActive]}>{count}</Text>
+                </Pressable>
+              )
+            })}
+          </ScrollView>
+        </View>
+
+        <FlatList
+          data={filteredVehicles}
+          renderItem={renderVehicleListItem}
+          keyExtractor={(item) => item.carId}
+          contentContainerStyle={st.vehicleList}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={
+            <View style={st.emptyContainer}>
+              <MaterialIcons name="directions-car" size={40} color={TEXT_MUTED_COLOR} />
+              <Text style={st.emptyText}>No vehicles found</Text>
+            </View>
+          }
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={[PRIMARY]} />}
+        />
+      </Animated.View>
+    </View>
+  )
+
+  // ════════════════════════════════════════════════════════════════
+  // VEHICLE VIEW - Date Pickers (separate date and time for Android)
+  // ════════════════════════════════════════════════════════════════
+
   const renderDatePickers = () => (
-    <View style={styles.datePickerRow}>
-      <View style={styles.datePickerField}>
-        <Text style={styles.datePickerLabel}>FROM</Text>
-        <Pressable style={styles.datePickerButton} onPress={() => setShowFromPicker(true)}>
-          <MaterialIcons name="calendar-today" size={14} color="#94a3b8" />
-          <Text style={styles.datePickerText}>{format(fromDate, 'MMM dd, HH:mm')}</Text>
-        </Pressable>
-        {showFromPicker && (
+    <View style={st.dateRow}>
+      <View style={st.dateField}>
+        <Text style={st.dateLabel}>FROM</Text>
+        <View style={st.dateTimeRow}>
+          <Pressable style={[st.dateBtn, { flex: 1 }]} onPress={() => setShowFromDatePicker(true)}>
+            <MaterialIcons name="calendar-today" size={14} color={PRIMARY} />
+            <Text style={st.dateText}>{format(fromDate, 'MMM dd')}</Text>
+          </Pressable>
+          <Pressable style={[st.dateBtn, { flex: 0.7 }]} onPress={() => setShowFromTimePicker(true)}>
+            <MaterialIcons name="access-time" size={14} color={PRIMARY} />
+            <Text style={st.dateText}>{format(fromDate, 'HH:mm')}</Text>
+          </Pressable>
+        </View>
+        {showFromDatePicker && (
           <DateTimePicker
             value={fromDate}
-            mode="datetime"
+            mode="date"
             onChange={(_, date) => {
-              setShowFromPicker(Platform.OS === 'ios')
+              setShowFromDatePicker(Platform.OS === 'ios')
+              if (date) setFromDate(date)
+            }}
+          />
+        )}
+        {showFromTimePicker && (
+          <DateTimePicker
+            value={fromDate}
+            mode="time"
+            onChange={(_, date) => {
+              setShowFromTimePicker(Platform.OS === 'ios')
               if (date) setFromDate(date)
             }}
           />
         )}
       </View>
-      <View style={styles.datePickerField}>
-        <Text style={styles.datePickerLabel}>TO</Text>
-        <Pressable style={styles.datePickerButton} onPress={() => setShowToPicker(true)}>
-          <MaterialIcons name="calendar-today" size={14} color="#94a3b8" />
-          <Text style={styles.datePickerText}>{format(toDate, 'MMM dd, HH:mm')}</Text>
-        </Pressable>
-        {showToPicker && (
+      <View style={st.dateField}>
+        <Text style={st.dateLabel}>TO</Text>
+        <View style={st.dateTimeRow}>
+          <Pressable style={[st.dateBtn, { flex: 1 }]} onPress={() => setShowToDatePicker(true)}>
+            <MaterialIcons name="calendar-today" size={14} color={PRIMARY} />
+            <Text style={st.dateText}>{format(toDate, 'MMM dd')}</Text>
+          </Pressable>
+          <Pressable style={[st.dateBtn, { flex: 0.7 }]} onPress={() => setShowToTimePicker(true)}>
+            <MaterialIcons name="access-time" size={14} color={PRIMARY} />
+            <Text style={st.dateText}>{format(toDate, 'HH:mm')}</Text>
+          </Pressable>
+        </View>
+        {showToDatePicker && (
           <DateTimePicker
             value={toDate}
-            mode="datetime"
+            mode="date"
+            minimumDate={fromDate}
             onChange={(_, date) => {
-              setShowToPicker(Platform.OS === 'ios')
+              setShowToDatePicker(Platform.OS === 'ios')
+              if (date) setToDate(date)
+            }}
+          />
+        )}
+        {showToTimePicker && (
+          <DateTimePicker
+            value={toDate}
+            mode="time"
+            onChange={(_, date) => {
+              setShowToTimePicker(Platform.OS === 'ios')
               if (date) setToDate(date)
             }}
           />
@@ -540,1390 +844,720 @@ const Tracking = () => {
     </View>
   )
 
-  // ────────────────────────────────────────────────────────────
-  // RENDER: Tab Bar
-  // ────────────────────────────────────────────────────────────
-  const renderTabBar = () => (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.tabBarContent}
-      style={styles.tabBar}
-    >
-      {TABS.map((tab) => {
-        const isActive = activeTab === tab.key
-        return (
-          <Pressable
-            key={tab.key}
-            style={[styles.tab, isActive && styles.tabActive]}
-            onPress={() => setActiveTab(tab.key)}
-          >
-            <MaterialIcons
-              name={tab.icon}
-              size={16}
-              color={isActive ? PURPLE : '#94a3b8'}
-            />
-            <Text style={[styles.tabText, isActive && styles.tabTextActive]}>
-              {tab.label}
-            </Text>
-          </Pressable>
-        )
-      })}
-    </ScrollView>
-  )
-
-  // ────────────────────────────────────────────────────────────
-  // TAB: Status
-  // ────────────────────────────────────────────────────────────
+  // ── Status Tab ──
   const renderStatusTab = () => {
     if (!selectedVehicle) return null
-    const battery = typeof selectedVehicle.batteryLevel === 'number'
-      ? Math.round(selectedVehicle.batteryLevel) : null
+    const battery = typeof selectedVehicle.batteryLevel === 'number' ? Math.round(selectedVehicle.batteryLevel) : null
     const batteryPercent = battery !== null ? Math.min(100, Math.max(0, battery)) : 0
-    const coords = selectedVehicle.latitude != null && selectedVehicle.longitude != null
-      ? `${formatCoordinate(selectedVehicle.latitude)}, ${formatCoordinate(selectedVehicle.longitude)}`
-      : '-'
+    const coords =
+      selectedVehicle.latitude != null && selectedVehicle.longitude != null
+        ? `${formatCoordinate(selectedVehicle.latitude)}, ${formatCoordinate(selectedVehicle.longitude)}`
+        : '-'
 
     return (
-      <View style={styles.tabContent}>
-        {/* 2x3 metrics grid */}
-        <View style={styles.metricsGrid}>
-          {/* Speed */}
-          <View style={styles.metricCard}>
-            <View style={styles.metricHeader}>
-              <MaterialIcons name="speed" size={14} color="#94a3b8" />
-              <Text style={styles.metricLabel}>SPEED</Text>
-            </View>
-            <Text style={styles.metricValueLarge}>
-              {Math.round(selectedVehicle.speed)}
-              <Text style={styles.metricUnit}> km/h</Text>
-            </Text>
+      <ScrollView style={st.tabScroll} showsVerticalScrollIndicator={false}>
+        <View style={st.metricsRow}>
+          <View style={st.metricBox}>
+            <MaterialIcons name="speed" size={20} color={PRIMARY} />
+            <Text style={st.metricVal}>{Math.round(selectedVehicle.speed)}<Text style={st.metricUnit}> km/h</Text></Text>
+            <Text style={st.metricLbl}>SPEED</Text>
           </View>
-
-          {/* Battery */}
-          <View style={styles.metricCard}>
-            <View style={styles.metricHeader}>
-              <MaterialIcons name="battery-charging-full" size={14} color="#94a3b8" />
-              <Text style={styles.metricLabel}>BATTERY</Text>
-            </View>
-            <Text style={styles.metricValueLarge}>
-              {battery !== null ? battery : '-'}
-              <Text style={styles.metricUnit}> %</Text>
-            </Text>
+          <View style={st.metricBox}>
+            <MaterialIcons name="battery-charging-full" size={20} color={battery !== null ? (battery > 50 ? GREEN : battery > 20 ? ORANGE : RED) : TEXT_MUTED_COLOR} />
+            <Text style={st.metricVal}>{battery !== null ? battery : '-'}<Text style={st.metricUnit}> %</Text></Text>
+            <Text style={st.metricLbl}>BATTERY</Text>
             {battery !== null && (
-              <View style={styles.batteryTrack}>
-                <View
-                  style={[
-                    styles.batteryFill,
-                    {
-                      width: `${batteryPercent}%`,
-                      backgroundColor: battery > 50 ? '#10b981' : battery > 20 ? '#f59e0b' : '#ef4444',
-                    },
-                  ]}
-                />
+              <View style={st.batteryTrack}>
+                <View style={[st.batteryFill, { width: `${batteryPercent}%`, backgroundColor: battery > 50 ? GREEN : battery > 20 ? ORANGE : RED }]} />
               </View>
             )}
           </View>
-
-          {/* Ignition */}
-          <View style={styles.metricCard}>
-            <View style={styles.metricHeader}>
-              <MaterialIcons name="local-fire-department" size={14} color="#94a3b8" />
-              <Text style={styles.metricLabel}>IGNITION</Text>
-            </View>
-            <Text style={[
-              styles.metricValueLarge,
-              { color: selectedVehicle.ignition ? '#10b981' : '#ef4444' },
-            ]}>
-              {selectedVehicle.ignition ? 'ON' : 'OFF'}
-            </Text>
-          </View>
-
-          {/* Device Name */}
-          <View style={styles.metricCard}>
-            <View style={styles.metricHeader}>
-              <MaterialIcons name="memory" size={14} color="#94a3b8" />
-              <Text style={styles.metricLabel}>DEVICE</Text>
-            </View>
-            <Text style={styles.metricValueSmall} numberOfLines={1}>
-              {selectedVehicle.deviceName || '-'}
-            </Text>
-          </View>
-
-          {/* Coordinates */}
-          <View style={styles.metricCard}>
-            <View style={styles.metricHeader}>
-              <MaterialIcons name="gps-fixed" size={14} color="#94a3b8" />
-              <Text style={styles.metricLabel}>COORDINATES</Text>
-            </View>
-            <Text style={styles.metricValueSmall} numberOfLines={1}>{coords}</Text>
-          </View>
-
-          {/* Last Update */}
-          <View style={styles.metricCard}>
-            <View style={styles.metricHeader}>
-              <MaterialIcons name="access-time" size={14} color="#94a3b8" />
-              <Text style={styles.metricLabel}>LAST UPDATE</Text>
-            </View>
-            <Text style={styles.metricValueSmall} numberOfLines={1}>
-              {formatTimestamp(selectedVehicle.lastUpdate)}
-            </Text>
+          <View style={st.metricBox}>
+            <MaterialIcons name="local-fire-department" size={20} color={selectedVehicle.ignition ? GREEN : RED} />
+            <Text style={[st.metricVal, { color: selectedVehicle.ignition ? GREEN : RED }]}>{selectedVehicle.ignition ? 'ON' : 'OFF'}</Text>
+            <Text style={st.metricLbl}>IGNITION</Text>
           </View>
         </View>
 
-        {/* Address */}
+        <View style={st.detailCard}>
+          <View style={st.detailRow}><MaterialIcons name="memory" size={15} color={TEXT_MUTED_COLOR} /><Text style={st.detailLabel}>Device</Text><Text style={st.detailValue} numberOfLines={1}>{selectedVehicle.deviceName || '-'}</Text></View>
+          <View style={st.detailDivider} />
+          <View style={st.detailRow}><MaterialIcons name="gps-fixed" size={15} color={TEXT_MUTED_COLOR} /><Text style={st.detailLabel}>Coordinates</Text><Text style={st.detailValue} numberOfLines={1}>{coords}</Text></View>
+          <View style={st.detailDivider} />
+          <View style={st.detailRow}><MaterialIcons name="access-time" size={15} color={TEXT_MUTED_COLOR} /><Text style={st.detailLabel}>Last Update</Text><Text style={st.detailValue} numberOfLines={1}>{formatTimestamp(selectedVehicle.lastUpdate)}</Text></View>
+        </View>
+
         {!!selectedVehicle.address && (
-          <View style={styles.addressCard}>
-            <MaterialIcons name="place" size={16} color={PURPLE} />
-            <Text style={styles.addressText}>{selectedVehicle.address}</Text>
-          </View>
+          <View style={st.addressBar}><MaterialIcons name="place" size={16} color={PRIMARY} /><Text style={st.addressText}>{selectedVehicle.address}</Text></View>
         )}
 
-        {/* Load Snapshot button */}
-        <Pressable
-          style={[styles.dashedButton, (!isLinked || loadingSnapshot) && styles.buttonDisabled]}
-          onPress={loadSnapshot}
-          disabled={!isLinked || loadingSnapshot}
-        >
-          <MaterialIcons name="camera" size={16} color={PURPLE} />
-          <Text style={styles.dashedButtonText}>
-            {loadingSnapshot ? 'Loading Snapshot...' : 'Load Snapshot'}
-          </Text>
+        <Pressable style={[st.actionBtn, (!isLinked || loadingSnapshot) && st.actionBtnDisabled]} onPress={loadSnapshot} disabled={!isLinked || loadingSnapshot}>
+          <MaterialIcons name="camera" size={16} color="#fff" />
+          <Text style={st.actionBtnText}>{loadingSnapshot ? 'Loading...' : 'Load Snapshot'}</Text>
         </Pressable>
 
         {!isLinked && (
-          <View style={styles.warningBanner}>
-            <MaterialIcons name="warning-amber" size={16} color="#f59e0b" />
-            <Text style={styles.warningText}>Device not linked to this vehicle</Text>
-          </View>
+          <View style={st.warnBar}><MaterialIcons name="warning-amber" size={16} color={ORANGE} /><Text style={st.warnText}>Device not linked to this vehicle</Text></View>
         )}
-      </View>
+      </ScrollView>
     )
   }
 
-  // ────────────────────────────────────────────────────────────
-  // TAB: Route
-  // ────────────────────────────────────────────────────────────
+  // ── Route Tab ──
   const renderRouteTab = () => (
-    <View style={styles.tabContent}>
+    <ScrollView style={st.tabScroll} showsVerticalScrollIndicator={false}>
       {renderDatePickers()}
-
-      <Pressable
-        style={[styles.primaryButton, (loadingRoute || !isLinked) && styles.buttonDisabled]}
-        onPress={loadRoute}
-        disabled={loadingRoute || !isLinked}
-      >
-        <Text style={styles.primaryButtonText}>
-          {loadingRoute ? 'Loading Route...' : 'Load Route'}
-        </Text>
+      <Pressable style={[st.actionBtn, (loadingRoute || !isLinked) && st.actionBtnDisabled]} onPress={loadRoute} disabled={loadingRoute || !isLinked}>
+        <MaterialIcons name="route" size={16} color="#fff" />
+        <Text style={st.actionBtnText}>{loadingRoute ? 'Loading...' : 'Load Route'}</Text>
       </Pressable>
 
-      {/* Route stats */}
       {routeStats && (
-        <View style={styles.routeStatsGrid}>
+        <View style={st.routeGrid}>
           {[
-            { label: 'DISTANCE', value: formatDistanceKm(routeStats.distance) },
-            { label: 'DURATION', value: formatDuration(routeStats.duration) },
-            { label: 'AVG SPEED', value: routeStats.avgSpeed ? `${Math.round(routeStats.avgSpeed)} km/h` : '-' },
-            { label: 'MAX SPEED', value: routeStats.maxSpeed ? `${Math.round(routeStats.maxSpeed)} km/h` : '-' },
+            { label: 'DISTANCE', value: formatDistanceKm(routeStats.distance), icon: 'straighten' as const },
+            { label: 'DURATION', value: formatDuration(routeStats.duration), icon: 'timer' as const },
+            { label: 'AVG SPEED', value: routeStats.avgSpeed ? `${Math.round(routeStats.avgSpeed)} km/h` : '-', icon: 'speed' as const },
+            { label: 'MAX SPEED', value: routeStats.maxSpeed ? `${Math.round(routeStats.maxSpeed)} km/h` : '-', icon: 'flash-on' as const },
           ].map((stat) => (
-            <View key={stat.label} style={styles.routeStatCard}>
-              <Text style={styles.routeStatValue}>{stat.value}</Text>
-              <Text style={styles.routeStatLabel}>{stat.label}</Text>
+            <View key={stat.label} style={st.routeStatBox}>
+              <MaterialIcons name={stat.icon} size={14} color={PRIMARY} />
+              <Text style={st.routeStatVal}>{stat.value}</Text>
+              <Text style={st.routeStatLbl}>{stat.label}</Text>
             </View>
           ))}
         </View>
       )}
 
-      {/* Trips */}
       {reports && reports.trips.length > 0 && (
-        <View style={styles.tripsSection}>
-          <Text style={styles.sectionTitle}>Trips ({reports.trips.length})</Text>
+        <View>
+          <Text style={st.sectionTitle}>Trips ({reports.trips.length})</Text>
           {reports.trips.map((trip, index) => (
-            <View key={`trip-${index}`} style={styles.tripCard}>
-              <View style={styles.tripRoute}>
-                <MaterialIcons name="trip-origin" size={14} color={PURPLE} />
-                <Text style={styles.tripAddress} numberOfLines={1}>
-                  {trip.startAddress || 'Unknown'}
-                </Text>
-              </View>
-              <View style={styles.tripRoute}>
-                <MaterialIcons name="place" size={14} color="#ef4444" />
-                <Text style={styles.tripAddress} numberOfLines={1}>
-                  {trip.endAddress || 'Unknown'}
-                </Text>
-              </View>
-              <View style={styles.tripMeta}>
-                <Text style={styles.tripMetaText}>{formatDistanceKm(trip.distance || 0)}</Text>
-                <Text style={styles.tripMetaDot}>{'\u2022'}</Text>
-                <Text style={styles.tripMetaText}>{formatDuration(trip.duration || 0)}</Text>
+            <View key={`trip-${index}`} style={st.tripCard}>
+              <View style={st.tripPoint}><View style={[st.tripDot, { backgroundColor: GREEN }]} /><Text style={st.tripAddr} numberOfLines={1}>{trip.startAddress || 'Unknown'}</Text></View>
+              <View style={st.tripLine} />
+              <View style={st.tripPoint}><View style={[st.tripDot, { backgroundColor: RED }]} /><Text style={st.tripAddr} numberOfLines={1}>{trip.endAddress || 'Unknown'}</Text></View>
+              <View style={st.tripFooter}>
+                <Text style={st.tripFooterText}>{formatDistanceKm(trip.distance || 0)}</Text>
+                <Text style={st.tripFooterDot}>{'\u2022'}</Text>
+                <Text style={st.tripFooterText}>{formatDuration(trip.duration || 0)}</Text>
               </View>
             </View>
           ))}
         </View>
       )}
-
-      {!routeStats && !loadingRoute && (
-        <Text style={styles.emptyHint}>Select a date range and load route history.</Text>
-      )}
-    </View>
+      {!routeStats && !loadingRoute && <Text style={st.hintText}>Select a date range and load route history</Text>}
+    </ScrollView>
   )
 
-  // ────────────────────────────────────────────────────────────
-  // TAB: Zones (read-only list)
-  // ────────────────────────────────────────────────────────────
+  // ── Zones Tab ──
   const renderZonesTab = () => (
-    <View style={styles.tabContent}>
-      {/* Refresh button */}
-      <Pressable
-        style={[styles.outlineButton, loadingZones && styles.buttonDisabled]}
-        onPress={loadZones}
-        disabled={loadingZones}
-      >
-        <MaterialIcons name="refresh" size={16} color={PURPLE} />
-        <Text style={styles.outlineButtonText}>
-          {loadingZones ? 'Refreshing...' : 'Refresh Zones'}
-        </Text>
-      </Pressable>
+    <ScrollView style={st.tabScroll} showsVerticalScrollIndicator={false}>
+      <View style={st.zoneActions}>
+        <Pressable style={st.actionBtnOutline} onPress={loadZones} disabled={loadingZones}>
+          <MaterialIcons name="refresh" size={16} color={PRIMARY} />
+          <Text style={st.actionBtnOutlineText}>{loadingZones ? 'Refreshing...' : 'Refresh'}</Text>
+        </Pressable>
+        <Pressable style={st.actionBtn} onPress={openGeoCreate}>
+          <MaterialIcons name="add" size={16} color="#fff" />
+          <Text style={st.actionBtnText}>New Geofence</Text>
+        </Pressable>
+      </View>
 
-      <Text style={styles.zonesCountText}>
+      <Text style={st.zoneCount}>
         {linkedGeofences.length} zone{linkedGeofences.length !== 1 ? 's' : ''} linked to vehicle
       </Text>
 
       {geofences.length > 0 ? (
-        geofences.map((geofence, index) => {
-          const geoId = typeof geofence.id === 'number' ? geofence.id : null
+        geofences.map((geo, index) => {
+          const geoId = typeof geo.id === 'number' ? geo.id : null
           const linked = geoId !== null && linkedGeofenceIds.has(geoId)
-          const shapeType = geofence.area?.split('(')[0]?.trim()?.toLowerCase()
-            || (geofence.geojson ? 'geojson' : `zone ${index + 1}`)
+          const shapeType = geo.area?.split('(')[0]?.trim()?.toLowerCase() || (geo.geojson ? 'geojson' : `zone ${index + 1}`)
+          const isLinking = geoLinking === geoId
 
           return (
-            <View key={geofence.id || `${geofence.name}-${index}`} style={styles.zoneCard}>
-              <View style={styles.zoneInfo}>
-                <Text style={styles.zoneName} numberOfLines={1}>
-                  {geofence.name || `Zone ${index + 1}`}
-                </Text>
-                <Text style={styles.zoneType}>{shapeType}</Text>
-                {linked && (
-                  <View style={styles.linkedBadge}>
-                    <Text style={styles.linkedBadgeText}>LINKED</Text>
-                  </View>
-                )}
+            <View key={geo.id || `${geo.name}-${index}`} style={st.zoneCard}>
+              <View style={st.zoneLeft}>
+                <View style={[st.zoneIcon, { backgroundColor: linked ? `${GREEN}15` : `${BORDER_COLOR}` }]}>
+                  <MaterialIcons name="fence" size={18} color={linked ? GREEN : TEXT_MUTED_COLOR} />
+                </View>
+                <View style={st.zoneInfo}>
+                  <Text style={st.zoneName} numberOfLines={1}>{geo.name || `Zone ${index + 1}`}</Text>
+                  <Text style={st.zoneType}>{shapeType}</Text>
+                </View>
               </View>
-              <MaterialIcons
-                name={linked ? 'link' : 'link-off'}
-                size={20}
-                color={linked ? '#10b981' : '#94a3b8'}
-              />
+              <View style={st.zoneActions2}>
+                <Pressable
+                  style={[st.zoneActionBtn, isLinking && st.actionBtnDisabled]}
+                  onPress={() => handleGeoToggleLink(geo)}
+                  disabled={isLinking || !isLinked}
+                >
+                  <MaterialIcons name={linked ? 'link-off' : 'link'} size={18} color={linked ? RED : GREEN} />
+                </Pressable>
+                <Pressable style={st.zoneActionBtn} onPress={() => openGeoEdit(geo)}>
+                  <MaterialIcons name="edit" size={18} color={PRIMARY} />
+                </Pressable>
+                <Pressable style={st.zoneActionBtn} onPress={() => handleGeoDelete(geo)}>
+                  <MaterialIcons name="delete-outline" size={18} color={RED} />
+                </Pressable>
+              </View>
             </View>
           )
         })
       ) : (
-        !loadingZones && <Text style={styles.emptyHint}>No geofences found.</Text>
+        !loadingZones && <Text style={st.hintText}>No geofences found</Text>
       )}
 
       {!isLinked && (
-        <View style={styles.warningBanner}>
-          <MaterialIcons name="warning-amber" size={16} color="#f59e0b" />
-          <Text style={styles.warningText}>Device not linked to this vehicle</Text>
-        </View>
+        <View style={st.warnBar}><MaterialIcons name="warning-amber" size={16} color={ORANGE} /><Text style={st.warnText}>Device not linked - cannot link geofences</Text></View>
       )}
-    </View>
+    </ScrollView>
   )
 
-  // ────────────────────────────────────────────────────────────
-  // TAB: Events
-  // ────────────────────────────────────────────────────────────
+  // ── Events Tab ──
   const renderEventsTab = () => (
-    <View style={styles.tabContent}>
+    <ScrollView style={st.tabScroll} showsVerticalScrollIndicator={false}>
       {renderDatePickers()}
-
-      {/* Event type filter */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.eventFilterRow}
-      >
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={st.eventFilterRow}>
         {EVENT_TYPE_OPTIONS.map((type) => {
           const isActive = eventTypeFilter === type
           return (
-            <Pressable
-              key={type}
-              style={[styles.eventFilterPill, isActive && styles.eventFilterPillActive]}
-              onPress={() => setEventTypeFilter(type)}
-            >
-              <Text style={[styles.eventFilterText, isActive && styles.eventFilterTextActive]}>
-                {EVENT_TYPE_LABELS[type] || type}
-              </Text>
+            <Pressable key={type} style={[st.eventChip, isActive && st.eventChipActive]} onPress={() => setEventTypeFilter(type)}>
+              <Text style={[st.eventChipText, isActive && st.eventChipTextActive]}>{EVENT_TYPE_LABELS[type] || type}</Text>
             </Pressable>
           )
         })}
       </ScrollView>
-
-      <Pressable
-        style={[styles.primaryButton, (loadingEvents || !isLinked) && styles.buttonDisabled]}
-        onPress={loadEvents}
-        disabled={loadingEvents || !isLinked}
-      >
-        <Text style={styles.primaryButtonText}>
-          {loadingEvents ? 'Loading Events...' : 'Load Events'}
-        </Text>
+      <Pressable style={[st.actionBtn, (loadingEvents || !isLinked) && st.actionBtnDisabled]} onPress={loadEvents} disabled={loadingEvents || !isLinked}>
+        <MaterialIcons name="search" size={16} color="#fff" />
+        <Text style={st.actionBtnText}>{loadingEvents ? 'Loading...' : 'Load Events'}</Text>
       </Pressable>
 
-      {/* Event timeline */}
-      {events.length > 0 ? (
-        events.map((evt, index) => {
-          const evtType = evt.type || 'unknown'
-          const borderColor = getEventBorderColor(evtType)
-          const iconColor = EVENT_TYPE_COLORS[evtType] || '#94a3b8'
-
-          return (
-            <View
-              key={evt.id || `${evt.deviceId}-${evt.eventTime}-${index}`}
-              style={[styles.eventItem, { borderLeftColor: borderColor }]}
-            >
-              <View style={styles.eventContent}>
-                <Text style={styles.eventTypeLabel}>
-                  {EVENT_TYPE_LABELS[evtType] || evtType}
-                </Text>
-                <Text style={styles.eventTimestamp}>
-                  {formatTimestamp(evt.eventTime)}
-                </Text>
-                {evt.geofenceName && (
-                  <Text style={styles.eventDetail}>{evt.geofenceName}</Text>
-                )}
-                {typeof evt.speed === 'number' && (
-                  <Text style={styles.eventDetail}>
-                    Speed: {Math.round(evt.speed)} km/h
-                  </Text>
-                )}
+      {events.length > 0
+        ? events.map((evt, index) => {
+            const evtType = evt.type || 'unknown'
+            const borderColor = getEventBorderColor(evtType)
+            const iconColor = EVENT_TYPE_COLORS[evtType] || TEXT_MUTED_COLOR
+            return (
+              <View key={evt.id || `${evt.deviceId}-${evt.eventTime}-${index}`} style={[st.eventItem, { borderLeftColor: borderColor }]}>
+                <View style={[st.eventDot, { backgroundColor: `${iconColor}20` }]}><MaterialIcons name="circle" size={8} color={iconColor} /></View>
+                <View style={st.eventBody}>
+                  <Text style={st.eventTitle}>{EVENT_TYPE_LABELS[evtType] || evtType}</Text>
+                  <Text style={st.eventTime}>{formatTimestamp(evt.eventTime)}</Text>
+                  {evt.geofenceName && <Text style={st.eventExtra}>{evt.geofenceName}</Text>}
+                  {typeof evt.speed === 'number' && <Text style={st.eventExtra}>Speed: {Math.round(evt.speed)} km/h</Text>}
+                </View>
               </View>
-              <View style={[styles.eventIconDot, { backgroundColor: `${iconColor}20` }]}>
-                <MaterialIcons
-                  name="circle"
-                  size={8}
-                  color={iconColor}
-                />
-              </View>
-            </View>
-          )
-        })
-      ) : (
-        !loadingEvents && <Text style={styles.emptyHint}>No events found. Select a date range and load events.</Text>
-      )}
-    </View>
+            )
+          })
+        : !loadingEvents && <Text style={st.hintText}>No events found. Select a date range and load events</Text>}
+    </ScrollView>
   )
 
-  // ────────────────────────────────────────────────────────────
-  // TAB: Device
-  // ────────────────────────────────────────────────────────────
+  // ── Device Tab ──
   const renderDeviceTab = () => (
-    <View style={styles.tabContent}>
-      {/* Device info */}
-      <View style={styles.deviceSection}>
-        <View style={styles.deviceSectionHeader}>
-          <Text style={styles.sectionTitle}>Link Device</Text>
-          <View style={styles.deviceStatusRow}>
-            <View style={[styles.tinyDot, { backgroundColor: isLinked ? '#10b981' : '#ef4444' }]} />
-            <Text style={styles.deviceStatusText}>
-              {isLinked ? 'Tracking Enabled' : 'Tracking Disabled'}
-            </Text>
+    <ScrollView style={st.tabScroll} showsVerticalScrollIndicator={false}>
+      <View style={st.deviceCard}>
+        <View style={st.deviceCardHeader}>
+          <Text style={st.sectionTitle}>Link Device</Text>
+          <View style={st.deviceStatusChip}>
+            <View style={[st.deviceStatusDot, { backgroundColor: isLinked ? GREEN : RED }]} />
+            <Text style={[st.deviceStatusLabel, { color: isLinked ? GREEN : RED }]}>{isLinked ? 'Tracking ON' : 'Tracking OFF'}</Text>
           </View>
         </View>
 
-        <Text style={styles.inputLabel}>DEVICE ID</Text>
-        <TextInput
-          style={styles.textInput}
-          value={deviceIdInput}
-          onChangeText={setDeviceIdInput}
-          placeholder="e.g. 142"
-          placeholderTextColor="#94a3b8"
-          keyboardType="numeric"
-        />
+        <Text style={st.inputLabel}>DEVICE ID</Text>
+        <TextInput style={st.textInput} value={deviceIdInput} onChangeText={setDeviceIdInput} placeholder="e.g. 142" placeholderTextColor={TEXT_MUTED_COLOR} keyboardType="numeric" />
+        <Text style={st.inputLabel}>DEVICE NAME</Text>
+        <TextInput style={st.textInput} value={deviceNameInput} onChangeText={setDeviceNameInput} placeholder="e.g. Teltonika FMC130" placeholderTextColor={TEXT_MUTED_COLOR} />
+        <Text style={st.inputLabel}>NOTES</Text>
+        <TextInput style={st.textInput} value={notesInput} onChangeText={setNotesInput} placeholder="..." placeholderTextColor={TEXT_MUTED_COLOR} />
 
-        <Text style={styles.inputLabel}>DEVICE NAME</Text>
-        <TextInput
-          style={styles.textInput}
-          value={deviceNameInput}
-          onChangeText={setDeviceNameInput}
-          placeholder="e.g. Teltonika FMC130"
-          placeholderTextColor="#94a3b8"
-        />
-
-        <Text style={styles.inputLabel}>NOTES</Text>
-        <TextInput
-          style={styles.textInput}
-          value={notesInput}
-          onChangeText={setNotesInput}
-          placeholder="..."
-          placeholderTextColor="#94a3b8"
-        />
-
-        <View style={styles.deviceButtonRow}>
-          <Pressable
-            style={[styles.linkButton, deviceSaving && styles.buttonDisabled]}
-            onPress={handleLinkDevice}
-            disabled={deviceSaving}
-          >
+        <View style={st.deviceBtnRow}>
+          <Pressable style={[st.linkBtn, deviceSaving && st.actionBtnDisabled]} onPress={handleLinkDevice} disabled={deviceSaving}>
             <MaterialIcons name="link" size={14} color="#fff" />
-            <Text style={styles.linkButtonText}>
-              {deviceSaving ? 'Linking...' : 'Link Device'}
-            </Text>
+            <Text style={st.linkBtnText}>{deviceSaving ? 'Linking...' : 'Link'}</Text>
           </Pressable>
-          <Pressable
-            style={[styles.unlinkButton, (deviceSaving || !isLinked) && styles.buttonDisabled]}
-            onPress={handleUnlinkDevice}
-            disabled={deviceSaving || !isLinked}
-          >
-            <MaterialIcons name="link-off" size={14} color="#ef4444" />
-            <Text style={styles.unlinkButtonText}>Unlink</Text>
+          <Pressable style={[st.unlinkBtn, (deviceSaving || !isLinked) && st.actionBtnDisabled]} onPress={handleUnlinkDevice} disabled={deviceSaving || !isLinked}>
+            <MaterialIcons name="link-off" size={14} color={RED} />
+            <Text style={st.unlinkBtnText}>Unlink</Text>
           </Pressable>
         </View>
       </View>
 
-      {/* Command Center */}
-      <View style={styles.deviceSection}>
-        <Text style={styles.sectionTitle}>Command Center</Text>
-
+      <View style={st.deviceCard}>
+        <Text style={st.sectionTitle}>Command Center</Text>
         {loadingCommands ? (
           <Indicator />
         ) : commandTypes.length > 0 ? (
-          <View style={styles.commandList}>
+          <View style={st.cmdList}>
             {commandTypes.map((cmd, index) => (
-              <Pressable
-                key={`cmd-${index}`}
-                style={[styles.commandCard, sendingCommand && styles.buttonDisabled]}
-                onPress={() => sendCommand(cmd.type || '')}
-                disabled={sendingCommand || !isLinked}
-              >
-                <MaterialIcons name="send" size={16} color={PURPLE} />
-                <Text style={styles.commandCardText}>{cmd.type || 'Unknown'}</Text>
-                <MaterialIcons name="chevron-right" size={20} color="#94a3b8" />
+              <Pressable key={`cmd-${index}`} style={[st.cmdItem, sendingCommand && st.actionBtnDisabled]} onPress={() => sendCommand(cmd.type || '')} disabled={sendingCommand || !isLinked}>
+                <View style={st.cmdIcon}><MaterialIcons name="send" size={14} color={PRIMARY} /></View>
+                <Text style={st.cmdText}>{cmd.type || 'Unknown'}</Text>
+                <MaterialIcons name="chevron-right" size={18} color={TEXT_MUTED_COLOR} />
               </Pressable>
             ))}
           </View>
         ) : (
-          <Text style={styles.emptyHint}>No commands available.</Text>
+          <Text style={st.hintText}>No commands available</Text>
         )}
       </View>
-    </View>
+    </ScrollView>
   )
 
-  // ────────────────────────────────────────────────────────────
-  // RENDER: Vehicle Header
-  // ────────────────────────────────────────────────────────────
-  const renderVehicleHeader = () => {
+  // ── Geofence Modal ──
+  const renderGeoModal = () => (
+    <Modal visible={geoModalVisible} animationType="slide" transparent>
+      <View style={st.modalOverlay}>
+        <View style={st.modalContent}>
+          <View style={st.modalHeader}>
+            <Text style={st.modalTitle}>{geoEditId ? 'Edit Geofence' : 'New Geofence'}</Text>
+            <Pressable onPress={() => setGeoModalVisible(false)}><MaterialIcons name="close" size={24} color={TEXT_SECONDARY_COLOR} /></Pressable>
+          </View>
+
+          <ScrollView showsVerticalScrollIndicator={false}>
+            <Text style={st.inputLabel}>NAME *</Text>
+            <TextInput style={st.textInput} value={geoName} onChangeText={setGeoName} placeholder="Geofence name" placeholderTextColor={TEXT_MUTED_COLOR} />
+
+            <Text style={st.inputLabel}>DESCRIPTION</Text>
+            <TextInput style={st.textInput} value={geoDescription} onChangeText={setGeoDescription} placeholder="Optional description" placeholderTextColor={TEXT_MUTED_COLOR} />
+
+            <Text style={st.inputLabel}>LATITUDE *</Text>
+            <TextInput style={st.textInput} value={geoLatitude} onChangeText={setGeoLatitude} placeholder="e.g. 33.8938" placeholderTextColor={TEXT_MUTED_COLOR} keyboardType="numeric" />
+
+            <Text style={st.inputLabel}>LONGITUDE *</Text>
+            <TextInput style={st.textInput} value={geoLongitude} onChangeText={setGeoLongitude} placeholder="e.g. 35.5018" placeholderTextColor={TEXT_MUTED_COLOR} keyboardType="numeric" />
+
+            <Text style={st.inputLabel}>RADIUS (meters)</Text>
+            <TextInput style={st.textInput} value={geoRadius} onChangeText={setGeoRadius} placeholder="500" placeholderTextColor={TEXT_MUTED_COLOR} keyboardType="numeric" />
+
+            <View style={st.modalBtnRow}>
+              <Pressable style={st.modalCancelBtn} onPress={() => setGeoModalVisible(false)}>
+                <Text style={st.modalCancelText}>Cancel</Text>
+              </Pressable>
+              <Pressable style={[st.actionBtn, { flex: 1 }, geoSaving && st.actionBtnDisabled]} onPress={handleGeoSave} disabled={geoSaving}>
+                <Text style={st.actionBtnText}>{geoSaving ? 'Saving...' : 'Save'}</Text>
+              </Pressable>
+            </View>
+          </ScrollView>
+        </View>
+      </View>
+    </Modal>
+  )
+
+  // ── Vehicle View ──
+  const renderVehicleView = () => {
     if (!selectedVehicle) return null
     const dotColor = STATUS_COLORS[selectedVehicle.status] || '#64748b'
     const statusLabel = STATUS_LABELS[selectedVehicle.status] || selectedVehicle.status
 
     return (
-      <View style={styles.vehicleHeaderCard}>
-        <View style={styles.vehicleHeaderTop}>
-          <View style={styles.vehicleHeaderLeft}>
-            <MaterialIcons name="directions-car" size={22} color={dotColor} />
-            <View style={styles.vehicleHeaderNames}>
-              <Text style={styles.vehicleHeaderName} numberOfLines={1}>
-                {selectedVehicle.carName}
-              </Text>
-              <Text style={styles.vehicleHeaderPlate}>
-                {selectedVehicle.licensePlate || '---'}
-              </Text>
+      <View style={st.fullScreen}>
+        {/* Full-screen map - direct child, no wrapper */}
+        <TrackingMap
+          markers={vehicleMarker}
+          route={vehicleRoute}
+          circles={geoCircles}
+          selectedMarkerId={selectedCarId}
+          onMapPress={geoDrawMode ? handleMapPressForGeo : undefined}
+          height={SCREEN_HEIGHT}
+        />
+
+        {/* Geo draw mode overlay */}
+        {geoDrawMode && (
+          <View style={st.geoDrawOverlay}>
+            <View style={st.geoDrawBanner}>
+              <MaterialIcons name="touch-app" size={20} color={PRIMARY} />
+              <Text style={st.geoDrawText}>Tap on the map to place geofence center</Text>
+            </View>
+            {geoLatitude && geoLongitude ? (
+              <View style={st.geoDrawInfo}>
+                <Text style={st.geoDrawCoord}>{geoLatitude}, {geoLongitude}</Text>
+                <View style={st.geoDrawRadiusRow}>
+                  <Text style={st.geoDrawLabel}>Radius:</Text>
+                  <Pressable style={st.geoRadiusBtn} onPress={() => setGeoRadius(String(Math.max(100, (parseFloat(geoRadius) || 500) - 100)))}>
+                    <MaterialIcons name="remove" size={18} color={PRIMARY} />
+                  </Pressable>
+                  <Text style={st.geoRadiusValue}>{geoRadius}m</Text>
+                  <Pressable style={st.geoRadiusBtn} onPress={() => setGeoRadius(String((parseFloat(geoRadius) || 500) + 100))}>
+                    <MaterialIcons name="add" size={18} color={PRIMARY} />
+                  </Pressable>
+                </View>
+              </View>
+            ) : null}
+            <View style={st.geoDrawActions}>
+              <Pressable style={st.geoDrawCancelBtn} onPress={cancelGeoDraw}>
+                <Text style={st.geoDrawCancelText}>Cancel</Text>
+              </Pressable>
+              <Pressable style={st.geoDrawConfirmBtn} onPress={confirmGeoDraw}>
+                <MaterialIcons name="check" size={18} color="#fff" />
+                <Text style={st.geoDrawConfirmText}>Continue</Text>
+              </Pressable>
             </View>
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: `${dotColor}20` }]}>
-            <View style={[styles.statusDotSmall, { backgroundColor: dotColor }]} />
-            <Text style={[styles.statusBadgeText, { color: dotColor }]}>{statusLabel}</Text>
+        )}
+
+        {/* Floating vehicle info bar */}
+        {!geoDrawMode && <View style={st.vehicleInfoBar}>
+          <Pressable style={st.backBtn} onPress={backToFleet}>
+            <MaterialIcons name="arrow-back" size={22} color={PRIMARY} />
+          </Pressable>
+          <View style={st.vehicleInfoContent}>
+            <View style={st.vehicleInfoTop}>
+              <Text style={st.vehicleInfoName} numberOfLines={1}>{selectedVehicle.carName}</Text>
+              <View style={[st.vehicleInfoBadge, { backgroundColor: `${dotColor}15` }]}>
+                <View style={[st.vehicleInfoBadgeDot, { backgroundColor: dotColor }]} />
+                <Text style={[st.vehicleInfoBadgeText, { color: dotColor }]}>{statusLabel}</Text>
+              </View>
+            </View>
+            <View style={st.vehicleInfoBottom}>
+              <Text style={st.vehicleInfoPlate}>{selectedVehicle.licensePlate || '---'}</Text>
+              {selectedVehicle.speed > 0 && (<><Text style={st.vehicleInfoDot}>{'\u2022'}</Text><Text style={[st.vehicleInfoSpeed, { color: GREEN }]}>{Math.round(selectedVehicle.speed)} km/h</Text></>)}
+              <Text style={st.vehicleInfoDot}>{'\u2022'}</Text>
+              <Text style={st.vehicleInfoAge}>{formatRelativeAge(selectedVehicle.lastUpdate)}</Text>
+            </View>
           </View>
-        </View>
-        <View style={styles.vehicleHeaderMeta}>
-          {selectedVehicle.speed > 0 && (
-            <>
-              <Text style={[styles.vehicleHeaderMetaValue, { color: dotColor }]}>
-                {Math.round(selectedVehicle.speed)} km/h
-              </Text>
-              <Text style={styles.vehicleHeaderMetaDot}>{'\u2022'}</Text>
-            </>
-          )}
-          <Text style={styles.vehicleHeaderMetaText}>
-            {formatRelativeAge(selectedVehicle.lastUpdate)}
-          </Text>
-        </View>
+        </View>}
+
+        {/* Detail bottom sheet - hidden in draw mode */}
+        {!geoDrawMode && (
+          <Animated.View style={[st.vehicleSheet, { height: vehicleSheetAnim }]}>
+            {sheetOpen && (
+              <View style={st.vehicleSheetContent}>
+                <View style={st.vehicleSheetHandle} />
+                <Text style={st.vehicleSheetTitle}>{TOOLBAR_TABS.find((t) => t.key === activeTab)?.label || ''}</Text>
+                {activeTab === 'status' && renderStatusTab()}
+                {activeTab === 'route' && renderRouteTab()}
+                {activeTab === 'zones' && renderZonesTab()}
+                {activeTab === 'events' && renderEventsTab()}
+                {activeTab === 'device' && renderDeviceTab()}
+              </View>
+            )}
+          </Animated.View>
+        )}
+
+        {/* Bottom toolbar - hidden in draw mode */}
+        {!geoDrawMode && <View style={st.toolbar}>
+          {TOOLBAR_TABS.map((tab) => {
+            const isActive = sheetOpen && activeTab === tab.key
+            return (
+              <Pressable key={tab.key} style={st.toolbarItem} onPress={() => toggleVehicleSheet(tab.key)}>
+                <View style={[st.toolbarIconWrap, isActive && st.toolbarIconActive]}>
+                  <MaterialIcons name={tab.icon} size={22} color={isActive ? PRIMARY : TEXT_MUTED_COLOR} />
+                </View>
+                <Text style={[st.toolbarLabel, isActive && st.toolbarLabelActive]}>{tab.label}</Text>
+              </Pressable>
+            )
+          })}
+        </View>}
       </View>
     )
   }
 
-  // ────────────────────────────────────────────────────────────
-  // RENDER: Vehicle View
-  // ────────────────────────────────────────────────────────────
-  const renderVehicleView = () => (
-    <ScrollView style={styles.vehicleScroll} contentContainerStyle={styles.vehicleScrollContent}>
-      {/* Back button */}
-      <Pressable style={styles.backButton} onPress={backToFleet}>
-        <MaterialIcons name="arrow-back" size={20} color={PURPLE} />
-        <Text style={styles.backButtonText}>Fleet</Text>
-      </Pressable>
+  // ════════════════════════════════════════════════════════════════
+  // MAIN
+  // ════════════════════════════════════════════════════════════════
 
-      {/* Map */}
-      <View style={styles.mapContainer}>
-        <TrackingMap
-          markers={vehicleMarker}
-          route={vehicleRoute}
-          selectedMarkerId={selectedCarId}
-          height={250}
-        />
-      </View>
-
-      {renderVehicleHeader()}
-      {renderTabBar()}
-
-      {activeTab === 'status' && renderStatusTab()}
-      {activeTab === 'route' && renderRouteTab()}
-      {activeTab === 'zones' && renderZonesTab()}
-      {activeTab === 'events' && renderEventsTab()}
-      {activeTab === 'device' && renderDeviceTab()}
-    </ScrollView>
-  )
-
-  // ────────────────────────────────────────────────────────────
-  // RENDER: Fleet View
-  // ────────────────────────────────────────────────────────────
-  const renderFleetView = () => (
-    <>
-      {renderStatsStrip()}
-      <View style={styles.mapContainer}>
-        <TrackingMap
-          markers={fleetMarkers}
-          selectedMarkerId={selectedCarId}
-          onMarkerPress={handleFleetMarkerPress}
-          height={MAP_HEIGHT}
-        />
-      </View>
-      {renderFilterPills()}
-      <FlatList
-        data={filteredVehicles}
-        renderItem={renderVehicleItem}
-        keyExtractor={(item) => item.carId}
-        contentContainerStyle={styles.list}
-        ListEmptyComponent={<EmptyList message="No vehicles found." icon="directions-car" />}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={[PURPLE]} />
-        }
-      />
-    </>
-  )
-
-  // ────────────────────────────────────────────────────────────
-  // RENDER: Main
-  // ────────────────────────────────────────────────────────────
   if (!integrationEnabled && !loading) {
     return (
-      <View style={styles.container}>
+      <View style={st.screen}>
         <Header title="Tracking" loggedIn reload />
-        <View style={styles.disabledContainer}>
-          <MaterialIcons name="gps-off" size={48} color="#ccc" />
-          <Text style={styles.disabledText}>
-            Fleet tracking is not enabled. Configure Traccar integration in settings.
-          </Text>
+        <View style={st.disabledContent}>
+          <MaterialIcons name="gps-off" size={56} color={TEXT_MUTED_COLOR} />
+          <Text style={st.disabledTitle}>Fleet Tracking Disabled</Text>
+          <Text style={st.disabledSubtitle}>Configure Traccar integration in settings to enable GPS tracking</Text>
         </View>
       </View>
     )
   }
 
   return (
-    <View style={styles.container}>
-      <Header title="Tracking" loggedIn reload />
+    <View style={st.fullScreen}>
+      <StatusBar barStyle="dark-content" backgroundColor={SURFACE} />
       {loading ? (
-        <Indicator />
+        <View style={st.loadingScreen}><Indicator /></View>
       ) : view === 'fleet' ? (
         renderFleetView()
       ) : (
         renderVehicleView()
       )}
+      {renderGeoModal()}
     </View>
   )
 }
 
-// ──────────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════
 // STYLES
-// ──────────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f8f9fb',
-  },
+const st = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: BG },
+  fullScreen: { flex: 1, backgroundColor: BG },
+  loadingScreen: { flex: 1, backgroundColor: BG, justifyContent: 'center', alignItems: 'center' },
+  disabledContent: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 },
+  disabledTitle: { color: TEXT_PRIMARY_COLOR, fontSize: 18, fontWeight: '700', marginTop: 16 },
+  disabledSubtitle: { color: TEXT_SECONDARY_COLOR, fontSize: 14, marginTop: 8, textAlign: 'center', lineHeight: 20 },
 
-  // Disabled state
-  disabledContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 40,
-  },
-  disabledText: {
-    color: '#94a3b8',
-    fontSize: 15,
-    marginTop: 12,
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-
-  // Map container
-  mapContainer: {
-    marginHorizontal: 16,
-    marginTop: 12,
-    marginBottom: 4,
-    borderRadius: 14,
-    overflow: 'hidden',
-    elevation: 3,
+  // ── Fleet overlay ──
+  fleetOverlay: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 50 : StatusBar.currentHeight || 24,
+    left: 12,
+    right: 12,
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    borderRadius: 16,
+    padding: 12,
+    elevation: 6,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.15,
     shadowRadius: 8,
-    backgroundColor: '#e2e8f0',
   },
+  fleetStatusBar: { flexDirection: 'row', justifyContent: 'space-between' },
+  fleetStatusItem: { alignItems: 'center', flex: 1 },
+  fleetStatusValue: { fontSize: 18, fontWeight: '800' },
+  fleetStatusLabel: { fontSize: 9, color: TEXT_MUTED_COLOR, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 2 },
 
-  // Stats strip
-  statsRow: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    gap: 8,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 12,
-    alignItems: 'center',
-    elevation: 1,
+  // ── Bottom sheet ──
+  bottomSheet: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: SURFACE,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    elevation: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
   },
-  statValue: {
-    fontSize: 20,
-    fontWeight: '700',
-  },
-  statLabel: {
-    fontSize: 10,
-    color: '#94a3b8',
-    marginTop: 2,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    fontWeight: '600',
-  },
+  sheetHandleArea: { paddingTop: 10, paddingBottom: 6, alignItems: 'center' },
+  sheetHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: '#ddd' },
+  sheetTitle: { fontSize: 14, fontWeight: '700', color: TEXT_PRIMARY_COLOR, marginTop: 4 },
+  sheetHeader: { paddingHorizontal: 16 },
 
-  // Filter pills
-  filterRow: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    gap: 6,
-  },
-  filterPill: {
-    height: 30,
-    paddingHorizontal: 12,
-    borderRadius: 15,
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 4,
-  },
-  filterPillActive: {
-    backgroundColor: PURPLE,
-    borderColor: PURPLE,
-  },
-  filterPillText: {
-    fontSize: 12,
-    color: '#64748b',
-    fontWeight: '500',
-  },
-  filterPillTextActive: {
-    color: '#fff',
-  },
-  filterPillCount: {
-    fontSize: 10,
-    color: '#94a3b8',
-    fontWeight: '600',
-  },
-  filterPillCountActive: {
-    color: 'rgba(255,255,255,0.8)',
-  },
+  // ── Search ──
+  searchBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: BG, borderRadius: 12, paddingHorizontal: 12, height: 40, marginBottom: 8 },
+  searchInput: { flex: 1, color: TEXT_PRIMARY_COLOR, fontSize: 14, marginLeft: 8, padding: 0 },
 
-  // Vehicle list
-  list: {
-    padding: 16,
-    paddingTop: 4,
-  },
-  vehicleCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 8,
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-  },
-  vehicleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  statusDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginRight: 12,
-  },
-  vehicleInfo: {
-    flex: 1,
-  },
-  vehicleNameRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  vehicleName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1e293b',
-    flex: 1,
-  },
-  vehicleSpeed: {
-    fontSize: 12,
-    color: '#94a3b8',
-    fontWeight: '500',
-    marginLeft: 8,
-  },
-  vehicleSpeedActive: {
-    fontSize: 12,
-    color: '#10b981',
-    fontWeight: '600',
-    marginLeft: 8,
-  },
-  vehicleMetaRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 3,
-  },
-  vehiclePlate: {
-    fontSize: 12,
-    color: '#94a3b8',
-    flex: 1,
-  },
-  vehicleAge: {
-    fontSize: 11,
-    color: '#94a3b8',
-    marginLeft: 8,
-  },
+  // ── Filter chips ──
+  filterChipsRow: { gap: 6, paddingBottom: 8 },
+  filterChip: { flexDirection: 'row', alignItems: 'center', height: 28, paddingHorizontal: 10, borderRadius: 14, backgroundColor: BG, gap: 4 },
+  filterChipActive: { backgroundColor: PRIMARY },
+  filterChipText: { fontSize: 11, color: TEXT_SECONDARY_COLOR, fontWeight: '600' },
+  filterChipTextActive: { color: '#fff' },
+  filterChipCount: { fontSize: 10, color: TEXT_MUTED_COLOR, fontWeight: '700' },
+  filterChipCountActive: { color: 'rgba(255,255,255,0.8)' },
 
-  // Vehicle view
-  vehicleScroll: {
-    flex: 1,
-  },
-  vehicleScrollContent: {
-    paddingBottom: 40,
-  },
-  backButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    gap: 6,
-  },
-  backButtonText: {
-    fontSize: 15,
-    color: PURPLE,
-    fontWeight: '600',
-  },
+  // ── Vehicle list ──
+  vehicleList: { paddingHorizontal: 16, paddingBottom: 20 },
+  vehicleListItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: SURFACE, borderRadius: 14, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: BORDER_COLOR },
+  vehicleListLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  vehicleIconCircle: { width: 40, height: 40, borderRadius: 20, borderWidth: 2, justifyContent: 'center', alignItems: 'center', marginRight: 10 },
+  vehicleListInfo: { flex: 1 },
+  vehicleListName: { fontSize: 14, fontWeight: '700', color: TEXT_PRIMARY_COLOR },
+  vehicleListMeta: { fontSize: 11, color: TEXT_SECONDARY_COLOR, marginTop: 2 },
+  vehicleListRight: { alignItems: 'flex-end', marginLeft: 8 },
+  vehicleListSpeed: { fontSize: 12, fontWeight: '700', marginBottom: 4 },
+  vehicleStatusPill: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10, gap: 4 },
+  vehicleStatusDot: { width: 6, height: 6, borderRadius: 3 },
+  vehicleStatusText: { fontSize: 9, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.3 },
+  vehicleListAge: { fontSize: 10, color: TEXT_MUTED_COLOR, marginTop: 3 },
 
-  // Vehicle header card
-  vehicleHeaderCard: {
-    backgroundColor: '#fff',
-    borderRadius: 14,
-    padding: 16,
-    marginHorizontal: 16,
-    marginTop: 8,
-    marginBottom: 4,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-  },
-  vehicleHeaderTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
-  vehicleHeaderLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    gap: 10,
-  },
-  vehicleHeaderNames: {
-    flex: 1,
-  },
-  vehicleHeaderName: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1e293b',
-  },
-  vehicleHeaderPlate: {
-    fontSize: 11,
-    color: '#94a3b8',
-    letterSpacing: 0.8,
-    marginTop: 1,
-  },
-  statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    gap: 6,
-  },
-  statusDotSmall: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  statusBadgeText: {
-    fontSize: 11,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  vehicleHeaderMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 10,
-    gap: 6,
-  },
-  vehicleHeaderMetaValue: {
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  vehicleHeaderMetaText: {
-    fontSize: 13,
-    color: '#64748b',
-  },
-  vehicleHeaderMetaDot: {
-    color: '#cbd5e1',
-  },
+  emptyContainer: { alignItems: 'center', paddingVertical: 40 },
+  emptyText: { color: TEXT_MUTED_COLOR, fontSize: 14, marginTop: 10 },
 
-  // Tab bar
-  tabBar: {
-    marginHorizontal: 16,
-    marginTop: 4,
-  },
-  tabBarContent: {
-    gap: 2,
-  },
-  tab: {
+  // ── Vehicle info bar ──
+  vehicleInfoBar: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 50 : (StatusBar.currentHeight || 24) + 8,
+    left: 12,
+    right: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
-    gap: 5,
-  },
-  tabActive: {
-    borderBottomColor: PURPLE,
-  },
-  tabText: {
-    fontSize: 13,
-    color: '#94a3b8',
-    fontWeight: '500',
-  },
-  tabTextActive: {
-    color: PURPLE,
-    fontWeight: '700',
-  },
-
-  // Tab content
-  tabContent: {
-    padding: 16,
-  },
-
-  // Metrics grid (Status tab)
-  metricsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    marginBottom: 12,
-  },
-  metricCard: {
-    width: '47%',
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#f1f5f9',
-  },
-  metricHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginBottom: 6,
-  },
-  metricLabel: {
-    fontSize: 9,
-    color: '#94a3b8',
-    fontWeight: '700',
-    letterSpacing: 0.8,
-  },
-  metricValueLarge: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#1e293b',
-  },
-  metricValueSmall: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#1e293b',
-    marginTop: 2,
-  },
-  metricUnit: {
-    fontSize: 11,
-    fontWeight: '400',
-    color: '#94a3b8',
-  },
-  batteryTrack: {
-    width: '100%',
-    height: 4,
-    backgroundColor: '#f1f5f9',
-    borderRadius: 2,
-    marginTop: 6,
-  },
-  batteryFill: {
-    height: '100%',
-    borderRadius: 2,
-  },
-
-  // Address card
-  addressCard: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    backgroundColor: `${PURPLE}08`,
-    borderRadius: 10,
-    padding: 12,
-    gap: 8,
-    marginBottom: 12,
-  },
-  addressText: {
-    fontSize: 13,
-    color: '#1e293b',
-    flex: 1,
-    lineHeight: 18,
-  },
-
-  // Buttons
-  primaryButton: {
-    backgroundColor: PURPLE,
-    borderRadius: 10,
-    paddingVertical: 12,
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  primaryButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  dashedButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    borderWidth: 2,
-    borderStyle: 'dashed',
-    borderColor: '#e2e8f0',
-    borderRadius: 10,
-    paddingVertical: 12,
-    marginBottom: 12,
-  },
-  dashedButtonText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#64748b',
-  },
-  outlineButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    borderRadius: 10,
-    paddingVertical: 10,
-    marginBottom: 12,
-  },
-  outlineButtonText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: PURPLE,
-  },
-  buttonDisabled: {
-    opacity: 0.5,
-  },
-
-  // Warning banner
-  warningBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: '#fefce8',
-    borderRadius: 10,
-    padding: 12,
-    marginTop: 4,
-  },
-  warningText: {
-    fontSize: 12,
-    color: '#a16207',
-    flex: 1,
-  },
-
-  // Date pickers
-  datePickerRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 12,
-  },
-  datePickerField: {
-    flex: 1,
-  },
-  datePickerLabel: {
-    fontSize: 9,
-    color: '#94a3b8',
-    fontWeight: '700',
-    letterSpacing: 0.8,
-    marginBottom: 4,
-  },
-  datePickerButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 8,
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    borderRadius: 16,
     padding: 10,
-    gap: 6,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-  },
-  datePickerText: {
-    fontSize: 12,
-    color: '#1e293b',
-  },
-
-  // Route stats
-  routeStatsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: 8,
-    marginBottom: 16,
-  },
-  routeStatCard: {
-    width: '47%',
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderWidth: 1,
-    borderColor: '#f1f5f9',
-    alignItems: 'center',
-  },
-  routeStatValue: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#1e293b',
-  },
-  routeStatLabel: {
-    fontSize: 8,
-    color: '#94a3b8',
-    fontWeight: '700',
-    letterSpacing: 0.8,
-    marginTop: 2,
-    textTransform: 'uppercase',
-  },
-
-  // Trips
-  tripsSection: {
-    marginTop: 4,
-  },
-  sectionTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#1e293b',
-    marginBottom: 10,
-  },
-  tripCard: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 8,
-    elevation: 1,
+    elevation: 6,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
   },
-  tripRoute: {
+  backBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: PRIMARY_LIGHT, justifyContent: 'center', alignItems: 'center' },
+  vehicleInfoContent: { flex: 1 },
+  vehicleInfoTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  vehicleInfoName: { fontSize: 16, fontWeight: '800', color: TEXT_PRIMARY_COLOR, flex: 1, marginRight: 8 },
+  vehicleInfoBadge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10, gap: 5 },
+  vehicleInfoBadgeDot: { width: 7, height: 7, borderRadius: 4 },
+  vehicleInfoBadgeText: { fontSize: 10, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.3 },
+  vehicleInfoBottom: { flexDirection: 'row', alignItems: 'center', marginTop: 3, gap: 5 },
+  vehicleInfoPlate: { fontSize: 11, color: TEXT_SECONDARY_COLOR, letterSpacing: 0.5 },
+  vehicleInfoDot: { color: TEXT_MUTED_COLOR, fontSize: 8 },
+  vehicleInfoSpeed: { fontSize: 11, fontWeight: '700' },
+  vehicleInfoAge: { fontSize: 11, color: TEXT_SECONDARY_COLOR },
+
+  // ── Vehicle sheet ──
+  vehicleSheet: { position: 'absolute', bottom: TOOLBAR_HEIGHT, left: 0, right: 0, backgroundColor: SURFACE, borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden', elevation: 10 },
+  vehicleSheetContent: { flex: 1, paddingTop: 8 },
+  vehicleSheetHandle: { width: 32, height: 4, borderRadius: 2, backgroundColor: '#ddd', alignSelf: 'center', marginBottom: 8 },
+  vehicleSheetTitle: { fontSize: 16, fontWeight: '800', color: TEXT_PRIMARY_COLOR, paddingHorizontal: 16, marginBottom: 10 },
+
+  // ── Toolbar ──
+  toolbar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: TOOLBAR_HEIGHT,
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 4,
-  },
-  tripAddress: {
-    fontSize: 12,
-    color: '#1e293b',
-    flex: 1,
-  },
-  tripMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginTop: 6,
-    paddingTop: 6,
+    backgroundColor: SURFACE,
     borderTopWidth: 1,
-    borderTopColor: '#f1f5f9',
+    borderTopColor: BORDER_COLOR,
+    paddingBottom: Platform.OS === 'ios' ? 8 : 0,
+    elevation: 12,
   },
-  tripMetaText: {
-    fontSize: 11,
-    color: '#94a3b8',
-  },
-  tripMetaDot: {
-    color: '#cbd5e1',
-    fontSize: 10,
-  },
+  toolbarItem: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 6 },
+  toolbarIconWrap: { width: 36, height: 28, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
+  toolbarIconActive: { backgroundColor: PRIMARY_LIGHT },
+  toolbarLabel: { fontSize: 9, color: TEXT_MUTED_COLOR, fontWeight: '600', marginTop: 2, textTransform: 'uppercase', letterSpacing: 0.3 },
+  toolbarLabelActive: { color: PRIMARY },
 
-  // Zones
-  zonesCountText: {
-    fontSize: 12,
-    color: '#94a3b8',
-    marginBottom: 10,
-  },
-  zoneCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 14,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: '#f1f5f9',
-  },
-  zoneInfo: {
-    flex: 1,
-    marginRight: 10,
-  },
-  zoneName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1e293b',
-  },
-  zoneType: {
-    fontSize: 11,
-    color: '#94a3b8',
-    marginTop: 2,
-  },
-  linkedBadge: {
-    marginTop: 4,
-    backgroundColor: '#ecfdf5',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-    alignSelf: 'flex-start',
-  },
-  linkedBadgeText: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: '#10b981',
-    letterSpacing: 0.5,
-  },
+  // ── Tab scroll ──
+  tabScroll: { flex: 1, paddingHorizontal: 16 },
 
-  // Events
-  eventFilterRow: {
-    gap: 6,
-    paddingBottom: 10,
-  },
-  eventFilterPill: {
-    height: 28,
-    paddingHorizontal: 10,
-    borderRadius: 14,
-    backgroundColor: '#f1f5f9',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  eventFilterPillActive: {
-    backgroundColor: PURPLE,
-  },
-  eventFilterText: {
-    fontSize: 10,
-    color: '#64748b',
-    fontWeight: '600',
-  },
-  eventFilterTextActive: {
-    color: '#fff',
-  },
-  eventItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    borderLeftWidth: 3,
-    paddingLeft: 12,
-    paddingVertical: 8,
-    marginBottom: 2,
-  },
-  eventContent: {
-    flex: 1,
-  },
-  eventTypeLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#1e293b',
-  },
-  eventTimestamp: {
-    fontSize: 10,
-    color: '#94a3b8',
-    marginTop: 2,
-  },
-  eventDetail: {
-    fontSize: 10,
-    color: '#94a3b8',
-    marginTop: 1,
-  },
-  eventIconDot: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 8,
-  },
+  // ── Metrics ──
+  metricsRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
+  metricBox: { flex: 1, backgroundColor: BG, borderRadius: 14, padding: 12, alignItems: 'center' },
+  metricVal: { fontSize: 20, fontWeight: '800', color: TEXT_PRIMARY_COLOR, marginTop: 6 },
+  metricUnit: { fontSize: 10, fontWeight: '400', color: TEXT_MUTED_COLOR },
+  metricLbl: { fontSize: 8, color: TEXT_MUTED_COLOR, fontWeight: '700', letterSpacing: 0.6, marginTop: 4, textTransform: 'uppercase' },
+  batteryTrack: { width: '100%', height: 3, backgroundColor: BORDER_COLOR, borderRadius: 2, marginTop: 6 },
+  batteryFill: { height: '100%', borderRadius: 2 },
 
-  // Device tab
-  deviceSection: {
-    backgroundColor: '#fff',
-    borderRadius: 14,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#f1f5f9',
-    marginBottom: 12,
-  },
-  deviceSectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  deviceStatusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  tinyDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-  deviceStatusText: {
-    fontSize: 10,
-    color: '#94a3b8',
-    fontWeight: '600',
-  },
-  inputLabel: {
-    fontSize: 9,
-    color: '#94a3b8',
-    fontWeight: '700',
-    letterSpacing: 0.8,
-    marginBottom: 4,
-    marginTop: 8,
-  },
-  textInput: {
-    backgroundColor: '#f8fafc',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: Platform.OS === 'ios' ? 10 : 8,
-    fontSize: 13,
-    color: '#1e293b',
-  },
-  deviceButtonRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: 14,
-  },
-  linkButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    backgroundColor: PURPLE,
-    borderRadius: 8,
-    paddingVertical: 10,
-  },
-  linkButtonText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  unlinkButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    borderWidth: 1,
-    borderColor: '#ef4444',
-    borderRadius: 8,
-    paddingVertical: 10,
-  },
-  unlinkButtonText: {
-    color: '#ef4444',
-    fontSize: 12,
-    fontWeight: '700',
-  },
+  // ── Details ──
+  detailCard: { backgroundColor: BG, borderRadius: 14, padding: 14, marginBottom: 10 },
+  detailRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  detailLabel: { fontSize: 12, color: TEXT_SECONDARY_COLOR, width: 90 },
+  detailValue: { fontSize: 12, fontWeight: '600', color: TEXT_PRIMARY_COLOR, flex: 1, textAlign: 'right' },
+  detailDivider: { height: 1, backgroundColor: BORDER_COLOR, marginVertical: 10 },
 
-  // Commands
-  commandList: {
-    gap: 8,
-  },
-  commandCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f8fafc',
-    borderRadius: 10,
-    padding: 14,
-    gap: 10,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-  },
-  commandCardText: {
-    fontSize: 13,
-    color: '#1e293b',
-    fontWeight: '500',
-    flex: 1,
-  },
+  // ── Address ──
+  addressBar: { flexDirection: 'row', alignItems: 'flex-start', backgroundColor: PRIMARY_LIGHT, borderRadius: 12, padding: 12, gap: 8, marginBottom: 10 },
+  addressText: { fontSize: 12, color: TEXT_PRIMARY_COLOR, flex: 1, lineHeight: 18 },
 
-  // Empty hint
-  emptyHint: {
-    color: '#94a3b8',
-    fontSize: 13,
-    textAlign: 'center',
-    marginTop: 20,
-    lineHeight: 20,
-  },
+  // ── Buttons ──
+  actionBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: PRIMARY, borderRadius: 12, paddingVertical: 12, marginBottom: 12 },
+  actionBtnText: { color: '#fff', fontSize: 13, fontWeight: '700' },
+  actionBtnOutline: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderWidth: 1, borderColor: PRIMARY, borderRadius: 12, paddingVertical: 10, marginBottom: 10, flex: 1 },
+  actionBtnOutlineText: { color: PRIMARY, fontSize: 13, fontWeight: '700' },
+  actionBtnDisabled: { opacity: 0.4 },
+
+  // ── Warning ──
+  warnBar: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#fef3cd', borderRadius: 10, padding: 12, marginTop: 6, marginBottom: 12 },
+  warnText: { fontSize: 12, color: '#856404', flex: 1 },
+
+  // ── Date pickers ──
+  dateRow: { flexDirection: 'row', gap: 10, marginBottom: 10 },
+  dateField: { flex: 1 },
+  dateLabel: { fontSize: 9, color: TEXT_MUTED_COLOR, fontWeight: '700', letterSpacing: 0.6, marginBottom: 4 },
+  dateTimeRow: { flexDirection: 'row', gap: 6 },
+  dateBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: BG, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 10, gap: 6 },
+  dateText: { fontSize: 12, color: TEXT_PRIMARY_COLOR },
+
+  // ── Route stats ──
+  routeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 14 },
+  routeStatBox: { width: (SCREEN_WIDTH - 56) / 2, backgroundColor: BG, borderRadius: 12, padding: 12, alignItems: 'center' },
+  routeStatVal: { fontSize: 15, fontWeight: '800', color: TEXT_PRIMARY_COLOR, marginTop: 4 },
+  routeStatLbl: { fontSize: 8, color: TEXT_MUTED_COLOR, fontWeight: '700', letterSpacing: 0.6, marginTop: 3, textTransform: 'uppercase' },
+
+  // ── Trips ──
+  sectionTitle: { fontSize: 15, fontWeight: '800', color: TEXT_PRIMARY_COLOR, marginBottom: 10 },
+  tripCard: { backgroundColor: BG, borderRadius: 12, padding: 12, marginBottom: 8 },
+  tripPoint: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  tripDot: { width: 8, height: 8, borderRadius: 4 },
+  tripLine: { width: 2, height: 14, backgroundColor: BORDER_COLOR, marginLeft: 3, marginVertical: 2 },
+  tripAddr: { fontSize: 12, color: TEXT_PRIMARY_COLOR, flex: 1 },
+  tripFooter: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: BORDER_COLOR },
+  tripFooterText: { fontSize: 11, color: TEXT_SECONDARY_COLOR },
+  tripFooterDot: { color: TEXT_MUTED_COLOR, fontSize: 8 },
+
+  // ── Zones ──
+  zoneActions: { flexDirection: 'row', gap: 8, marginBottom: 10 },
+  zoneCount: { fontSize: 11, color: TEXT_SECONDARY_COLOR, marginBottom: 10 },
+  zoneCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: BG, borderRadius: 12, padding: 12, marginBottom: 8 },
+  zoneLeft: { flexDirection: 'row', alignItems: 'center', flex: 1, gap: 10 },
+  zoneIcon: { width: 36, height: 36, borderRadius: 18, justifyContent: 'center', alignItems: 'center' },
+  zoneInfo: { flex: 1 },
+  zoneName: { fontSize: 13, fontWeight: '700', color: TEXT_PRIMARY_COLOR },
+  zoneType: { fontSize: 10, color: TEXT_SECONDARY_COLOR, marginTop: 2 },
+  zoneActions2: { flexDirection: 'row', gap: 4 },
+  zoneActionBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: SURFACE, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: BORDER_COLOR },
+  linkedPill: { backgroundColor: `${GREEN}15`, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
+  linkedPillText: { fontSize: 9, fontWeight: '700', color: GREEN, letterSpacing: 0.4 },
+
+  // ── Events ──
+  eventFilterRow: { gap: 6, paddingBottom: 10 },
+  eventChip: { height: 26, paddingHorizontal: 10, borderRadius: 13, backgroundColor: BG, justifyContent: 'center', alignItems: 'center' },
+  eventChipActive: { backgroundColor: PRIMARY },
+  eventChipText: { fontSize: 10, color: TEXT_SECONDARY_COLOR, fontWeight: '600' },
+  eventChipTextActive: { color: '#fff' },
+  eventItem: { flexDirection: 'row', alignItems: 'flex-start', borderLeftWidth: 3, paddingLeft: 10, paddingVertical: 8, marginBottom: 2, gap: 8 },
+  eventDot: { width: 24, height: 24, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginTop: 2 },
+  eventBody: { flex: 1 },
+  eventTitle: { fontSize: 13, fontWeight: '700', color: TEXT_PRIMARY_COLOR },
+  eventTime: { fontSize: 10, color: TEXT_MUTED_COLOR, marginTop: 2 },
+  eventExtra: { fontSize: 10, color: TEXT_SECONDARY_COLOR, marginTop: 1 },
+
+  // ── Device ──
+  deviceCard: { backgroundColor: BG, borderRadius: 14, padding: 16, marginBottom: 12 },
+  deviceCardHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
+  deviceStatusChip: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  deviceStatusDot: { width: 7, height: 7, borderRadius: 4 },
+  deviceStatusLabel: { fontSize: 10, fontWeight: '700', letterSpacing: 0.3 },
+  inputLabel: { fontSize: 9, color: TEXT_MUTED_COLOR, fontWeight: '700', letterSpacing: 0.6, marginBottom: 4, marginTop: 10 },
+  textInput: { backgroundColor: SURFACE, borderWidth: 1, borderColor: BORDER_COLOR, borderRadius: 10, paddingHorizontal: 12, paddingVertical: Platform.OS === 'ios' ? 10 : 8, fontSize: 13, color: TEXT_PRIMARY_COLOR },
+  deviceBtnRow: { flexDirection: 'row', gap: 10, marginTop: 14 },
+  linkBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: PRIMARY, borderRadius: 10, paddingVertical: 10 },
+  linkBtnText: { color: '#fff', fontSize: 12, fontWeight: '700' },
+  unlinkBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderWidth: 1, borderColor: RED, borderRadius: 10, paddingVertical: 10 },
+  unlinkBtnText: { color: RED, fontSize: 12, fontWeight: '700' },
+  cmdList: { gap: 6 },
+  cmdItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: SURFACE, borderRadius: 10, padding: 12, gap: 10, borderWidth: 1, borderColor: BORDER_COLOR },
+  cmdIcon: { width: 30, height: 30, borderRadius: 15, backgroundColor: PRIMARY_LIGHT, justifyContent: 'center', alignItems: 'center' },
+  cmdText: { fontSize: 13, color: TEXT_PRIMARY_COLOR, fontWeight: '500', flex: 1 },
+
+  // ── Geofence Modal ──
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  modalContent: { backgroundColor: SURFACE, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, maxHeight: SCREEN_HEIGHT * 0.75 },
+  modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
+  modalTitle: { fontSize: 18, fontWeight: '800', color: TEXT_PRIMARY_COLOR },
+  modalBtnRow: { flexDirection: 'row', gap: 10, marginTop: 20, marginBottom: 20 },
+  modalCancelBtn: { flex: 1, borderWidth: 1, borderColor: BORDER_COLOR, borderRadius: 12, paddingVertical: 12, alignItems: 'center' },
+  modalCancelText: { fontSize: 13, fontWeight: '700', color: TEXT_SECONDARY_COLOR },
+
+  // ── Hint ──
+  hintText: { color: TEXT_MUTED_COLOR, fontSize: 13, textAlign: 'center', marginTop: 20, marginBottom: 16, lineHeight: 20 },
+
+  // ── Geo draw mode ──
+  geoDrawOverlay: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(255,255,255,0.95)', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 16, elevation: 10, shadowColor: '#000', shadowOffset: { width: 0, height: -2 }, shadowOpacity: 0.15, shadowRadius: 8 },
+  geoDrawBanner: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: PRIMARY_LIGHT, borderRadius: 12, padding: 12, marginBottom: 12 },
+  geoDrawText: { fontSize: 13, color: PRIMARY, fontWeight: '600', flex: 1 },
+  geoDrawInfo: { marginBottom: 12 },
+  geoDrawCoord: { fontSize: 13, fontWeight: '700', color: TEXT_PRIMARY_COLOR, textAlign: 'center', marginBottom: 8 },
+  geoDrawRadiusRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12 },
+  geoDrawLabel: { fontSize: 13, color: TEXT_SECONDARY_COLOR, fontWeight: '600' },
+  geoRadiusBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: PRIMARY_LIGHT, justifyContent: 'center', alignItems: 'center' },
+  geoRadiusValue: { fontSize: 16, fontWeight: '800', color: TEXT_PRIMARY_COLOR, minWidth: 60, textAlign: 'center' },
+  geoDrawActions: { flexDirection: 'row', gap: 10 },
+  geoDrawCancelBtn: { flex: 1, borderWidth: 1, borderColor: BORDER_COLOR, borderRadius: 12, paddingVertical: 12, alignItems: 'center' },
+  geoDrawCancelText: { fontSize: 13, fontWeight: '700', color: TEXT_SECONDARY_COLOR },
+  geoDrawConfirmBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: PRIMARY, borderRadius: 12, paddingVertical: 12 },
+  geoDrawConfirmText: { fontSize: 13, fontWeight: '700', color: '#fff' },
 })
 
 export default Tracking

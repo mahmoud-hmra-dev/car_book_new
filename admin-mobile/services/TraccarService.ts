@@ -66,6 +66,41 @@ export const getGeofences = async (carId?: string): Promise<bookcarsTypes.Tracca
     .then((res) => res.data)
 }
 
+export const createGeofence = async (data: bookcarsTypes.UpsertTraccarGeofencePayload): Promise<bookcarsTypes.TraccarGeofence> => {
+  const headers = await UserService.authHeader()
+  return axiosInstance
+    .post('/api/geofences', data, { headers })
+    .then((res) => res.data)
+}
+
+export const updateGeofence = async (geofenceId: number, data: bookcarsTypes.UpsertTraccarGeofencePayload): Promise<bookcarsTypes.TraccarGeofence> => {
+  const headers = await UserService.authHeader()
+  return axiosInstance
+    .put(`/api/geofences/entity/${geofenceId}`, data, { headers })
+    .then((res) => res.data)
+}
+
+export const deleteGeofence = async (geofenceId: number): Promise<void> => {
+  const headers = await UserService.authHeader()
+  return axiosInstance
+    .delete(`/api/geofences/entity/${geofenceId}`, { headers })
+    .then(() => undefined)
+}
+
+export const linkGeofence = async (carId: string, geofenceId: number): Promise<void> => {
+  const headers = await UserService.authHeader()
+  return axiosInstance
+    .post(`/api/geofences/${encodeURIComponent(carId)}/link/${geofenceId}`, {}, { headers })
+    .then(() => undefined)
+}
+
+export const unlinkGeofence = async (carId: string, geofenceId: number): Promise<void> => {
+  const headers = await UserService.authHeader()
+  return axiosInstance
+    .post(`/api/geofences/${encodeURIComponent(carId)}/unlink/${geofenceId}`, {}, { headers })
+    .then(() => undefined)
+}
+
 export const getReports = async (carId: string, from: string, to: string): Promise<bookcarsTypes.TraccarVehicleReportBundle> => {
   const headers = await UserService.authHeader()
   return axiosInstance

@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useCallback } from 'react'
-import { StyleSheet, View, Text, Platform } from 'react-native'
+import { StyleSheet, View } from 'react-native'
+import { GOOGLE_MAPS_API_KEY } from '@/config/env.config'
 
 export interface MapMarker {
   id: string
@@ -15,72 +16,164 @@ export interface MapRoute {
   color?: string
 }
 
+export interface MapCircle {
+  id: string
+  lat: number
+  lng: number
+  radius: number
+  color: string
+  fillColor?: string
+  label?: string
+}
+
 interface TrackingMapProps {
   markers: MapMarker[]
   route?: MapRoute
+  circles?: MapCircle[]
   selectedMarkerId?: string
   onMarkerPress?: (id: string) => void
+  onMapPress?: (lat: number, lng: number) => void
   height?: number
 }
 
-const DEFAULT_REGION = {
-  latitude: 33.8938,
-  longitude: 35.5018,
-  latitudeDelta: 5,
-  longitudeDelta: 5,
-}
+const DEFAULT_CENTER = { lat: 33.8938, lng: 35.5018 }
 
-// Web implementation using WebView + Leaflet
-const TrackingMapWeb: React.FC<TrackingMapProps> = ({
+const TrackingMap: React.FC<TrackingMapProps> = ({
   markers,
   route,
+  circles,
   selectedMarkerId,
   onMarkerPress,
+  onMapPress,
   height = 300,
 }) => {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { WebView } = require('react-native-webview')
   const webRef = useRef<any>(null)
   const readyRef = useRef(false)
-  const pendingRef = useRef<string | null>(null)
+  const pendingRef = useRef(false)
 
   const buildHtml = () => `<!DOCTYPE html>
 <html><head>
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<style>html,body,#map{margin:0;padding:0;width:100%;height:100%}</style>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<style>html,body,#map{margin:0;padding:0;width:100%;height:100%;overflow:hidden}</style>
 </head><body>
 <div id="map"></div>
 <script>
-var map=L.map('map',{zoomControl:false}).setView([${DEFAULT_REGION.latitude},${DEFAULT_REGION.longitude}],6);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(map);
-var markers=[],routeLine=null;
-window.updateMarkers=function(data){
-  markers.forEach(function(m){map.removeLayer(m)});markers=[];
-  var bounds=[];
-  data.forEach(function(m){
-    var r=m.selected?10:7,o=m.selected?1:0.8;
-    var c=L.circleMarker([m.lat,m.lng],{radius:r,fillColor:m.color,color:'#fff',weight:m.selected?3:2,fillOpacity:o});
-    if(m.label)c.bindTooltip(m.label);
-    c.on('click',function(){window.ReactNativeWebView.postMessage(JSON.stringify({type:'marker',id:m.id}))});
-    c.addTo(map);markers.push(c);bounds.push([m.lat,m.lng]);
+var map,gMarkers=[],gRoute=null,gCircles=[],gInfoWindow=null;
+
+function initMap(){
+  map=new google.maps.Map(document.getElementById('map'),{
+    center:{lat:${DEFAULT_CENTER.lat},lng:${DEFAULT_CENTER.lng}},
+    zoom:6,
+    disableDefaultUI:true,
+    zoomControl:true,
+    zoomControlOptions:{position:google.maps.ControlPosition.RIGHT_CENTER},
+    mapTypeControl:false,
+    streetViewControl:false,
+    fullscreenControl:false,
+    gestureHandling:'greedy',
+    styles:[
+      {featureType:'poi',stylers:[{visibility:'off'}]},
+      {featureType:'transit',stylers:[{visibility:'off'}]}
+    ]
   });
-  if(bounds.length>0)map.fitBounds(bounds,{padding:[40,40],maxZoom:15});
-};
-window.updateRoute=function(pts,color){
-  if(routeLine){map.removeLayer(routeLine);routeLine=null}
-  if(pts&&pts.length>1){
-    routeLine=L.polyline(pts,{color:color||'#3b82f6',weight:4,opacity:0.86}).addTo(map);
-    map.fitBounds(routeLine.getBounds(),{padding:[40,40]});
+  gInfoWindow=new google.maps.InfoWindow();
+
+  map.addListener('click',function(e){
+    window.ReactNativeWebView.postMessage(JSON.stringify({type:'mapPress',lat:e.latLng.lat(),lng:e.latLng.lng()}));
+  });
+
+  window.ReactNativeWebView.postMessage(JSON.stringify({type:'ready'}));
+}
+
+window.updateMarkers=function(data){
+  gMarkers.forEach(function(m){m.setMap(null)});
+  gMarkers=[];
+  var bounds=new google.maps.LatLngBounds();
+  var hasBounds=false;
+
+  data.forEach(function(m){
+    var isSelected=m.selected;
+    var marker=new google.maps.Marker({
+      position:{lat:m.lat,lng:m.lng},
+      map:map,
+      icon:{
+        path:google.maps.SymbolPath.CIRCLE,
+        scale:isSelected?12:8,
+        fillColor:m.color,
+        fillOpacity:isSelected?1:0.85,
+        strokeColor:'#ffffff',
+        strokeWeight:isSelected?3:2
+      },
+      zIndex:isSelected?100:10,
+      title:m.label||''
+    });
+
+    marker.addListener('click',function(){
+      if(m.label){
+        gInfoWindow.setContent('<div style="font:bold 12px sans-serif;padding:2px 4px">'+m.label+'</div>');
+        gInfoWindow.open(map,marker);
+      }
+      window.ReactNativeWebView.postMessage(JSON.stringify({type:'marker',id:m.id}));
+    });
+
+    gMarkers.push(marker);
+    bounds.extend(marker.getPosition());
+    hasBounds=true;
+  });
+
+  if(hasBounds){
+    if(data.length===1){
+      map.setCenter(bounds.getCenter());
+      map.setZoom(15);
+    } else {
+      map.fitBounds(bounds,{top:50,right:50,bottom:50,left:50});
+    }
   }
 };
-window.mapReady=true;
-window.ReactNativeWebView.postMessage(JSON.stringify({type:'ready'}));
-</script></body></html>`
+
+window.updateRoute=function(pts,color){
+  if(gRoute){gRoute.setMap(null);gRoute=null}
+  if(!pts||pts.length<2)return;
+  var path=pts.map(function(p){return{lat:p[0],lng:p[1]}});
+  gRoute=new google.maps.Polyline({
+    path:path,
+    strokeColor:color||'#6B3CE6',
+    strokeOpacity:0.9,
+    strokeWeight:4,
+    map:map
+  });
+  var bounds=new google.maps.LatLngBounds();
+  path.forEach(function(p){bounds.extend(p)});
+  map.fitBounds(bounds,{top:50,right:50,bottom:50,left:50});
+};
+
+window.updateCircles=function(data){
+  gCircles.forEach(function(c){c.setMap(null)});
+  gCircles=[];
+  data.forEach(function(c){
+    var circle=new google.maps.Circle({
+      center:{lat:c.lat,lng:c.lng},
+      radius:c.radius,
+      strokeColor:c.color||'#6B3CE6',
+      strokeOpacity:0.8,
+      strokeWeight:2,
+      fillColor:c.fillColor||'rgba(107,60,230,0.15)',
+      fillOpacity:0.2,
+      map:map,
+      clickable:false
+    });
+    gCircles.push(circle);
+  });
+};
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&callback=initMap" async defer></script>
+</body></html>`
 
   const sendUpdate = useCallback(() => {
     if (!webRef.current || !readyRef.current) return
+
     const markersJson = JSON.stringify(markers.map((m) => ({
       ...m,
       selected: m.id === selectedMarkerId || m.selected,
@@ -89,15 +182,22 @@ window.ReactNativeWebView.postMessage(JSON.stringify({type:'ready'}));
 
     if (route && route.points.length > 1) {
       const pts = JSON.stringify(route.points)
-      webRef.current.injectJavaScript(`window.updateRoute(${pts},'${route.color || '#3b82f6'}');true;`)
+      webRef.current.injectJavaScript(`window.updateRoute(${pts},'${route.color || '#6B3CE6'}');true;`)
     } else {
       webRef.current.injectJavaScript(`window.updateRoute(null);true;`)
     }
-  }, [markers, route, selectedMarkerId])
+
+    if (circles && circles.length > 0) {
+      const circlesJson = JSON.stringify(circles)
+      webRef.current.injectJavaScript(`window.updateCircles(${circlesJson});true;`)
+    } else {
+      webRef.current.injectJavaScript(`window.updateCircles([]);true;`)
+    }
+  }, [markers, route, circles, selectedMarkerId])
 
   useEffect(() => {
     if (readyRef.current) sendUpdate()
-    else pendingRef.current = 'update'
+    else pendingRef.current = true
   }, [sendUpdate])
 
   const handleMessage = (event: any) => {
@@ -106,11 +206,13 @@ window.ReactNativeWebView.postMessage(JSON.stringify({type:'ready'}));
       if (data.type === 'ready') {
         readyRef.current = true
         if (pendingRef.current) {
-          pendingRef.current = null
+          pendingRef.current = false
           sendUpdate()
         }
       } else if (data.type === 'marker' && data.id) {
         onMarkerPress?.(data.id)
+      } else if (data.type === 'mapPress') {
+        onMapPress?.(data.lat, data.lng)
       }
     } catch {
       // ignore
@@ -126,174 +228,24 @@ window.ReactNativeWebView.postMessage(JSON.stringify({type:'ready'}));
         onMessage={handleMessage}
         style={styles.map}
         javaScriptEnabled
+        domStorageEnabled
         scrollEnabled={false}
+        bounces={false}
+        overScrollMode="never"
+        mixedContentMode="always"
+        androidLayerType="hardware"
       />
     </View>
   )
-}
-
-// Native implementation using react-native-maps
-const TrackingMapNative: React.FC<TrackingMapProps> = ({
-  markers,
-  route,
-  selectedMarkerId,
-  onMarkerPress,
-  height = 300,
-}) => {
-  let MapView: any
-  let Marker: any
-  let Polyline: any
-  let PROVIDER_GOOGLE: any
-  try {
-    const maps = require('react-native-maps')
-    MapView = maps.default
-    Marker = maps.Marker
-    Polyline = maps.Polyline
-    PROVIDER_GOOGLE = maps.PROVIDER_GOOGLE
-  } catch {
-    // react-native-maps not available, fall back to web version
-    return (
-      <TrackingMapWeb
-        markers={markers}
-        route={route}
-        selectedMarkerId={selectedMarkerId}
-        onMarkerPress={onMarkerPress}
-        height={height}
-      />
-    )
-  }
-
-  const mapRef = useRef<any>(null)
-  const hasFittedRef = useRef(false)
-
-  const fitToMarkers = useCallback(() => {
-    if (!mapRef.current) return
-    const coords = markers
-      .filter((m) => Number.isFinite(m.lat) && Number.isFinite(m.lng))
-      .map((m) => ({ latitude: m.lat, longitude: m.lng }))
-    if (coords.length === 0) return
-    if (coords.length === 1) {
-      mapRef.current.animateToRegion({
-        ...coords[0], latitudeDelta: 0.02, longitudeDelta: 0.02,
-      }, 400)
-    } else {
-      mapRef.current.fitToCoordinates(coords, {
-        edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
-        animated: true,
-      })
-    }
-  }, [markers])
-
-  useEffect(() => {
-    if (markers.length > 0 && !hasFittedRef.current) {
-      const t = setTimeout(() => { fitToMarkers(); hasFittedRef.current = true }, 300)
-      return () => clearTimeout(t)
-    }
-    return undefined
-  }, [markers, fitToMarkers])
-
-  useEffect(() => {
-    if (!route || route.points.length < 2 || !mapRef.current) return
-    const coords = route.points
-      .filter(([lat, lng]) => Number.isFinite(lat) && Number.isFinite(lng))
-      .map(([lat, lng]) => ({ latitude: lat, longitude: lng }))
-    if (coords.length > 1) {
-      mapRef.current.fitToCoordinates(coords, {
-        edgePadding: { top: 60, right: 60, bottom: 60, left: 60 },
-        animated: true,
-      })
-    }
-  }, [route])
-
-  return (
-    <View style={[styles.container, { height }]}>
-      <MapView
-        ref={mapRef}
-        style={styles.map}
-        provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
-        initialRegion={DEFAULT_REGION}
-        showsUserLocation={false}
-        showsMyLocationButton={false}
-        showsCompass={false}
-        toolbarEnabled={false}
-      >
-        {markers.map((marker) => {
-          const isSelected = marker.id === selectedMarkerId || marker.selected
-          const size = isSelected ? 24 : 16
-          return (
-            <Marker
-              key={marker.id}
-              identifier={marker.id}
-              coordinate={{ latitude: marker.lat, longitude: marker.lng }}
-              title={marker.label}
-              onPress={() => onMarkerPress?.(marker.id)}
-              zIndex={isSelected ? 100 : 10}
-              tracksViewChanges={false}
-            >
-              <View style={styles.markerOuter}>
-                <View
-                  style={[styles.markerDot, {
-                    width: size, height: size, borderRadius: size / 2,
-                    backgroundColor: marker.color,
-                    borderWidth: isSelected ? 3 : 2,
-                    borderColor: isSelected ? '#fff' : 'rgba(255,255,255,0.7)',
-                  }]}
-                />
-                {isSelected && marker.label && (
-                  <View style={styles.calloutBubble}>
-                    <Text style={styles.calloutText} numberOfLines={1}>{marker.label}</Text>
-                  </View>
-                )}
-              </View>
-            </Marker>
-          )
-        })}
-        {route && route.points.length > 1 && (
-          <Polyline
-            coordinates={route.points
-              .filter(([lat, lng]) => Number.isFinite(lat) && Number.isFinite(lng))
-              .map(([lat, lng]) => ({ latitude: lat, longitude: lng }))}
-            strokeColor={route.color || '#3b82f6'}
-            strokeWidth={4}
-          />
-        )}
-      </MapView>
-    </View>
-  )
-}
-
-// Auto-select implementation based on platform
-const TrackingMap: React.FC<TrackingMapProps> = (props) => {
-  if (Platform.OS === 'web') {
-    return <TrackingMapWeb {...props} />
-  }
-  return <TrackingMapNative {...props} />
 }
 
 const styles = StyleSheet.create({
-  container: { width: '100%', overflow: 'hidden' },
-  map: { ...StyleSheet.absoluteFillObject },
-  markerOuter: { alignItems: 'center' },
-  markerDot: {
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
+  container: {
+    width: '100%',
+    overflow: 'hidden',
   },
-  calloutBubble: {
-    backgroundColor: 'rgba(0,0,0,0.75)',
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    marginTop: 4,
-    maxWidth: 140,
-  },
-  calloutText: {
-    color: '#fff',
-    fontSize: 10,
-    fontWeight: '600',
-    textAlign: 'center',
+  map: {
+    flex: 1,
   },
 })
 
