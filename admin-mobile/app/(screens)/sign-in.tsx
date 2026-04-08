@@ -44,6 +44,7 @@ const SignIn = () => {
         email,
         password,
         stayConnected,
+        mobile: true,
       })
 
       if (result.status === 200) {
