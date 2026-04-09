@@ -1,4 +1,4 @@
-import { View } from 'react-native'
+import { View, I18nManager } from 'react-native'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Stack, useRouter } from 'expo-router'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
@@ -19,6 +19,7 @@ import Toast from 'react-native-toast-message'
 import * as helper from '@/utils/helper'
 import * as NotificationService from '@/services/NotificationService'
 import * as UserService from '@/services/UserService'
+import i18n from '@/lang/i18n'
 import { AuthProvider } from '@/context/AuthContext'
 import { GlobalProvider } from '@/context/GlobalContext'
 import { SettingProvider } from '@/context/SettingContext'
@@ -44,6 +45,14 @@ const RootLayout = () => {
   useEffect(() => {
     const register = async () => {
       try {
+        const lang = await UserService.getLanguage()
+        i18n.locale = lang
+        const isRTL = lang === 'ar'
+        if (I18nManager.isRTL !== isRTL) {
+          I18nManager.allowRTL(isRTL)
+          I18nManager.forceRTL(isRTL)
+        }
+
         const loggedIn = await UserService.loggedIn()
         if (loggedIn) {
           const currentUser = await UserService.getCurrentUser()

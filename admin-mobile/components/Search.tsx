@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   icon: {
-    marginRight: 8,
+    marginEnd: 8,
   },
   input: {
     flex: 1,

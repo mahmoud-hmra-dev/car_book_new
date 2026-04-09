@@ -22,6 +22,7 @@ import DateTimePicker from '@react-native-community/datetimepicker'
 import { format } from 'date-fns'
 import * as bookcarsTypes from ':bookcars-types'
 
+import i18n from '@/lang/i18n'
 import Header from '@/components/Header'
 import Indicator from '@/components/Indicator'
 import TrackingMap from '@/components/tracking/TrackingMap'
@@ -67,21 +68,21 @@ const SHEET_MAX = SCREEN_HEIGHT * 0.82
 const TOOLBAR_HEIGHT = 60
 const SNAP_THRESHOLD = 50
 
-const FILTER_OPTIONS = [
-  { key: 'all', label: 'All', icon: 'apps' as const },
-  { key: 'moving', label: 'Moving', icon: 'navigation' as const },
-  { key: 'idle', label: 'Idle', icon: 'pause-circle-outline' as const },
-  { key: 'stopped', label: 'Stopped', icon: 'stop-circle' as const },
-  { key: 'offline', label: 'Offline', icon: 'cloud-off' as const },
-  { key: 'stale', label: 'Stale', icon: 'schedule' as const },
+const getFilterOptions = () => [
+  { key: 'all', label: i18n.t('ALL'), icon: 'apps' as const },
+  { key: 'moving', label: i18n.t('STATUS_MOVING'), icon: 'navigation' as const },
+  { key: 'idle', label: i18n.t('STATUS_IDLE'), icon: 'pause-circle-outline' as const },
+  { key: 'stopped', label: i18n.t('STATUS_STOPPED'), icon: 'stop-circle' as const },
+  { key: 'offline', label: i18n.t('STATUS_OFFLINE'), icon: 'cloud-off' as const },
+  { key: 'stale', label: i18n.t('STATUS_STALE'), icon: 'schedule' as const },
 ]
 
-const TOOLBAR_TABS: { key: TrackingTab; label: string; icon: keyof typeof MaterialIcons.glyphMap }[] = [
-  { key: 'status', label: 'Status', icon: 'info-outline' },
-  { key: 'route', label: 'Route', icon: 'timeline' },
-  { key: 'zones', label: 'Zones', icon: 'fence' },
-  { key: 'events', label: 'Events', icon: 'notifications-none' },
-  { key: 'device', label: 'Device', icon: 'settings-remote' },
+const getToolbarTabs = (): { key: TrackingTab; label: string; icon: keyof typeof MaterialIcons.glyphMap }[] => [
+  { key: 'status', label: i18n.t('STATUS'), icon: 'info-outline' },
+  { key: 'route', label: i18n.t('ROUTE_HISTORY'), icon: 'timeline' },
+  { key: 'zones', label: i18n.t('GEOFENCES_LABEL'), icon: 'fence' },
+  { key: 'events', label: i18n.t('EVENTS'), icon: 'notifications-none' },
+  { key: 'device', label: i18n.t('DEVICE'), icon: 'settings-remote' },
 ]
 
 // ── Geofence area builders ──
@@ -475,10 +476,10 @@ const Tracking = () => {
   }
 
   const sendCommand = (commandType: string) => {
-    Alert.alert('Send Command', `Are you sure you want to send "${commandType}"?`, [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(i18n.t('SEND_COMMAND'), i18n.t('TRACKING_SEND_COMMAND_CONFIRM'), [
+      { text: i18n.t('CANCEL'), style: 'cancel' },
       {
-        text: 'Send',
+        text: i18n.t('SEND_COMMAND'),
         onPress: async () => {
           setSendingCommand(true)
           try {
@@ -508,10 +509,10 @@ const Tracking = () => {
 
   const handleUnlinkDevice = async () => {
     if (!selectedCarId) return
-    Alert.alert('Unlink Device', 'Are you sure you want to unlink this device?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(i18n.t('TRACKING_UNLINK_DEVICE'), i18n.t('TRACKING_UNLINK_CONFIRM'), [
+      { text: i18n.t('CANCEL'), style: 'cancel' },
       {
-        text: 'Unlink',
+        text: i18n.t('TRACKING_UNLINK_DEVICE'),
         style: 'destructive',
         onPress: async () => {
           setDeviceSaving(true)
@@ -571,7 +572,7 @@ const Tracking = () => {
 
   const confirmGeoDraw = () => {
     if (!geoLatitude || !geoLongitude) {
-      Alert.alert('Tap on map', 'Tap on the map to place the geofence center')
+      Alert.alert(i18n.t('TRACKING_TAP_MAP'), i18n.t('TRACKING_TAP_MAP'))
       return
     }
     setGeoDrawMode(false)
@@ -580,11 +581,11 @@ const Tracking = () => {
 
   const handleGeoSave = async () => {
     if (!geoName.trim()) {
-      Alert.alert('Error', 'Name is required')
+      Alert.alert(i18n.t('ERROR'), i18n.t('TRACKING_NAME_REQUIRED'))
       return
     }
     if (!geoLatitude || !geoLongitude) {
-      Alert.alert('Error', 'Latitude and longitude are required')
+      Alert.alert(i18n.t('ERROR'), i18n.t('TRACKING_COORDS_REQUIRED'))
       return
     }
 
@@ -615,10 +616,10 @@ const Tracking = () => {
 
   const handleGeoDelete = (geo: bookcarsTypes.TraccarGeofence) => {
     if (typeof geo.id !== 'number') return
-    Alert.alert('Delete Geofence', `Delete "${geo.name}"?`, [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(i18n.t('TRACKING_DELETE_GEOFENCE'), `${i18n.t('TRACKING_DELETE_GEOFENCE_CONFIRM')} "${geo.name}"?`, [
+      { text: i18n.t('CANCEL'), style: 'cancel' },
       {
-        text: 'Delete',
+        text: i18n.t('DELETE'),
         style: 'destructive',
         onPress: async () => {
           try {
@@ -667,7 +668,7 @@ const Tracking = () => {
       const { getCurrentPositionAsync, requestForegroundPermissionsAsync } = require('expo-location')
       const { status } = await requestForegroundPermissionsAsync()
       if (status !== 'granted') {
-        Alert.alert('Permission denied', 'Location permission is required')
+        Alert.alert(i18n.t('TRACKING_PERMISSION_DENIED'), i18n.t('TRACKING_LOCATION_PERMISSION'))
         return
       }
       const location = await getCurrentPositionAsync({ accuracy: 4 })
@@ -715,13 +716,13 @@ const Tracking = () => {
       {/* Status counts */}
       <View style={st.fleetStatusBar}>
         {[
-          { label: 'Total', value: counts.all, color: PRIMARY, icon: 'apps' as const },
-          { label: 'Moving', value: counts.moving, color: GREEN, icon: 'navigation' as const },
-          { label: 'Idle', value: counts.idle, color: ORANGE, icon: 'pause-circle-outline' as const },
-          { label: 'Stopped', value: counts.stopped, color: BLUE, icon: 'stop-circle' as const },
-          { label: 'Offline', value: counts.offline, color: TEXT_MUTED_COLOR, icon: 'cloud-off' as const },
+          { key: 'all', label: i18n.t('TOTAL'), value: counts.all, color: PRIMARY, icon: 'apps' as const },
+          { key: 'moving', label: i18n.t('STATUS_MOVING'), value: counts.moving, color: GREEN, icon: 'navigation' as const },
+          { key: 'idle', label: i18n.t('STATUS_IDLE'), value: counts.idle, color: ORANGE, icon: 'pause-circle-outline' as const },
+          { key: 'stopped', label: i18n.t('STATUS_STOPPED'), value: counts.stopped, color: BLUE, icon: 'stop-circle' as const },
+          { key: 'offline', label: i18n.t('STATUS_OFFLINE'), value: counts.offline, color: TEXT_MUTED_COLOR, icon: 'cloud-off' as const },
         ].map((stat) => (
-          <Pressable key={stat.label} style={st.fleetStatusItem} onPress={() => setStatusFilter(stat.label === 'Total' ? 'all' : stat.label.toLowerCase())}>
+          <Pressable key={stat.key} style={st.fleetStatusItem} onPress={() => setStatusFilter(stat.key)}>
             <MaterialIcons name={stat.icon} size={14} color={stat.color} />
             <Text style={[st.fleetStatusValue, { color: stat.color }]}>{stat.value}</Text>
             <Text style={st.fleetStatusLabel}>{stat.label}</Text>
@@ -813,7 +814,7 @@ const Tracking = () => {
       <Animated.View style={[st.bottomSheet, { height: sheetAnim }]}>
         <View {...panResponder.panHandlers} style={st.sheetHandleArea}>
           <View style={st.sheetHandle} />
-          <Text style={st.sheetTitle}>Vehicles ({filteredVehicles.length})</Text>
+          <Text style={st.sheetTitle}>{i18n.t('TRACKING_VEHICLES_COUNT')} ({filteredVehicles.length})</Text>
         </View>
 
         <View style={st.sheetHeader}>
@@ -821,7 +822,7 @@ const Tracking = () => {
             <MaterialIcons name="search" size={18} color={TEXT_MUTED_COLOR} />
             <TextInput
               style={st.searchInput}
-              placeholder="Search vehicles..."
+              placeholder={i18n.t('TRACKING_SEARCH_VEHICLES')}
               placeholderTextColor={TEXT_MUTED_COLOR}
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -833,7 +834,7 @@ const Tracking = () => {
             )}
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={st.filterChipsRow}>
-            {FILTER_OPTIONS.map((opt) => {
+            {getFilterOptions().map((opt) => {
               const isSelected = statusFilter === opt.key
               const count = opt.key === 'all' ? counts.all : (counts as any)[opt.key] || 0
               return (
@@ -872,7 +873,7 @@ const Tracking = () => {
   const renderDatePickers = () => (
     <View style={st.dateRow}>
       <View style={st.dateField}>
-        <Text style={st.dateLabel}>FROM</Text>
+        <Text style={st.dateLabel}>{i18n.t('FROM')}</Text>
         <View style={st.dateTimeRow}>
           <Pressable style={[st.dateBtn, { flex: 1 }]} onPress={() => setShowFromDatePicker(true)}>
             <MaterialIcons name="calendar-today" size={14} color={PRIMARY} />
@@ -905,7 +906,7 @@ const Tracking = () => {
         )}
       </View>
       <View style={st.dateField}>
-        <Text style={st.dateLabel}>TO</Text>
+        <Text style={st.dateLabel}>{i18n.t('TO')}</Text>
         <View style={st.dateTimeRow}>
           <Pressable style={[st.dateBtn, { flex: 1 }]} onPress={() => setShowToDatePicker(true)}>
             <MaterialIcons name="calendar-today" size={14} color={PRIMARY} />
@@ -960,10 +961,10 @@ const Tracking = () => {
         <View style={st.connectionBar}>
           <View style={[st.connDot, { backgroundColor: isLinked ? GREEN : RED }]} />
           <Text style={[st.connLabel, { color: isLinked ? GREEN : RED }]}>
-            {isLinked ? 'Online' : 'Offline'}
+            {isLinked ? i18n.t('TRACKING_ONLINE') : i18n.t('TRACKING_OFFLINE')}
           </Text>
           <View style={st.connSpacer} />
-          <Text style={st.connMode}>Mode: GPS</Text>
+          <Text style={st.connMode}>{i18n.t('TRACKING_MODE_GPS')}</Text>
           {sat != null && <Text style={[st.connSat, { color: satColor }]}>SAT: {sat}</Text>}
         </View>
 
@@ -992,9 +993,9 @@ const Tracking = () => {
           <View style={[st.metricBoxLg, { borderColor: `${selectedVehicle.ignition ? GREEN : RED}30` }]}>
             <MaterialIcons name="local-fire-department" size={22} color={selectedVehicle.ignition ? GREEN : RED} />
             <Text style={[st.metricValLg, { color: selectedVehicle.ignition ? GREEN : RED, fontSize: 18 }]}>
-              {selectedVehicle.ignition ? 'ON' : 'OFF'}
+              {selectedVehicle.ignition ? i18n.t('ON') : i18n.t('OFF')}
             </Text>
-            <Text style={st.metricUnitLg}>Engine</Text>
+            <Text style={st.metricUnitLg}>{i18n.t('TRACKING_ENGINE')}</Text>
           </View>
           {/* GPS Accuracy */}
           <View style={[st.metricBoxLg, { borderColor: `${accColor}30` }]}>
@@ -1008,16 +1009,16 @@ const Tracking = () => {
 
         {/* Detail card */}
         <View style={st.detailCard}>
-          <View style={st.detailRow}><MaterialIcons name="memory" size={15} color={TEXT_MUTED_COLOR} /><Text style={st.detailLabel}>Device</Text><Text style={st.detailValue} numberOfLines={1}>{selectedVehicle.deviceName || '-'}</Text></View>
+          <View style={st.detailRow}><MaterialIcons name="memory" size={15} color={TEXT_MUTED_COLOR} /><Text style={st.detailLabel}>{i18n.t('TRACKING_DEVICE_LABEL')}</Text><Text style={st.detailValue} numberOfLines={1}>{selectedVehicle.deviceName || '-'}</Text></View>
           <View style={st.detailDivider} />
-          <View style={st.detailRow}><MaterialIcons name="gps-fixed" size={15} color={TEXT_MUTED_COLOR} /><Text style={st.detailLabel}>Coordinates</Text><Text style={st.detailValue} numberOfLines={1}>{coords}</Text></View>
+          <View style={st.detailRow}><MaterialIcons name="gps-fixed" size={15} color={TEXT_MUTED_COLOR} /><Text style={st.detailLabel}>{i18n.t('TRACKING_COORDINATES_LABEL')}</Text><Text style={st.detailValue} numberOfLines={1}>{coords}</Text></View>
           <View style={st.detailDivider} />
-          <View style={st.detailRow}><MaterialIcons name="satellite-alt" size={15} color={satColor} /><Text style={st.detailLabel}>Satellites</Text><Text style={[st.detailValue, { color: satColor }]}>{sat != null ? sat : '-'}</Text></View>
+          <View style={st.detailRow}><MaterialIcons name="satellite-alt" size={15} color={satColor} /><Text style={st.detailLabel}>{i18n.t('TRACKING_SATELLITES')}</Text><Text style={[st.detailValue, { color: satColor }]}>{sat != null ? sat : '-'}</Text></View>
           <View style={st.detailDivider} />
-          <View style={st.detailRow}><MaterialIcons name="access-time" size={15} color={TEXT_MUTED_COLOR} /><Text style={st.detailLabel}>Last Update</Text><Text style={st.detailValue} numberOfLines={1}>{formatTimestamp(selectedVehicle.lastUpdate)}</Text></View>
+          <View style={st.detailRow}><MaterialIcons name="access-time" size={15} color={TEXT_MUTED_COLOR} /><Text style={st.detailLabel}>{i18n.t('TRACKING_LAST_UPDATE')}</Text><Text style={st.detailValue} numberOfLines={1}>{formatTimestamp(selectedVehicle.lastUpdate)}</Text></View>
           {selectedVehicle.totalDistance != null && (<>
             <View style={st.detailDivider} />
-            <View style={st.detailRow}><MaterialIcons name="straighten" size={15} color={TEXT_MUTED_COLOR} /><Text style={st.detailLabel}>Mileage</Text><Text style={st.detailValue}>{Math.round(selectedVehicle.totalDistance / 1000).toLocaleString()} km</Text></View>
+            <View style={st.detailRow}><MaterialIcons name="straighten" size={15} color={TEXT_MUTED_COLOR} /><Text style={st.detailLabel}>{i18n.t('TRACKING_MILEAGE_LABEL')}</Text><Text style={st.detailValue}>{Math.round(selectedVehicle.totalDistance / 1000).toLocaleString()} km</Text></View>
           </>)}
         </View>
 
@@ -1029,11 +1030,11 @@ const Tracking = () => {
         {/* Load Snapshot */}
         <Pressable style={[st.actionBtn, (!isLinked || loadingSnapshot) && st.actionBtnDisabled]} onPress={loadSnapshot} disabled={!isLinked || loadingSnapshot}>
           <MaterialIcons name="camera" size={16} color="#fff" />
-          <Text style={st.actionBtnText}>{loadingSnapshot ? 'Loading...' : 'Load Snapshot'}</Text>
+          <Text style={st.actionBtnText}>{loadingSnapshot ? i18n.t('TRACKING_LOADING') : i18n.t('TRACKING_LOAD_SNAPSHOT')}</Text>
         </Pressable>
 
         {!isLinked && (
-          <View style={st.warnBar}><MaterialIcons name="warning-amber" size={16} color={ORANGE} /><Text style={st.warnText}>Device not linked to this vehicle</Text></View>
+          <View style={st.warnBar}><MaterialIcons name="warning-amber" size={16} color={ORANGE} /><Text style={st.warnText}>{i18n.t('TRACKING_DEVICE_NOT_LINKED')}</Text></View>
         )}
       </ScrollView>
     )
@@ -1056,16 +1057,16 @@ const Tracking = () => {
     <ScrollView style={st.tabScroll} showsVerticalScrollIndicator={false}>
       <View style={st.routeHeroCard}>
         <MaterialIcons name="route" size={40} color={PRIMARY} />
-        <Text style={st.routeHeroTitle}>Movement History</Text>
+        <Text style={st.routeHeroTitle}>{i18n.t('TRACKING_MOVEMENT_HISTORY')}</Text>
         <Text style={st.routeHeroDesc}>
-          View full route playback with road-snapped paths, live speed tracking, and trip details
+          {i18n.t('TRACKING_MOVEMENT_DESC')}
         </Text>
         <Pressable style={[st.actionBtn, { marginTop: 16 }, !isLinked && st.actionBtnDisabled]} onPress={openMovementHistory} disabled={!isLinked}>
           <MaterialIcons name="play-circle-outline" size={18} color="#fff" />
-          <Text style={st.actionBtnText}>Open Movement History</Text>
+          <Text style={st.actionBtnText}>{i18n.t('TRACKING_OPEN_MOVEMENT')}</Text>
         </Pressable>
         {!isLinked && (
-          <View style={st.warnBar}><MaterialIcons name="warning-amber" size={16} color={ORANGE} /><Text style={st.warnText}>Device not linked to this vehicle</Text></View>
+          <View style={st.warnBar}><MaterialIcons name="warning-amber" size={16} color={ORANGE} /><Text style={st.warnText}>{i18n.t('TRACKING_DEVICE_NOT_LINKED')}</Text></View>
         )}
       </View>
     </ScrollView>
@@ -1077,11 +1078,11 @@ const Tracking = () => {
       <View style={st.zoneActions}>
         <Pressable style={st.actionBtnOutline} onPress={loadZones} disabled={loadingZones}>
           <MaterialIcons name="refresh" size={16} color={PRIMARY} />
-          <Text style={st.actionBtnOutlineText}>{loadingZones ? 'Refreshing...' : 'Refresh'}</Text>
+          <Text style={st.actionBtnOutlineText}>{loadingZones ? i18n.t('TRACKING_REFRESHING') : i18n.t('TRACKING_REFRESH')}</Text>
         </Pressable>
         <Pressable style={st.actionBtn} onPress={openGeoCreate}>
           <MaterialIcons name="add" size={16} color="#fff" />
-          <Text style={st.actionBtnText}>New Geofence</Text>
+          <Text style={st.actionBtnText}>{i18n.t('TRACKING_CREATE_GEOFENCE')}</Text>
         </Pressable>
       </View>
 
@@ -1183,31 +1184,31 @@ const Tracking = () => {
           <Text style={st.sectionTitle}>Link Device</Text>
           <View style={st.deviceStatusChip}>
             <View style={[st.deviceStatusDot, { backgroundColor: isLinked ? GREEN : RED }]} />
-            <Text style={[st.deviceStatusLabel, { color: isLinked ? GREEN : RED }]}>{isLinked ? 'Tracking ON' : 'Tracking OFF'}</Text>
+            <Text style={[st.deviceStatusLabel, { color: isLinked ? GREEN : RED }]}>{isLinked ? `${i18n.t('TRACKING')} ${i18n.t('ON')}` : `${i18n.t('TRACKING')} ${i18n.t('OFF')}`}</Text>
           </View>
         </View>
 
-        <Text style={st.inputLabel}>DEVICE ID</Text>
+        <Text style={st.inputLabel}>{i18n.t('DEVICE_ID')}</Text>
         <TextInput style={st.textInput} value={deviceIdInput} onChangeText={setDeviceIdInput} placeholder="e.g. 142" placeholderTextColor={TEXT_MUTED_COLOR} keyboardType="numeric" />
-        <Text style={st.inputLabel}>DEVICE NAME</Text>
+        <Text style={st.inputLabel}>{i18n.t('DEVICE_NAME')}</Text>
         <TextInput style={st.textInput} value={deviceNameInput} onChangeText={setDeviceNameInput} placeholder="e.g. Teltonika FMC130" placeholderTextColor={TEXT_MUTED_COLOR} />
-        <Text style={st.inputLabel}>NOTES</Text>
+        <Text style={st.inputLabel}>{i18n.t('NOTES')}</Text>
         <TextInput style={st.textInput} value={notesInput} onChangeText={setNotesInput} placeholder="..." placeholderTextColor={TEXT_MUTED_COLOR} />
 
         <View style={st.deviceBtnRow}>
           <Pressable style={[st.linkBtn, deviceSaving && st.actionBtnDisabled]} onPress={handleLinkDevice} disabled={deviceSaving}>
             <MaterialIcons name="link" size={14} color="#fff" />
-            <Text style={st.linkBtnText}>{deviceSaving ? 'Linking...' : 'Link'}</Text>
+            <Text style={st.linkBtnText}>{deviceSaving ? i18n.t('TRACKING_LINKING') : i18n.t('TRACKING_LINK')}</Text>
           </Pressable>
           <Pressable style={[st.unlinkBtn, (deviceSaving || !isLinked) && st.actionBtnDisabled]} onPress={handleUnlinkDevice} disabled={deviceSaving || !isLinked}>
             <MaterialIcons name="link-off" size={14} color={RED} />
-            <Text style={st.unlinkBtnText}>Unlink</Text>
+            <Text style={st.unlinkBtnText}>{i18n.t('TRACKING_UNLINK_DEVICE')}</Text>
           </Pressable>
         </View>
       </View>
 
       <View style={st.deviceCard}>
-        <Text style={st.sectionTitle}>Command Center</Text>
+        <Text style={st.sectionTitle}>{i18n.t('COMMANDS')}</Text>
         {loadingCommands ? (
           <Indicator />
         ) : commandTypes.length > 0 ? (
@@ -1215,13 +1216,13 @@ const Tracking = () => {
             {commandTypes.map((cmd, index) => (
               <Pressable key={`cmd-${index}`} style={[st.cmdItem, sendingCommand && st.actionBtnDisabled]} onPress={() => sendCommand(cmd.type || '')} disabled={sendingCommand || !isLinked}>
                 <View style={st.cmdIcon}><MaterialIcons name="send" size={14} color={PRIMARY} /></View>
-                <Text style={st.cmdText}>{cmd.type || 'Unknown'}</Text>
+                <Text style={st.cmdText}>{cmd.type || i18n.t('TRACKING_UNKNOWN_COMMAND')}</Text>
                 <MaterialIcons name="chevron-right" size={18} color={TEXT_MUTED_COLOR} />
               </Pressable>
             ))}
           </View>
         ) : (
-          <Text style={st.hintText}>No commands available</Text>
+          <Text style={st.hintText}>{i18n.t('NO_RESULTS')}</Text>
         )}
       </View>
     </ScrollView>
@@ -1233,32 +1234,32 @@ const Tracking = () => {
       <View style={st.modalOverlay}>
         <View style={st.modalContent}>
           <View style={st.modalHeader}>
-            <Text style={st.modalTitle}>{geoEditId ? 'Edit Geofence' : 'New Geofence'}</Text>
+            <Text style={st.modalTitle}>{geoEditId ? i18n.t('TRACKING_EDIT_GEOFENCE') : i18n.t('TRACKING_CREATE_GEOFENCE')}</Text>
             <Pressable onPress={() => setGeoModalVisible(false)}><MaterialIcons name="close" size={24} color={TEXT_SECONDARY_COLOR} /></Pressable>
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false}>
-            <Text style={st.inputLabel}>NAME *</Text>
-            <TextInput style={st.textInput} value={geoName} onChangeText={setGeoName} placeholder="Geofence name" placeholderTextColor={TEXT_MUTED_COLOR} />
+            <Text style={st.inputLabel}>{i18n.t('NAME')} *</Text>
+            <TextInput style={st.textInput} value={geoName} onChangeText={setGeoName} placeholder={i18n.t('TRACKING_GEOFENCE_NAME')} placeholderTextColor={TEXT_MUTED_COLOR} />
 
-            <Text style={st.inputLabel}>DESCRIPTION</Text>
-            <TextInput style={st.textInput} value={geoDescription} onChangeText={setGeoDescription} placeholder="Optional description" placeholderTextColor={TEXT_MUTED_COLOR} />
+            <Text style={st.inputLabel}>{i18n.t('DESCRIPTION')}</Text>
+            <TextInput style={st.textInput} value={geoDescription} onChangeText={setGeoDescription} placeholder={i18n.t('TRACKING_OPTIONAL_DESC')} placeholderTextColor={TEXT_MUTED_COLOR} />
 
-            <Text style={st.inputLabel}>LATITUDE *</Text>
+            <Text style={st.inputLabel}>{i18n.t('LATITUDE')} *</Text>
             <TextInput style={st.textInput} value={geoLatitude} onChangeText={setGeoLatitude} placeholder="e.g. 33.8938" placeholderTextColor={TEXT_MUTED_COLOR} keyboardType="numeric" />
 
-            <Text style={st.inputLabel}>LONGITUDE *</Text>
+            <Text style={st.inputLabel}>{i18n.t('LONGITUDE')} *</Text>
             <TextInput style={st.textInput} value={geoLongitude} onChangeText={setGeoLongitude} placeholder="e.g. 35.5018" placeholderTextColor={TEXT_MUTED_COLOR} keyboardType="numeric" />
 
-            <Text style={st.inputLabel}>RADIUS (meters)</Text>
+            <Text style={st.inputLabel}>{i18n.t('DISTANCE')} (m)</Text>
             <TextInput style={st.textInput} value={geoRadius} onChangeText={setGeoRadius} placeholder="500" placeholderTextColor={TEXT_MUTED_COLOR} keyboardType="numeric" />
 
             <View style={st.modalBtnRow}>
               <Pressable style={st.modalCancelBtn} onPress={() => setGeoModalVisible(false)}>
-                <Text style={st.modalCancelText}>Cancel</Text>
+                <Text style={st.modalCancelText}>{i18n.t('CANCEL')}</Text>
               </Pressable>
               <Pressable style={[st.actionBtn, { flex: 1 }, geoSaving && st.actionBtnDisabled]} onPress={handleGeoSave} disabled={geoSaving}>
-                <Text style={st.actionBtnText}>{geoSaving ? 'Saving...' : 'Save'}</Text>
+                <Text style={st.actionBtnText}>{geoSaving ? i18n.t('TRACKING_SAVING') : i18n.t('TRACKING_SAVE')}</Text>
               </Pressable>
             </View>
           </ScrollView>
@@ -1293,7 +1294,7 @@ const Tracking = () => {
           <View style={st.geoDrawOverlay}>
             <View style={st.geoDrawBanner}>
               <MaterialIcons name="touch-app" size={20} color={PRIMARY} />
-              <Text style={st.geoDrawText}>Tap on the map to place geofence center</Text>
+              <Text style={st.geoDrawText}>{i18n.t('TRACKING_TAP_MAP')}</Text>
             </View>
             {geoLatitude && geoLongitude ? (
               <View style={st.geoDrawInfo}>
@@ -1312,11 +1313,11 @@ const Tracking = () => {
             ) : null}
             <View style={st.geoDrawActions}>
               <Pressable style={st.geoDrawCancelBtn} onPress={cancelGeoDraw}>
-                <Text style={st.geoDrawCancelText}>Cancel</Text>
+                <Text style={st.geoDrawCancelText}>{i18n.t('CANCEL')}</Text>
               </Pressable>
               <Pressable style={st.geoDrawConfirmBtn} onPress={confirmGeoDraw}>
                 <MaterialIcons name="check" size={18} color="#fff" />
-                <Text style={st.geoDrawConfirmText}>Continue</Text>
+                <Text style={st.geoDrawConfirmText}>{i18n.t('CONFIRM')}</Text>
               </Pressable>
             </View>
           </View>
@@ -1350,7 +1351,7 @@ const Tracking = () => {
             {sheetOpen && (
               <View style={st.vehicleSheetContent}>
                 <View style={st.vehicleSheetHandle} />
-                <Text style={st.vehicleSheetTitle}>{TOOLBAR_TABS.find((t) => t.key === activeTab)?.label || ''}</Text>
+                <Text style={st.vehicleSheetTitle}>{getToolbarTabs().find((t) => t.key === activeTab)?.label || ''}</Text>
                 {activeTab === 'status' && renderStatusTab()}
                 {activeTab === 'route' && renderRouteTab()}
                 {activeTab === 'zones' && renderZonesTab()}
@@ -1363,7 +1364,7 @@ const Tracking = () => {
 
         {/* Bottom toolbar - hidden in draw mode */}
         {!geoDrawMode && <View style={st.toolbar}>
-          {TOOLBAR_TABS.map((tab) => {
+          {getToolbarTabs().map((tab) => {
             const isActive = sheetOpen && activeTab === tab.key
             return (
               <Pressable key={tab.key} style={st.toolbarItem} onPress={() => toggleVehicleSheet(tab.key)}>
@@ -1386,7 +1387,7 @@ const Tracking = () => {
   if (!integrationEnabled && !loading) {
     return (
       <View style={st.screen}>
-        <Header title="Tracking" loggedIn reload />
+        <Header title={i18n.t('TRACKING')} loggedIn reload />
         <View style={st.disabledContent}>
           <MaterialIcons name="gps-off" size={56} color={TEXT_MUTED_COLOR} />
           <Text style={st.disabledTitle}>Fleet Tracking Disabled</Text>
@@ -1469,7 +1470,7 @@ const st = StyleSheet.create({
 
   // ── Search ──
   searchBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: BG, borderRadius: 12, paddingHorizontal: 12, height: 40, marginBottom: 8 },
-  searchInput: { flex: 1, color: TEXT_PRIMARY_COLOR, fontSize: 14, marginLeft: 8, padding: 0 },
+  searchInput: { flex: 1, color: TEXT_PRIMARY_COLOR, fontSize: 14, marginStart: 8, padding: 0, textAlign: 'left' },
 
   // ── Filter chips ──
   filterChipsRow: { gap: 6, paddingBottom: 8 },
@@ -1484,14 +1485,14 @@ const st = StyleSheet.create({
   vehicleList: { paddingHorizontal: 16, paddingBottom: 20 },
   vehicleListItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: SURFACE, borderRadius: 14, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: BORDER_COLOR },
   vehicleListLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
-  vehicleIconCircle: { width: 40, height: 40, borderRadius: 20, borderWidth: 2, justifyContent: 'center', alignItems: 'center', marginRight: 10 },
+  vehicleIconCircle: { width: 40, height: 40, borderRadius: 20, borderWidth: 2, justifyContent: 'center', alignItems: 'center', marginEnd: 10 },
   vehicleListInfo: { flex: 1 },
   vehicleListName: { fontSize: 14, fontWeight: '700', color: TEXT_PRIMARY_COLOR },
   vehicleListMeta: { fontSize: 11, color: TEXT_SECONDARY_COLOR, marginTop: 1 },
   microRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 },
   microItem: { flexDirection: 'row', alignItems: 'center', gap: 2 },
   microText: { fontSize: 9, fontWeight: '600', color: TEXT_MUTED_COLOR },
-  vehicleListRight: { alignItems: 'flex-end', marginLeft: 8 },
+  vehicleListRight: { alignItems: 'flex-end', marginStart: 8 },
   vehicleStatusPill: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10, gap: 4 },
   vehicleStatusDot: { width: 6, height: 6, borderRadius: 3 },
   vehicleStatusText: { fontSize: 9, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.3 },
@@ -1521,7 +1522,7 @@ const st = StyleSheet.create({
   backBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: PRIMARY_LIGHT, justifyContent: 'center', alignItems: 'center' },
   vehicleInfoContent: { flex: 1 },
   vehicleInfoTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  vehicleInfoName: { fontSize: 16, fontWeight: '800', color: TEXT_PRIMARY_COLOR, flex: 1, marginRight: 8 },
+  vehicleInfoName: { fontSize: 16, fontWeight: '800', color: TEXT_PRIMARY_COLOR, flex: 1, marginEnd: 8 },
   vehicleInfoBadge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10, gap: 5 },
   vehicleInfoBadgeDot: { width: 7, height: 7, borderRadius: 4 },
   vehicleInfoBadgeText: { fontSize: 10, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.3 },
@@ -1566,7 +1567,7 @@ const st = StyleSheet.create({
   connLabel: { fontSize: 12, fontWeight: '700' },
   connSpacer: { flex: 1 },
   connMode: { fontSize: 10, color: TEXT_SECONDARY_COLOR, fontWeight: '600' },
-  connSat: { fontSize: 10, fontWeight: '700', marginLeft: 8 },
+  connSat: { fontSize: 10, fontWeight: '700', marginStart: 8 },
 
   // ── Metrics grid ──
   metricsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 },
@@ -1613,7 +1614,7 @@ const st = StyleSheet.create({
   tripCard: { backgroundColor: BG, borderRadius: 12, padding: 12, marginBottom: 8 },
   tripPoint: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   tripDot: { width: 8, height: 8, borderRadius: 4 },
-  tripLine: { width: 2, height: 14, backgroundColor: BORDER_COLOR, marginLeft: 3, marginVertical: 2 },
+  tripLine: { width: 2, height: 14, backgroundColor: BORDER_COLOR, marginStart: 3, marginVertical: 2 },
   tripAddr: { fontSize: 12, color: TEXT_PRIMARY_COLOR, flex: 1 },
   tripFooter: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: BORDER_COLOR },
   tripFooterText: { fontSize: 11, color: TEXT_SECONDARY_COLOR },
@@ -1639,7 +1640,7 @@ const st = StyleSheet.create({
   eventChipActive: { backgroundColor: PRIMARY },
   eventChipText: { fontSize: 10, color: TEXT_SECONDARY_COLOR, fontWeight: '600' },
   eventChipTextActive: { color: '#fff' },
-  eventItem: { flexDirection: 'row', alignItems: 'flex-start', borderLeftWidth: 3, paddingLeft: 10, paddingVertical: 8, marginBottom: 2, gap: 8 },
+  eventItem: { flexDirection: 'row', alignItems: 'flex-start', borderStartWidth: 3, paddingStart: 10, paddingVertical: 8, marginBottom: 2, gap: 8 },
   eventDot: { width: 24, height: 24, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginTop: 2 },
   eventBody: { flex: 1 },
   eventTitle: { fontSize: 13, fontWeight: '700', color: TEXT_PRIMARY_COLOR },
