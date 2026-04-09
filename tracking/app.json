@@ -1,0 +1,63 @@
+{
+  "expo": {
+    "jsEngine": "hermes",
+    "name": "Fleet Tracker",
+    "version": "1.0.0",
+    "scheme": "fleet-tracker",
+    "slug": "fleet-tracker",
+    "icon": "./assets/icon.png",
+    "assetBundlePatterns": ["**/*"],
+    "splash": {
+      "backgroundColor": "#0D1117",
+      "image": "./assets/splash.png"
+    },
+    "android": {
+      "versionCode": 100,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png"
+      },
+      "icon": "./assets/icon.png",
+      "softwareKeyboardLayoutMode": "pan",
+      "package": "com.bookcars.tracking",
+      "backgroundColor": "#0D1117",
+      "config": {
+        "googleMaps": {
+          "apiKey": "YOUR_GOOGLE_MAPS_API_KEY"
+        }
+      },
+      "permissions": ["android.permission.INTERNET", "android.permission.ACCESS_FINE_LOCATION"]
+    },
+    "ios": {
+      "buildNumber": "1.0.0",
+      "supportsTablet": true,
+      "icon": "./assets/icon.png",
+      "bundleIdentifier": "com.bookcars.tracking",
+      "config": {
+        "googleMapsApiKey": "YOUR_GOOGLE_MAPS_API_KEY"
+      },
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Fleet Tracker needs your location to show nearby vehicles."
+      }
+    },
+    "plugins": [
+      "expo-localization",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#0D1117",
+          "image": "./assets/icon.png",
+          "imageWidth": 200
+        }
+      ],
+      "@react-native-community/datetimepicker",
+      "expo-router"
+    ],
+    "experiments": {
+      "tsconfigPaths": true,
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {}
+    }
+  }
+}
