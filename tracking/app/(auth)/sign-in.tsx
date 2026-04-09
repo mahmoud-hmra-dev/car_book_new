@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { View, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native'
 import { Text, TextInput, Button, HelperText } from 'react-native-paper'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useAuth } from '@/context/AuthContext'
 import { colors, spacing, typography } from '@/theme'
 import i18n from '@/lang/i18n'
@@ -38,10 +39,10 @@ const SignInScreen = () => {
           {/* Logo Area */}
           <View style={styles.logoContainer}>
             <View style={styles.logoCircle}>
-              <Text style={styles.logoIcon}>{'🛰️'}</Text>
+              <MaterialCommunityIcons name="satellite-uplink" size={40} color={colors.primary} />
             </View>
-            <Text style={styles.appName}>Fleet Tracker</Text>
-            <Text style={styles.subtitle}>Fleet Management & GPS Tracking</Text>
+            <Text style={styles.appName}>ControTrack</Text>
+            <Text style={styles.subtitle}>Smart Fleet Tracking & Control</Text>
           </View>
 
           {/* Form */}
@@ -104,7 +105,7 @@ const SignInScreen = () => {
           </View>
 
           {/* Footer */}
-          <Text style={styles.footer}>Powered by BookCars Fleet Management</Text>
+          <Text style={styles.footer}>Powered by ControTrack</Text>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -136,9 +137,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: spacing.lg,
-  },
-  logoIcon: {
-    fontSize: 36,
   },
   appName: {
     fontSize: typography.sizes.display,

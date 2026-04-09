@@ -1,6 +1,6 @@
 {
-  "name": "bookcars-tracking",
-  "description": "Fleet tracking mobile app for BookCars",
+  "name": "controtrack",
+  "description": "ControTrack - Smart Fleet Tracking & Control",
   "version": "1.0.0",
   "main": "expo-router/entry",
   "scripts": {

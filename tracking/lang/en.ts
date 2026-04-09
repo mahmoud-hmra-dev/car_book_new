@@ -1,4 +1,8 @@
 const en = {
+  // App
+  APP_NAME: 'ControTrack',
+  APP_SUBTITLE: 'Smart Fleet Tracking & Control',
+
   // Auth
   SIGN_IN: 'Sign In',
   EMAIL: 'Email',
@@ -92,6 +96,16 @@ const en = {
   MAX_SPEED: 'Max Speed',
   NO_ROUTE_DATA: 'No route data for this period',
   POINTS: 'points',
+  SNAP_TO_ROAD: 'Snap to Road',
+  TODAY: 'Today',
+  YESTERDAY: 'Yesterday',
+  LAST_7_DAYS: 'Last 7 days',
+  TRIP_SUMMARY: 'Trip Summary',
+  STOPS_COUNT: 'Stops',
+  TOTAL_DURATION: 'Duration',
+  PLAYBACK_SPEED: 'Speed',
+  SELECT_VEHICLE_FIRST: 'Select a vehicle first',
+  SNAPPING_ROUTE: 'Correcting route...',
 
   // Geofences
   GEOFENCES: 'Geofences',

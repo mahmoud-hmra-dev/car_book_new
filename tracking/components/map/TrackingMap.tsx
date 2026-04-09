@@ -42,6 +42,8 @@ interface TrackingMapProps {
   onMarkerPress?: (id: string) => void
   onMapPress?: (lat: number, lng: number) => void
   height?: number | string
+  playbackIndex?: number
+  playbackData?: { speed: number, time?: string, ignition?: boolean, course?: number }
 }
 
 const DEFAULT_CENTER = { lat: 33.8938, lng: 35.5018 }
@@ -54,6 +56,8 @@ const TrackingMap: React.FC<TrackingMapProps> = ({
   onMarkerPress,
   onMapPress,
   height = 400,
+  playbackIndex,
+  playbackData,
 }) => {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { WebView } = require('react-native-webview')
@@ -180,6 +184,62 @@ window.updateCircles=function(data){
     }));
   });
 };
+
+var playMarker=null,playLine=null,playPositions=[];
+
+window.setRouteForPlayback=function(pts){
+  playPositions=pts;
+};
+
+window.setPlaybackPosition=function(data){
+  if(!playPositions||!playPositions.length)return;
+  var i=Math.min(Math.max(0,data.index),playPositions.length-1);
+  var pos={lat:playPositions[i][0],lng:playPositions[i][1]};
+
+  var spd=data.speed!=null?Math.round(data.speed):0;
+  var spdColor=spd>80?'#FF6B6B':spd>0?'#00D68F':'#6C757D';
+  var ign=data.ignition?'ON':'OFF';
+  var ignColor=data.ignition?'#00D68F':'#FF6B6B';
+  var tm=data.time||'';
+  if(tm){try{var d=new Date(tm);if(!isNaN(d))tm=d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'})}catch(e){}}
+
+  var tip='<div style="font-family:-apple-system,sans-serif;min-width:160px;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.15)">'
+    +'<div style="background:linear-gradient(135deg,#00D68F,#00B377);padding:6px 10px;display:flex;align-items:center;justify-content:space-between">'
+    +'<span style="color:#fff;font-size:11px;font-weight:700">'+tm+'</span>'
+    +'</div>'
+    +'<div style="text-align:center;padding:8px 10px 4px">'
+    +'<div style="font-size:28px;font-weight:900;color:'+spdColor+'">'+spd+'</div>'
+    +'<div style="font-size:9px;color:#999;text-transform:uppercase;letter-spacing:.5px">km/h</div></div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#f0f0f0;margin:0 8px 8px;border-radius:8px;overflow:hidden">'
+    +'<div style="background:#fff;padding:6px;text-align:center"><div style="font-size:9px;color:#999">IGN</div><div style="font-size:13px;font-weight:700;color:'+ignColor+'">'+ign+'</div></div>'
+    +'<div style="background:#fff;padding:6px;text-align:center"><div style="font-size:9px;color:#999">Point</div><div style="font-size:13px;font-weight:700;color:#333">'+(i+1)+'/'+playPositions.length+'</div></div>'
+    +'</div></div>';
+
+  if(!playMarker){
+    playMarker=new google.maps.Marker({position:pos,map:map,
+      icon:{url:'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(carSvg('#00D68F')),scaledSize:new google.maps.Size(40,40),anchor:new google.maps.Point(20,20)},
+      zIndex:300,optimized:false});
+    window._playIW=new google.maps.InfoWindow({maxWidth:200});
+    window._playIW.setContent(tip);
+    window._playIW.open(map,playMarker);
+  } else {
+    playMarker.setPosition(pos);
+    if(window._playIW){window._playIW.setContent(tip);window._playIW.open(map,playMarker)}
+  }
+
+  if(playLine)playLine.setMap(null);
+  var traveled=playPositions.slice(0,i+1).map(function(p){return{lat:p[0],lng:p[1]}});
+  if(traveled.length>1){
+    playLine=new google.maps.Polyline({path:traveled,strokeColor:'#FF6B6B',strokeOpacity:1,strokeWeight:5,map:map,zIndex:50});
+  }
+  map.panTo(pos);
+};
+
+window.clearPlayback=function(){
+  if(window._playIW){window._playIW.close();window._playIW=null}
+  if(playMarker){playMarker.setMap(null);playMarker=null}
+  if(playLine){playLine.setMap(null);playLine=null}
+};
 </script>
 <script src="https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&callback=initMap" async defer></script>
 </body></html>`
@@ -195,6 +255,7 @@ window.updateCircles=function(data){
 
     if (route && route.points.length > 1) {
       webRef.current.injectJavaScript(`window.updateRoute(${JSON.stringify(route.points)},'${route.color || '#00D68F'}');true;`)
+      webRef.current.injectJavaScript(`window.setRouteForPlayback(${JSON.stringify(route.points)});true;`)
     } else {
       webRef.current.injectJavaScript(`window.updateRoute(null);true;`)
     }
@@ -210,6 +271,14 @@ window.updateCircles=function(data){
     if (readyRef.current) sendUpdate()
     else pendingRef.current = true
   }, [sendUpdate])
+
+  useEffect(() => {
+    if (!webRef.current || !readyRef.current) return
+    if (playbackIndex != null && playbackIndex >= 0 && playbackData) {
+      const data = JSON.stringify({ index: playbackIndex, ...playbackData })
+      webRef.current.injectJavaScript(`window.setPlaybackPosition(${data});true;`)
+    }
+  }, [playbackIndex, playbackData])
 
   const handleMessage = (event: any) => {
     try {

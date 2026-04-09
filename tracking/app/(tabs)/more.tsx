@@ -82,7 +82,7 @@ const MoreScreen = () => {
           </View>
         ))}
 
-        <Text style={styles.version}>{i18n.t('VERSION')} 1.0.0</Text>
+        <Text style={styles.version}>ControTrack v1.0.0</Text>
       </ScrollView>
     </SafeAreaView>
   )

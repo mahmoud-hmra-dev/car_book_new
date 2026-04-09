@@ -1,10 +1,10 @@
 {
   "expo": {
     "jsEngine": "hermes",
-    "name": "Fleet Tracker",
+    "name": "ControTrack",
     "version": "1.0.0",
-    "scheme": "fleet-tracker",
-    "slug": "fleet-tracker",
+    "scheme": "controtrack",
+    "slug": "controtrack",
     "assetBundlePatterns": ["**/*"],
     "splash": {
       "backgroundColor": "#0D1117"
@@ -12,14 +12,14 @@
     "android": {
       "versionCode": 100,
       "softwareKeyboardLayoutMode": "pan",
-      "package": "com.bookcars.tracking",
+      "package": "com.controtrack.app",
       "backgroundColor": "#0D1117",
       "permissions": ["android.permission.INTERNET", "android.permission.ACCESS_FINE_LOCATION"]
     },
     "ios": {
       "buildNumber": "1.0.0",
       "supportsTablet": true,
-      "bundleIdentifier": "com.bookcars.tracking",
+      "bundleIdentifier": "com.controtrack.app",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Fleet Tracker needs your location to show nearby vehicles."
       }

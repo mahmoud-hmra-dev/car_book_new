@@ -1,4 +1,8 @@
 const ar = {
+  // App
+  APP_NAME: 'ControTrack',
+  APP_SUBTITLE: 'تتبع وتحكم ذكي بالأسطول',
+
   // Auth
   SIGN_IN: 'تسجيل الدخول',
   EMAIL: 'البريد الإلكتروني',
@@ -92,6 +96,16 @@ const ar = {
   MAX_SPEED: 'أقصى سرعة',
   NO_ROUTE_DATA: 'لا توجد بيانات مسار لهذه الفترة',
   POINTS: 'نقاط',
+  SNAP_TO_ROAD: 'تصحيح المسار',
+  TODAY: 'اليوم',
+  YESTERDAY: 'أمس',
+  LAST_7_DAYS: 'آخر 7 أيام',
+  TRIP_SUMMARY: 'ملخص الرحلة',
+  STOPS_COUNT: 'التوقفات',
+  TOTAL_DURATION: 'المدة',
+  PLAYBACK_SPEED: 'السرعة',
+  SELECT_VEHICLE_FIRST: 'اختر مركبة أولاً',
+  SNAPPING_ROUTE: 'تصحيح المسار...',
 
   // Geofences
   GEOFENCES: 'المناطق الجغرافية',
