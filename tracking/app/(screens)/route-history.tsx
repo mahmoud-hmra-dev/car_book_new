@@ -1,10 +1,11 @@
 import { useState, useCallback } from 'react'
-import { View, StyleSheet, TouchableOpacity } from 'react-native'
+import { View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native'
 import { Text, Button } from 'react-native-paper'
 import { useLocalSearchParams, Stack } from 'expo-router'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import DateTimePickerModal from 'react-native-modal-datetime-picker'
 import TrackingMap, { type MapMarker, type MapRoute } from '@/components/map/TrackingMap'
+import { useFleet } from '@/context/FleetContext'
 import * as TraccarService from '@/services/TraccarService'
 import * as bookcarsTypes from ':bookcars-types'
 import { colors, spacing, typography } from '@/theme'
@@ -14,7 +15,10 @@ import { getDefaultDateRange } from '@/utils/date'
 import i18n from '@/lang/i18n'
 
 const RouteHistoryScreen = () => {
-  const { carId } = useLocalSearchParams<{ carId: string }>()
+  const { carId: paramCarId } = useLocalSearchParams<{ carId: string }>()
+  const { items } = useFleet()
+  const [selectedCarId, setSelectedCarId] = useState<string | undefined>(paramCarId)
+  const activeCarId = selectedCarId || paramCarId
   const defaultRange = getDefaultDateRange()
   const [fromDate, setFromDate] = useState(new Date(defaultRange.from))
   const [toDate, setToDate] = useState(new Date(defaultRange.to))
@@ -25,10 +29,10 @@ const RouteHistoryScreen = () => {
   const [loaded, setLoaded] = useState(false)
 
   const loadRoute = useCallback(async () => {
-    if (!carId) return
+    if (!activeCarId) return
     setLoading(true)
     try {
-      const data = await TraccarService.getRoute(carId, fromDate.toISOString(), toDate.toISOString())
+      const data = await TraccarService.getRoute(activeCarId, fromDate.toISOString(), toDate.toISOString())
       setRoute(data || [])
       setLoaded(true)
     } catch (err) {
@@ -36,7 +40,7 @@ const RouteHistoryScreen = () => {
     } finally {
       setLoading(false)
     }
-  }, [carId, fromDate, toDate])
+  }, [activeCarId, fromDate, toDate])
 
   const totalDistance = route.length > 1 ? route.reduce((acc, p, i) => {
     if (i === 0) return 0
@@ -73,6 +77,35 @@ const RouteHistoryScreen = () => {
     <View style={styles.container}>
       <Stack.Screen options={{ title: i18n.t('ROUTE_HISTORY') }} />
 
+      {/* Vehicle Selector (when no carId from params) */}
+      {!paramCarId && (
+        <View style={styles.vehiclePickerSection}>
+          <Text style={styles.pickerLabel}>{i18n.t('SELECT_VEHICLE')}</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.vehicleChipRow}>
+            {items.map((item) => (
+              <TouchableOpacity
+                key={item.carId}
+                style={[styles.vehicleChip, activeCarId === item.carId && styles.vehicleChipActive]}
+                onPress={() => { setSelectedCarId(item.carId); setRoute([]); setLoaded(false) }}
+                activeOpacity={0.7}
+              >
+                <MaterialCommunityIcons name="car" size={14} color={activeCarId === item.carId ? colors.primary : colors.textSecondary} />
+                <Text style={[styles.vehicleChipText, activeCarId === item.carId && styles.vehicleChipTextActive]} numberOfLines={1}>
+                  {item.carName || item.licensePlate || item.carId}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      )}
+
+      {!activeCarId ? (
+        <View style={styles.emptyState}>
+          <MaterialCommunityIcons name="car-search" size={48} color={colors.textMuted} />
+          <Text style={styles.emptyText}>{i18n.t('SELECT_VEHICLE')}</Text>
+        </View>
+      ) : (
+        <>
       <TrackingMap markers={mapMarkers} route={mapRoute} height="flex" />
 
       {/* Controls */}
@@ -111,6 +144,8 @@ const RouteHistoryScreen = () => {
           </View>
         )}
       </View>
+        </>
+      )}
 
       <DateTimePickerModal isVisible={showFromPicker} mode="datetime" date={fromDate} onConfirm={(d) => { setFromDate(d); setShowFromPicker(false) }} onCancel={() => setShowFromPicker(false)} />
       <DateTimePickerModal isVisible={showToPicker} mode="datetime" date={toDate} onConfirm={(d) => { setToDate(d); setShowToPicker(false) }} onCancel={() => setShowToPicker(false)} />
@@ -136,6 +171,25 @@ const styles = StyleSheet.create({
   statItem: { alignItems: 'center' },
   statValue: { fontSize: typography.sizes.title, fontWeight: typography.weights.bold, color: colors.primary },
   statLabel: { fontSize: typography.sizes.caption, color: colors.textSecondary, marginTop: spacing.xxs },
+  vehiclePickerSection: { padding: spacing.xl, paddingBottom: spacing.sm },
+  pickerLabel: { fontSize: typography.sizes.subtitle, fontWeight: typography.weights.semibold, color: colors.textPrimary, marginBottom: spacing.sm },
+  vehicleChipRow: { gap: spacing.sm },
+  vehicleChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: 20,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    gap: spacing.xs,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+  },
+  vehicleChipActive: { backgroundColor: colors.primaryLight, borderColor: colors.primary },
+  vehicleChipText: { color: colors.textSecondary, fontSize: typography.sizes.small, maxWidth: 120 },
+  vehicleChipTextActive: { color: colors.primary, fontWeight: typography.weights.semibold },
+  emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  emptyText: { color: colors.textMuted, fontSize: typography.sizes.body, marginTop: spacing.md },
 })
 
 export default RouteHistoryScreen

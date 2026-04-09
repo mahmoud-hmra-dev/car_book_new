@@ -110,6 +110,18 @@ const ar = {
   NO_GEOFENCES: 'لا توجد مناطق',
   RADIUS: 'نصف القطر',
   TAP_TO_DRAW: 'انقر على الخريطة للرسم',
+  TAP_TO_PLACE_CENTER: 'انقر على الخريطة لوضع نقطة المركز',
+  TAP_TO_ADD_POINTS: 'انقر لإضافة نقاط (3 كحد أدنى)',
+  TAP_TO_ADD_CORNERS: 'انقر لإضافة نقطتي الزاوية',
+  CLEAR_POINTS: 'مسح',
+  UNDO_POINT: 'تراجع',
+  POINTS_PLACED: 'نقاط موضوعة',
+  LINKED_GEOFENCES: 'المناطق المرتبطة',
+  LINK_GEOFENCE: 'ربط منطقة',
+  UNLINK_GEOFENCE: 'إلغاء ربط المنطقة',
+  UNLINK_GEOFENCE_CONFIRM: 'هل أنت متأكد من إلغاء ربط هذه المنطقة بالمركبة؟',
+  NO_LINKED_GEOFENCES: 'لا توجد مناطق مرتبطة بهذه المركبة',
+  EDIT: 'تعديل',
 
   // Events
   EVENTS: 'الأحداث',

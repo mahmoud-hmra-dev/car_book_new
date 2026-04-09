@@ -1,22 +1,32 @@
-import { View, StyleSheet, ScrollView, RefreshControl } from 'react-native'
+import { View, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from 'react-native'
 import { Text } from 'react-native-paper'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { useRouter } from 'expo-router'
+import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useFleet } from '@/context/FleetContext'
 import { colors, spacing, typography } from '@/theme'
 import { buildFleetCounts, formatRelativeAge } from '@/utils/tracking'
 import i18n from '@/lang/i18n'
 
 const DashboardScreen = () => {
+  const router = useRouter()
   const { items, loading, lastRefresh, refreshFleet } = useFleet()
   const counts = buildFleetCounts(items)
 
   const statsData = [
-    { label: i18n.t('TOTAL_VEHICLES'), count: counts.total, color: colors.textPrimary },
-    { label: i18n.t('MOVING'), count: counts.moving, color: colors.moving },
-    { label: i18n.t('IDLE'), count: counts.idle, color: colors.idle },
-    { label: i18n.t('STOPPED'), count: counts.stopped, color: colors.stopped },
-    { label: i18n.t('OFFLINE'), count: counts.offline, color: colors.offline },
-    { label: i18n.t('STALE'), count: counts.stale, color: colors.stale },
+    { label: i18n.t('TOTAL_VEHICLES'), count: counts.total, color: colors.textPrimary, filter: 'all' },
+    { label: i18n.t('MOVING'), count: counts.moving, color: colors.moving, filter: 'moving' },
+    { label: i18n.t('IDLE'), count: counts.idle, color: colors.idle, filter: 'idle' },
+    { label: i18n.t('STOPPED'), count: counts.stopped, color: colors.stopped, filter: 'stopped' },
+    { label: i18n.t('OFFLINE'), count: counts.offline, color: colors.offline, filter: 'offline' },
+    { label: i18n.t('STALE'), count: counts.stale, color: colors.stale, filter: 'stale' },
+  ]
+
+  const quickActions = [
+    { icon: 'map-marker-radius' as const, label: i18n.t('LIVE_MAP'), route: '/(tabs)/map' },
+    { icon: 'chart-bar' as const, label: i18n.t('REPORTS'), route: '/(screens)/reports' },
+    { icon: 'map-marker-radius' as const, label: i18n.t('GEOFENCES'), route: '/(screens)/geofences' },
+    { icon: 'account-group' as const, label: i18n.t('DRIVERS'), route: '/(screens)/drivers' },
   ]
 
   return (
@@ -46,27 +56,32 @@ const DashboardScreen = () => {
         <Text style={styles.sectionTitle}>{i18n.t('FLEET_HEALTH')}</Text>
         <View style={styles.statsGrid}>
           {statsData.map((stat) => (
-            <View key={stat.label} style={styles.statCard}>
+            <TouchableOpacity
+              key={stat.label}
+              style={styles.statCard}
+              activeOpacity={0.7}
+              onPress={() => router.push({ pathname: '/(tabs)/vehicles', params: { filter: stat.filter } })}
+            >
               <View style={[styles.statIndicator, { backgroundColor: stat.color }]} />
               <Text style={[styles.statCount, { color: stat.color }]}>{stat.count}</Text>
               <Text style={styles.statLabel}>{stat.label}</Text>
-            </View>
+            </TouchableOpacity>
           ))}
         </View>
 
         {/* Quick Actions */}
         <Text style={styles.sectionTitle}>{i18n.t('QUICK_ACTIONS')}</Text>
         <View style={styles.actionsRow}>
-          {[
-            { icon: '🗺️', label: i18n.t('LIVE_MAP') },
-            { icon: '📊', label: i18n.t('REPORTS') },
-            { icon: '📍', label: i18n.t('GEOFENCES') },
-            { icon: '👤', label: i18n.t('DRIVERS') },
-          ].map((action) => (
-            <View key={action.label} style={styles.actionCard}>
-              <Text style={styles.actionIcon}>{action.icon}</Text>
+          {quickActions.map((action) => (
+            <TouchableOpacity
+              key={action.label}
+              style={styles.actionCard}
+              activeOpacity={0.7}
+              onPress={() => router.push(action.route as any)}
+            >
+              <MaterialCommunityIcons name={action.icon} size={24} color={colors.primary} />
               <Text style={styles.actionLabel}>{action.label}</Text>
-            </View>
+            </TouchableOpacity>
           ))}
         </View>
 
@@ -107,10 +122,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: spacing.md,
     alignItems: 'center',
+    gap: spacing.xs,
     borderWidth: 1,
     borderColor: colors.borderLight,
   },
-  actionIcon: { fontSize: 24, marginBottom: spacing.xs },
   actionLabel: { fontSize: typography.sizes.caption, color: colors.textSecondary, textAlign: 'center' },
   alertsCard: {
     backgroundColor: colors.surface,

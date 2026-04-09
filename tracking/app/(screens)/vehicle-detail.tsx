@@ -1,4 +1,5 @@
-import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native'
+import { useState, useEffect, useCallback } from 'react'
+import { View, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native'
 import { Text } from 'react-native-paper'
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
@@ -6,6 +7,9 @@ import TrackingMap, { type MapMarker } from '@/components/map/TrackingMap'
 import { useFleet } from '@/context/FleetContext'
 import { colors, spacing, typography } from '@/theme'
 import { getStatusColor, formatSpeed, formatRelativeAge, formatCoordinate } from '@/utils/tracking'
+import * as TraccarService from '@/services/TraccarService'
+import * as bookcarsTypes from ':bookcars-types'
+import * as toastHelper from '@/utils/toastHelper'
 import i18n from '@/lang/i18n'
 
 const VehicleDetailScreen = () => {
@@ -13,6 +17,46 @@ const VehicleDetailScreen = () => {
   const router = useRouter()
   const { items } = useFleet()
   const vehicle = items.find((v) => v.carId === carId)
+  const [geofences, setGeofences] = useState<bookcarsTypes.TraccarGeofence[]>([])
+  const [geofencesLoading, setGeofencesLoading] = useState(false)
+
+  const loadGeofences = useCallback(async () => {
+    if (!carId) return
+    setGeofencesLoading(true)
+    try {
+      const data = await TraccarService.getGeofences(carId)
+      setGeofences(data || [])
+    } catch (err) {
+      console.error('Failed to load geofences:', err)
+    } finally {
+      setGeofencesLoading(false)
+    }
+  }, [carId])
+
+  useEffect(() => { loadGeofences() }, [loadGeofences])
+
+  const handleUnlinkGeofence = (geofence: bookcarsTypes.TraccarGeofence) => {
+    Alert.alert(i18n.t('UNLINK_GEOFENCE'), i18n.t('UNLINK_GEOFENCE_CONFIRM'), [
+      { text: i18n.t('CANCEL'), style: 'cancel' },
+      {
+        text: i18n.t('CONFIRM'), style: 'destructive',
+        onPress: async () => {
+          try {
+            await TraccarService.unlinkGeofence(carId!, geofence.id!)
+            setGeofences((prev) => prev.filter((g) => g.id !== geofence.id))
+            toastHelper.success()
+          } catch { toastHelper.error() }
+        },
+      },
+    ])
+  }
+
+  const getZoneIcon = (area?: string): string => {
+    if (area?.startsWith('CIRCLE')) return 'circle-outline'
+    if (area?.startsWith('POLYGON')) return 'vector-polygon'
+    if (area?.startsWith('RECTANGLE')) return 'rectangle-outline'
+    return 'map-marker-radius'
+  }
 
   if (!vehicle) {
     return (
@@ -78,6 +122,35 @@ const VehicleDetailScreen = () => {
           )}
         </View>
 
+        {/* Linked Geofences */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>{i18n.t('LINKED_GEOFENCES')}</Text>
+            <TouchableOpacity
+              style={styles.linkBtn}
+              onPress={() => router.push('/(screens)/geofences')}
+            >
+              <MaterialCommunityIcons name="link-plus" size={16} color={colors.primary} />
+              <Text style={styles.linkBtnText}>{i18n.t('LINK_GEOFENCE')}</Text>
+            </TouchableOpacity>
+          </View>
+          {geofencesLoading ? (
+            <ActivityIndicator size="small" color={colors.primary} style={{ paddingVertical: spacing.lg }} />
+          ) : geofences.length === 0 ? (
+            <Text style={styles.noGeofencesText}>{i18n.t('NO_LINKED_GEOFENCES')}</Text>
+          ) : (
+            geofences.map((gf) => (
+              <View key={gf.id} style={styles.geofenceRow}>
+                <MaterialCommunityIcons name={getZoneIcon(gf.area) as any} size={20} color={colors.primary} />
+                <Text style={styles.geofenceName} numberOfLines={1}>{gf.name}</Text>
+                <TouchableOpacity onPress={() => handleUnlinkGeofence(gf)} style={styles.unlinkBtn}>
+                  <MaterialCommunityIcons name="link-off" size={18} color={colors.danger} />
+                </TouchableOpacity>
+              </View>
+            ))
+          )}
+        </View>
+
         {/* Quick Actions */}
         <View style={styles.actionsRow}>
           <TouchableOpacity style={styles.actionBtn} onPress={() => router.push({ pathname: '/(screens)/route-history', params: { carId } })}>
@@ -138,6 +211,13 @@ const styles = StyleSheet.create({
   },
   actionLabel: { fontSize: typography.sizes.caption, color: colors.textSecondary, textAlign: 'center' },
   emptyText: { color: colors.textMuted, fontSize: typography.sizes.body },
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.md },
+  linkBtn: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, backgroundColor: colors.primaryLight, paddingHorizontal: spacing.md, paddingVertical: spacing.xs, borderRadius: 8 },
+  linkBtnText: { fontSize: typography.sizes.small, color: colors.primary, fontWeight: typography.weights.semibold },
+  geofenceRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.borderLight },
+  geofenceName: { flex: 1, fontSize: typography.sizes.body, color: colors.textPrimary },
+  unlinkBtn: { padding: spacing.xs },
+  noGeofencesText: { color: colors.textMuted, fontSize: typography.sizes.body, paddingVertical: spacing.md },
 })
 
 export default VehicleDetailScreen

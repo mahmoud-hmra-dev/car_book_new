@@ -110,6 +110,18 @@ const en = {
   NO_GEOFENCES: 'No zones created',
   RADIUS: 'Radius',
   TAP_TO_DRAW: 'Tap on map to draw',
+  TAP_TO_PLACE_CENTER: 'Tap on map to place center point',
+  TAP_TO_ADD_POINTS: 'Tap to add points (min 3)',
+  TAP_TO_ADD_CORNERS: 'Tap to add 2 corner points',
+  CLEAR_POINTS: 'Clear',
+  UNDO_POINT: 'Undo',
+  POINTS_PLACED: 'points placed',
+  LINKED_GEOFENCES: 'Linked Zones',
+  LINK_GEOFENCE: 'Link Zone',
+  UNLINK_GEOFENCE: 'Unlink Zone',
+  UNLINK_GEOFENCE_CONFIRM: 'Are you sure you want to unlink this zone from the vehicle?',
+  NO_LINKED_GEOFENCES: 'No zones linked to this vehicle',
+  EDIT: 'Edit',
 
   // Events
   EVENTS: 'Events',

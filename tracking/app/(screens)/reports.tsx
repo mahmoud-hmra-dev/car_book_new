@@ -1,9 +1,10 @@
 import { useState, useCallback } from 'react'
-import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native'
+import { View, StyleSheet, ScrollView, TouchableOpacity, FlatList } from 'react-native'
 import { Text, Button, SegmentedButtons } from 'react-native-paper'
 import { useLocalSearchParams, Stack } from 'expo-router'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import DateTimePickerModal from 'react-native-modal-datetime-picker'
+import { useFleet } from '@/context/FleetContext'
 import * as TraccarService from '@/services/TraccarService'
 import * as bookcarsTypes from ':bookcars-types'
 import { colors, spacing, typography } from '@/theme'
@@ -13,7 +14,10 @@ import { getDefaultDateRange } from '@/utils/date'
 import i18n from '@/lang/i18n'
 
 const ReportsScreen = () => {
-  const { carId } = useLocalSearchParams<{ carId: string }>()
+  const { carId: paramCarId } = useLocalSearchParams<{ carId: string }>()
+  const { items } = useFleet()
+  const [selectedCarId, setSelectedCarId] = useState<string | undefined>(paramCarId)
+  const activeCarId = selectedCarId || paramCarId
   const defaultRange = getDefaultDateRange()
   const [fromDate, setFromDate] = useState(new Date(defaultRange.from))
   const [toDate, setToDate] = useState(new Date(defaultRange.to))
@@ -24,19 +28,52 @@ const ReportsScreen = () => {
   const [loading, setLoading] = useState(false)
 
   const loadReport = useCallback(async () => {
-    if (!carId) return
+    if (!activeCarId) return
     setLoading(true)
     try {
-      const data = await TraccarService.getReports(carId, fromDate.toISOString(), toDate.toISOString())
+      const data = await TraccarService.getReports(activeCarId, fromDate.toISOString(), toDate.toISOString())
       setReport(data)
     } catch (err) { console.error(err) }
     finally { setLoading(false) }
-  }, [carId, fromDate, toDate])
+  }, [activeCarId, fromDate, toDate])
 
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ title: i18n.t('REPORTS') }} />
       <ScrollView contentContainerStyle={styles.content}>
+        {/* Vehicle Selector (when no carId from params) */}
+        {!paramCarId && (
+          <View style={styles.vehiclePickerSection}>
+            <Text style={styles.pickerLabel}>{i18n.t('SELECT_VEHICLE')}</Text>
+            <FlatList
+              horizontal
+              data={items}
+              keyExtractor={(item) => item.carId}
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.vehicleChipRow}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[styles.vehicleChip, activeCarId === item.carId && styles.vehicleChipActive]}
+                  onPress={() => { setSelectedCarId(item.carId); setReport(null) }}
+                  activeOpacity={0.7}
+                >
+                  <MaterialCommunityIcons name="car" size={14} color={activeCarId === item.carId ? colors.primary : colors.textSecondary} />
+                  <Text style={[styles.vehicleChipText, activeCarId === item.carId && styles.vehicleChipTextActive]} numberOfLines={1}>
+                    {item.carName || item.licensePlate || item.carId}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        )}
+
+        {!activeCarId ? (
+          <View style={styles.emptyState}>
+            <MaterialCommunityIcons name="car-search" size={48} color={colors.textMuted} />
+            <Text style={styles.empty}>{i18n.t('SELECT_VEHICLE')}</Text>
+          </View>
+        ) : (
+          <>
         {/* Date Range */}
         <View style={styles.dateRow}>
           <TouchableOpacity style={styles.dateBtn} onPress={() => setShowFromPicker(true)}>
@@ -102,6 +139,8 @@ const ReportsScreen = () => {
             )}
           </>
         )}
+          </>
+        )}
       </ScrollView>
       <DateTimePickerModal isVisible={showFromPicker} mode="datetime" date={fromDate} onConfirm={(d) => { setFromDate(d); setShowFromPicker(false) }} onCancel={() => setShowFromPicker(false)} />
       <DateTimePickerModal isVisible={showToPicker} mode="datetime" date={toDate} onConfirm={(d) => { setToDate(d); setShowToPicker(false) }} onCancel={() => setShowToPicker(false)} />
@@ -141,6 +180,24 @@ const styles = StyleSheet.create({
   stopAddr: { color: colors.textPrimary, fontSize: typography.sizes.body },
   stopDuration: { color: colors.textSecondary, fontSize: typography.sizes.small, marginTop: spacing.xxs },
   empty: { color: colors.textMuted, fontSize: typography.sizes.body, textAlign: 'center', marginTop: spacing.xxxl },
+  vehiclePickerSection: { marginBottom: spacing.lg },
+  pickerLabel: { fontSize: typography.sizes.subtitle, fontWeight: typography.weights.semibold, color: colors.textPrimary, marginBottom: spacing.sm },
+  vehicleChipRow: { gap: spacing.sm },
+  vehicleChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: 20,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    gap: spacing.xs,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+  },
+  vehicleChipActive: { backgroundColor: colors.primaryLight, borderColor: colors.primary },
+  vehicleChipText: { color: colors.textSecondary, fontSize: typography.sizes.small, maxWidth: 120 },
+  vehicleChipTextActive: { color: colors.primary, fontWeight: typography.weights.semibold },
+  emptyState: { alignItems: 'center', paddingTop: spacing.massive },
 })
 
 export default ReportsScreen

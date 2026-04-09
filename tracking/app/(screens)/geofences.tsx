@@ -69,7 +69,10 @@ const GeofencesScreen = () => {
               <Text style={styles.cardName}>{item.name}</Text>
               {item.description ? <Text style={styles.cardDesc}>{item.description}</Text> : null}
             </View>
-            <TouchableOpacity onPress={() => handleDelete(item)}>
+            <TouchableOpacity onPress={() => router.push({ pathname: '/(screens)/geofence-editor', params: { geofenceId: String(item.id) } })} style={styles.iconBtn}>
+              <MaterialCommunityIcons name="pencil-outline" size={22} color={colors.info} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => handleDelete(item)} style={styles.iconBtn}>
               <MaterialCommunityIcons name="delete-outline" size={22} color={colors.danger} />
             </TouchableOpacity>
           </View>
@@ -95,6 +98,7 @@ const styles = StyleSheet.create({
   },
   cardName: { fontSize: typography.sizes.body, fontWeight: typography.weights.semibold, color: colors.textPrimary },
   cardDesc: { fontSize: typography.sizes.small, color: colors.textSecondary, marginTop: spacing.xxs },
+  iconBtn: { padding: spacing.xs },
   empty: { alignItems: 'center', paddingTop: spacing.massive },
   emptyText: { color: colors.textMuted, fontSize: typography.sizes.body, marginTop: spacing.md },
   fab: { position: 'absolute', right: spacing.xl, bottom: spacing.xxl, backgroundColor: colors.primary },
