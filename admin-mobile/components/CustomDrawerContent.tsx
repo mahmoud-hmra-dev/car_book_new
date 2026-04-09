@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { StyleSheet, Text, View, Pressable, ScrollView } from 'react-native'
+import { StyleSheet, Text, View, Pressable, ScrollView, I18nManager } from 'react-native'
+import * as Updates from 'expo-updates'
 import { router, usePathname } from 'expo-router'
 import { MaterialIcons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -45,6 +46,22 @@ const CustomDrawerContent = ({ closeDrawer }: CustomDrawerContentProps) => {
         i18n.locale = __language
         await UserService.setLanguage(__language)
         setLanguage(__language)
+
+        const isRTL = __language === 'ar'
+        if (I18nManager.isRTL !== isRTL) {
+          I18nManager.allowRTL(isRTL)
+          I18nManager.forceRTL(isRTL)
+          try {
+            await Updates.reloadAsync()
+          } catch {
+            // Fallback for dev/Expo Go where Updates is not available
+            closeDrawer()
+            const routeName = helper.getCurrentRouteName(pathname)
+            helper.navigate({ name: routeName }, true)
+          }
+          return
+        }
+
         closeDrawer()
         const routeName = helper.getCurrentRouteName(pathname)
         helper.navigate({ name: routeName }, true)
@@ -192,8 +209,8 @@ const styles = StyleSheet.create({
     flex: 1,
     width: 280,
     backgroundColor: '#fff',
-    borderTopRightRadius: 20,
-    borderBottomRightRadius: 20,
+    borderTopEndRadius: 20,
+    borderBottomEndRadius: 20,
     elevation: 5,
     shadowColor: '#000',
     shadowOffset: { width: 2, height: 0 },
@@ -219,7 +236,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     color: '#6B3CE6',
-    marginLeft: 12,
+    marginStart: 12,
   },
   menuSection: {
     paddingHorizontal: 15,
@@ -255,7 +272,7 @@ const styles = StyleSheet.create({
   text: {
     color: 'rgba(0, 0, 0, 0.54)',
     fontWeight: '600',
-    marginLeft: 16,
+    marginStart: 16,
     fontSize: 14,
   },
   activeText: {
@@ -283,11 +300,11 @@ const styles = StyleSheet.create({
   },
   languageMenuItem: {
     padding: 12,
-    paddingLeft: 44,
+    paddingStart: 44,
   },
   languageMenuSelectedItem: {
     padding: 12,
-    paddingLeft: 44,
+    paddingStart: 44,
     backgroundColor: '#ede7f9',
   },
   languageMenuText: {

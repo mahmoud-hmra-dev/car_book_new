@@ -29,6 +29,7 @@ export const LANGUAGES = [
   { code: 'fr', label: 'Fran\u00e7ais' },
   { code: 'en', label: 'English' },
   { code: 'es', label: 'Espa\u00f1ol' },
+  { code: 'ar', label: '\u0627\u0644\u0639\u0631\u0628\u064a\u0629' },
 ]
 
 export const APP_TYPE: string = 'admin'

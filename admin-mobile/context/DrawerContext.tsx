@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useRef } from 'react'
-import { Animated, Pressable, StyleSheet, View } from 'react-native'
+import { Animated, Pressable, StyleSheet, View, I18nManager } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import CustomDrawerContent from '@/components/CustomDrawerContent'
 
@@ -10,13 +10,14 @@ export const useDrawer = () => useContext(DrawerContext)
 
 export const SimpleDrawerProvider = ({ children }: { children: React.ReactNode }) => {
   const insets = useSafeAreaInsets()
+  const isRTL = I18nManager.isRTL
   const [visible, setVisible] = useState(false)
-  const slideAnim = useRef(new Animated.Value(-DRAWER_WIDTH)).current
+  const slideAnim = useRef(new Animated.Value(isRTL ? DRAWER_WIDTH : -DRAWER_WIDTH)).current
   const opacityAnim = useRef(new Animated.Value(0)).current
 
   const toggle = () => {
     const isOpening = !visible
-    const toValue = isOpening ? 0 : -DRAWER_WIDTH
+    const toValue = isOpening ? 0 : (isRTL ? DRAWER_WIDTH : -DRAWER_WIDTH)
     const opacityValue = isOpening ? 1 : 0
 
     Animated.parallel([
@@ -52,7 +53,11 @@ export const SimpleDrawerProvider = ({ children }: { children: React.ReactNode }
 
         <Animated.View
           pointerEvents={visible ? 'auto' : 'none'}
-          style={[styles.drawer, { transform: [{ translateX: slideAnim }] }]}
+          style={[
+            styles.drawer,
+            isRTL ? styles.drawerRTL : styles.drawerLTR,
+            { transform: [{ translateX: slideAnim }] },
+          ]}
         >
           <CustomDrawerContent closeDrawer={toggle} />
         </Animated.View>
@@ -71,7 +76,6 @@ const styles = StyleSheet.create({
   },
   drawer: {
     position: 'absolute',
-    left: 0,
     top: 0,
     bottom: 0,
     width: DRAWER_WIDTH,
@@ -82,5 +86,11 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 2, height: 0 },
     shadowOpacity: 0.2,
     shadowRadius: 5,
-  }
+  },
+  drawerLTR: {
+    left: 0,
+  },
+  drawerRTL: {
+    right: 0,
+  },
 })

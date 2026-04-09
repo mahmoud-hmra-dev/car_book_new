@@ -17,6 +17,7 @@ import DateTimePicker from '@react-native-community/datetimepicker'
 import { format } from 'date-fns'
 import * as bookcarsTypes from ':bookcars-types'
 
+import i18n from '@/lang/i18n'
 import Indicator from '@/components/Indicator'
 import TrackingMap from '@/components/tracking/TrackingMap'
 import type { MapRoute, PlaybackPosition } from '@/components/tracking/TrackingMap'
@@ -314,7 +315,7 @@ const MovementHistory = () => {
           <MaterialIcons name="arrow-back" size={22} color={PRIMARY} />
         </Pressable>
         <View style={s.topInfo}>
-          <Text style={s.topName} numberOfLines={1}>{carName || 'Vehicle'}</Text>
+          <Text style={s.topName} numberOfLines={1}>{carName || i18n.t('CAR')}</Text>
           <Text style={s.topPlate}>{licensePlate || '---'}</Text>
         </View>
         <MaterialIcons name="directions-car" size={24} color={PRIMARY} />
@@ -331,7 +332,7 @@ const MovementHistory = () => {
           {/* Date pickers */}
           <View style={s.dateRow}>
             <View style={s.dateCol}>
-              <Text style={s.dateLabel}>FROM</Text>
+              <Text style={s.dateLabel}>{i18n.t('FROM')}</Text>
               <View style={s.dateBtnRow}>
                 <Pressable style={[s.dateBtn, { flex: 1 }]} onPress={() => setShowFromDate(true)}>
                   <MaterialIcons name="calendar-today" size={13} color={PRIMARY} />
@@ -346,7 +347,7 @@ const MovementHistory = () => {
               {showFromTime && <DateTimePicker value={fromDate} mode="time" onChange={(_, d) => { setShowFromTime(Platform.OS === 'ios'); if (d) setFromDate(d) }} />}
             </View>
             <View style={s.dateCol}>
-              <Text style={s.dateLabel}>TO</Text>
+              <Text style={s.dateLabel}>{i18n.t('TO')}</Text>
               <View style={s.dateBtnRow}>
                 <Pressable style={[s.dateBtn, { flex: 1 }]} onPress={() => setShowToDate(true)}>
                   <MaterialIcons name="calendar-today" size={13} color={PRIMARY} />
@@ -366,7 +367,7 @@ const MovementHistory = () => {
           <Pressable style={[s.loadBtn, loading && s.disabled]} onPress={loadHistory} disabled={loading}>
             {loading ? <Indicator /> : <>
               <MaterialIcons name="history" size={18} color="#fff" />
-              <Text style={s.loadBtnText}>Movement history</Text>
+              <Text style={s.loadBtnText}>{i18n.t('TRACKING_MOVEMENT_HISTORY')}</Text>
             </>}
           </Pressable>
 
@@ -374,10 +375,10 @@ const MovementHistory = () => {
           {routeStats && (
             <View style={s.statsGrid}>
               {[
-                { label: 'DISTANCE', value: formatDistanceKm(routeStats.distance), icon: 'straighten' as const },
-                { label: 'TIME', value: formatDuration(routeStats.duration), icon: 'timer' as const },
-                { label: 'AVG SPEED', value: routeStats.avgSpeed ? `${Math.round(routeStats.avgSpeed)} km/h` : '-', icon: 'speed' as const },
-                { label: 'MAX SPEED', value: routeStats.maxSpeed ? `${Math.round(routeStats.maxSpeed)} km/h` : '-', icon: 'flash-on' as const },
+                { label: i18n.t('DISTANCE'), value: formatDistanceKm(routeStats.distance), icon: 'straighten' as const },
+                { label: i18n.t('DURATION'), value: formatDuration(routeStats.duration), icon: 'timer' as const },
+                { label: i18n.t('AVG_SPEED'), value: routeStats.avgSpeed ? `${Math.round(routeStats.avgSpeed)} km/h` : '-', icon: 'speed' as const },
+                { label: i18n.t('MAX_SPEED'), value: routeStats.maxSpeed ? `${Math.round(routeStats.maxSpeed)} km/h` : '-', icon: 'flash-on' as const },
               ].map((st2) => (
                 <View key={st2.label} style={s.statBox}>
                   <MaterialIcons name={st2.icon} size={14} color={PRIMARY} />
@@ -438,7 +439,7 @@ const MovementHistory = () => {
           {/* Trips */}
           {reports && reports.trips.length > 0 && (
             <View style={s.tripsWrap}>
-              <Text style={s.tripsTitle}>Trips ({reports.trips.length})</Text>
+              <Text style={s.tripsTitle}>{i18n.t('TRIPS')} ({reports.trips.length})</Text>
               {reports.trips.map((trip, i) => (
                 <View key={`t-${i}`} style={s.tripCard}>
                   <View style={s.tripPt}><View style={[s.tripDot, { backgroundColor: GREEN }]} /><Text style={s.tripAddr} numberOfLines={1}>{trip.startAddress || 'Unknown'}</Text></View>
@@ -456,7 +457,7 @@ const MovementHistory = () => {
           )}
 
           {!routeStats && !loading && (
-            <Text style={s.hint}>Select a date range and tap "Movement history" to load</Text>
+            <Text style={s.hint}>{i18n.t('NO_ROUTE_DATA')}</Text>
           )}
           <View style={{ height: 30 }} />
         </ScrollView>
@@ -540,7 +541,7 @@ const s = StyleSheet.create({
   playerTime: { fontSize: 12, color: TEXT2, fontWeight: '600' },
   playerPct: { fontSize: 12, color: TEXT2, fontWeight: '600' },
   snapText: { fontSize: 10, color: TEXT3, fontStyle: 'italic', flex: 1 },
-  playerSpeed: { fontSize: 14, fontWeight: '800', color: TEXT1, marginLeft: 8 },
+  playerSpeed: { fontSize: 14, fontWeight: '800', color: TEXT1, marginStart: 8 },
 
   // ── Trips ──
   tripsWrap: { marginTop: 4 },
@@ -548,7 +549,7 @@ const s = StyleSheet.create({
   tripCard: { backgroundColor: BG, borderRadius: 12, padding: 12, marginBottom: 8 },
   tripPt: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   tripDot: { width: 8, height: 8, borderRadius: 4 },
-  tripLine: { width: 2, height: 14, backgroundColor: BORDER, marginLeft: 3, marginVertical: 2 },
+  tripLine: { width: 2, height: 14, backgroundColor: BORDER, marginStart: 3, marginVertical: 2 },
   tripAddr: { fontSize: 12, color: TEXT1, flex: 1 },
   tripMeta: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: BORDER },
   tripMetaText: { fontSize: 11, color: TEXT2 },

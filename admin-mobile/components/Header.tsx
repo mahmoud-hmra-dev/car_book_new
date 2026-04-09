@@ -122,11 +122,11 @@ const styles = StyleSheet.create({
   },
   notifications: {
     paddingVertical: 5,
-    paddingRight: 10,
-    paddingLeft: 5,
+    paddingEnd: 10,
+    paddingStart: 5,
   },
   avatar: {
-    marginLeft: 2,
+    marginStart: 2,
     padding: 5,
   },
   badge: {

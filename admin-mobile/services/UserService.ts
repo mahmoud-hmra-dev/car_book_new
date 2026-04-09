@@ -89,7 +89,7 @@ export const getLanguage = async () => {
 export const getDefaultLanguage = () => {
   const locales = Localization.getLocales()
   const languageCode = locales?.[0]?.languageCode?.toLowerCase() || ''
-  const supportedLanguages = ['en', 'fr', 'es']
+  const supportedLanguages = ['en', 'fr', 'es', 'ar']
   return supportedLanguages.includes(languageCode) ? languageCode : env.DEFAULT_LANGUAGE
 }
 
