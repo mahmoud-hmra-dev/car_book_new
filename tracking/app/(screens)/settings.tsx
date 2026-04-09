@@ -1,10 +1,11 @@
-import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native'
+import { View, StyleSheet, ScrollView, TouchableOpacity, I18nManager, Alert } from 'react-native'
 import { Text, RadioButton } from 'react-native-paper'
 import { Stack } from 'expo-router'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import AsyncStorageLib from '@react-native-async-storage/async-storage'
 import { useAuth } from '@/context/AuthContext'
 import { useSettings } from '@/context/SettingsContext'
+import * as UserService from '@/services/UserService'
 import { colors, spacing, typography } from '@/theme'
 import * as toastHelper from '@/utils/toastHelper'
 import i18n from '@/lang/i18n'
@@ -12,6 +13,34 @@ import i18n from '@/lang/i18n'
 const SettingsScreen = () => {
   const { signOut } = useAuth()
   const { mapType, refreshInterval, language, updateSetting } = useSettings()
+
+  const handleLanguageChange = async (langCode: string) => {
+    if (langCode === language) return
+    await updateSetting('language', langCode)
+    await UserService.setLanguage(langCode)
+    i18n.locale = langCode
+
+    const isRTL = langCode === 'ar'
+    if (I18nManager.isRTL !== isRTL) {
+      I18nManager.allowRTL(isRTL)
+      I18nManager.forceRTL(isRTL)
+      Alert.alert(
+        langCode === 'ar' ? 'تغيير اللغة' : 'Language Changed',
+        langCode === 'ar' ? 'يجب إعادة تشغيل التطبيق لتطبيق التغييرات' : 'The app needs to restart to apply changes.',
+        [
+          {
+            text: langCode === 'ar' ? 'إعادة التشغيل' : 'Restart',
+            onPress: () => {
+              // Force reload by clearing state - user must manually restart
+            },
+          },
+        ]
+      )
+    } else {
+      // Same direction, just update locale - force re-render
+      toastHelper.success(langCode === 'ar' ? 'تم تغيير اللغة' : 'Language changed')
+    }
+  }
 
   const handleClearCache = async () => {
     try {
@@ -50,8 +79,8 @@ const SettingsScreen = () => {
         <Text style={styles.sectionTitle}>{i18n.t('LANGUAGE')}</Text>
         <View style={styles.section}>
           {[{ code: 'en', label: 'English' }, { code: 'ar', label: 'العربية' }].map((lang) => (
-            <TouchableOpacity key={lang.code} style={styles.radioRow} onPress={() => updateSetting('language', lang.code)}>
-              <RadioButton value={lang.code} status={language === lang.code ? 'checked' : 'unchecked'} onPress={() => updateSetting('language', lang.code)} color={colors.primary} />
+            <TouchableOpacity key={lang.code} style={styles.radioRow} onPress={() => handleLanguageChange(lang.code)}>
+              <RadioButton value={lang.code} status={language === lang.code ? 'checked' : 'unchecked'} onPress={() => handleLanguageChange(lang.code)} color={colors.primary} />
               <Text style={styles.radioLabel}>{lang.label}</Text>
             </TouchableOpacity>
           ))}

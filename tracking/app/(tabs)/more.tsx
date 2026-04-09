@@ -23,7 +23,7 @@ const MoreScreen = () => {
     [
       { icon: 'map-marker-radius', label: i18n.t('GEOFENCES'), route: '/(screens)/geofences' },
       { icon: 'chart-bar', label: i18n.t('REPORTS'), route: '/(screens)/reports' },
-      { icon: 'route', label: i18n.t('ROUTE_HISTORY'), route: '/(screens)/route-history' },
+      { icon: 'map-marker-path', label: i18n.t('ROUTE_HISTORY'), route: '/(screens)/route-history' },
     ],
     [
       { icon: 'account-group', label: i18n.t('DRIVERS'), route: '/(screens)/drivers' },

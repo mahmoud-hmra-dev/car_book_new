@@ -1,8 +1,8 @@
 import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native'
 import { Text } from 'react-native-paper'
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router'
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
+import TrackingMap, { type MapMarker } from '@/components/map/TrackingMap'
 import { useFleet } from '@/context/FleetContext'
 import { colors, spacing, typography } from '@/theme'
 import { getStatusColor, formatSpeed, formatRelativeAge, formatCoordinate } from '@/utils/tracking'
@@ -31,26 +31,21 @@ const VehicleDetailScreen = () => {
       <ScrollView contentContainerStyle={styles.content}>
         {/* Mini Map */}
         {vehicle.position && (
-          <View style={styles.mapContainer}>
-            <MapView
-              style={styles.miniMap}
-              provider={PROVIDER_GOOGLE}
-              initialRegion={{
-                latitude: vehicle.position.latitude,
-                longitude: vehicle.position.longitude,
-                latitudeDelta: 0.01,
-                longitudeDelta: 0.01,
-              }}
-              scrollEnabled={false}
-              zoomEnabled={false}
-            >
-              <Marker coordinate={{ latitude: vehicle.position.latitude, longitude: vehicle.position.longitude }}>
-                <View style={[styles.marker, { backgroundColor: statusColor }]}>
-                  <MaterialCommunityIcons name="car" size={16} color={colors.white} />
-                </View>
-              </Marker>
-            </MapView>
-          </View>
+          <TrackingMap
+            markers={[{
+              id: vehicle.carId,
+              lat: vehicle.position.latitude,
+              lng: vehicle.position.longitude,
+              color: statusColor,
+              label: vehicle.carName || 'Vehicle',
+              status: vehicle.movementStatus || 'offline',
+              speed: vehicle.speedKmh,
+              ignition: vehicle.ignition,
+              licensePlate: vehicle.licensePlate,
+              selected: true,
+            }]}
+            height={220}
+          />
         )}
 
         {/* Status Section */}
@@ -86,7 +81,7 @@ const VehicleDetailScreen = () => {
         {/* Quick Actions */}
         <View style={styles.actionsRow}>
           <TouchableOpacity style={styles.actionBtn} onPress={() => router.push({ pathname: '/(screens)/route-history', params: { carId } })}>
-            <MaterialCommunityIcons name="route" size={24} color={colors.primary} />
+            <MaterialCommunityIcons name="map-marker-path" size={24} color={colors.primary} />
             <Text style={styles.actionLabel}>{i18n.t('ROUTE_HISTORY')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionBtn} onPress={() => router.push({ pathname: '/(screens)/vehicle-control', params: { carId } })}>

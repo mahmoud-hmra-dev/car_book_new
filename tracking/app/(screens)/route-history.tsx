@@ -1,20 +1,20 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { View, StyleSheet, TouchableOpacity } from 'react-native'
 import { Text, Button } from 'react-native-paper'
 import { useLocalSearchParams, Stack } from 'expo-router'
-import MapView, { Polyline, Marker, PROVIDER_GOOGLE } from 'react-native-maps'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import DateTimePickerModal from 'react-native-modal-datetime-picker'
+import TrackingMap, { type MapMarker, type MapRoute } from '@/components/map/TrackingMap'
 import * as TraccarService from '@/services/TraccarService'
 import * as bookcarsTypes from ':bookcars-types'
 import { colors, spacing, typography } from '@/theme'
-import { formatSpeed, formatDistanceKm, formatDateTime } from '@/utils/tracking'
+import { formatSpeed, formatDistanceKm } from '@/utils/tracking'
+import { formatDateTime } from '@/utils/date'
 import { getDefaultDateRange } from '@/utils/date'
 import i18n from '@/lang/i18n'
 
 const RouteHistoryScreen = () => {
   const { carId } = useLocalSearchParams<{ carId: string }>()
-  const mapRef = useRef<MapView>(null)
   const defaultRange = getDefaultDateRange()
   const [fromDate, setFromDate] = useState(new Date(defaultRange.from))
   const [toDate, setToDate] = useState(new Date(defaultRange.to))
@@ -31,13 +31,6 @@ const RouteHistoryScreen = () => {
       const data = await TraccarService.getRoute(carId, fromDate.toISOString(), toDate.toISOString())
       setRoute(data || [])
       setLoaded(true)
-      if (data?.length && mapRef.current) {
-        const coords = data.map((p) => ({ latitude: p.latitude, longitude: p.longitude }))
-        mapRef.current.fitToCoordinates(coords, {
-          edgePadding: { top: 80, right: 40, bottom: 200, left: 40 },
-          animated: true,
-        })
-      }
     } catch (err) {
       console.error('Failed to load route:', err)
     } finally {
@@ -55,21 +48,32 @@ const RouteHistoryScreen = () => {
     return acc + R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
   }, 0) : 0
 
-  const routeCoords = route.map((p) => ({ latitude: p.latitude, longitude: p.longitude }))
+  // Build route for map
+  const mapRoute: MapRoute | undefined = route.length > 1
+    ? { points: route.map((p) => [p.latitude, p.longitude] as [number, number]), color: '#58A6FF' }
+    : undefined
+
+  // Start/end markers
+  const mapMarkers: MapMarker[] = []
+  if (route.length > 0) {
+    mapMarkers.push({
+      id: 'start', lat: route[0].latitude, lng: route[0].longitude,
+      color: '#00D68F', label: 'Start', status: 'moving',
+    })
+    if (route.length > 1) {
+      const last = route[route.length - 1]
+      mapMarkers.push({
+        id: 'end', lat: last.latitude, lng: last.longitude,
+        color: '#FF6B6B', label: 'End', status: 'stopped',
+      })
+    }
+  }
 
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ title: i18n.t('ROUTE_HISTORY') }} />
 
-      <MapView ref={mapRef} style={styles.map} provider={PROVIDER_GOOGLE} initialRegion={{ latitude: 33.8938, longitude: 35.5018, latitudeDelta: 0.5, longitudeDelta: 0.5 }}>
-        {routeCoords.length > 1 && <Polyline coordinates={routeCoords} strokeColor={colors.mapRoute} strokeWidth={4} />}
-        {route.length > 0 && (
-          <>
-            <Marker coordinate={routeCoords[0]} pinColor="green" title={i18n.t('START')} />
-            <Marker coordinate={routeCoords[routeCoords.length - 1]} pinColor="red" title={i18n.t('END')} />
-          </>
-        )}
-      </MapView>
+      <TrackingMap markers={mapMarkers} route={mapRoute} height="flex" />
 
       {/* Controls */}
       <View style={styles.controls}>
@@ -116,25 +120,15 @@ const RouteHistoryScreen = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  map: { flex: 1 },
   controls: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: spacing.xl,
-    paddingBottom: spacing.xxxl,
+    backgroundColor: colors.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20,
+    padding: spacing.xl, paddingBottom: spacing.xxxl,
   },
   dateRow: { flexDirection: 'row', gap: spacing.md, marginBottom: spacing.md },
   dateBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.background,
-    borderRadius: 10,
-    padding: spacing.md,
-    gap: spacing.sm,
-    borderWidth: 1,
-    borderColor: colors.border,
+    flex: 1, flexDirection: 'row', alignItems: 'center',
+    backgroundColor: colors.background, borderRadius: 10, padding: spacing.md, gap: spacing.sm,
+    borderWidth: 1, borderColor: colors.border,
   },
   dateText: { color: colors.textPrimary, fontSize: typography.sizes.small },
   loadBtn: { borderRadius: 10, marginBottom: spacing.md },

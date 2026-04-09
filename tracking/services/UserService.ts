@@ -24,8 +24,10 @@ export const signin = async (data: bookcarsTypes.SignInPayload): Promise<{ statu
   console.log('Method: POST')
   console.log('Payload:', JSON.stringify({ email: data.email, password: '***' }, null, 2))
 
+  const payload = { ...data, mobile: true }
+
   return axiosInstance
-    .post('/api/sign-in/admin', data)
+    .post('/api/sign-in/admin', payload)
     .then(async (res) => {
       console.log('====== [SIGN-IN] RESPONSE ======')
       console.log('Status:', res.status)
@@ -90,10 +92,8 @@ export const getLanguage = async () => {
 }
 
 export const getDefaultLanguage = () => {
-  const locales = Localization.getLocales()
-  const languageCode = locales?.[0]?.languageCode?.toLowerCase() || ''
-  const supportedLanguages = ['en', 'ar']
-  return supportedLanguages.includes(languageCode) ? languageCode : env.DEFAULT_LANGUAGE
+  // Always default to English for fleet tracking app
+  return env.DEFAULT_LANGUAGE || 'en'
 }
 
 export const setLanguage = async (lang: string) => {

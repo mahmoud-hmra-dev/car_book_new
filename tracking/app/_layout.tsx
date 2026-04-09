@@ -42,14 +42,18 @@ const RootLayout = () => {
     const prepare = async () => {
       try {
         const lang = await UserService.getLanguage()
-        i18n.locale = lang
-        const isRTL = lang === 'ar'
+        const finalLang = lang || 'en'
+        i18n.locale = finalLang
+        console.log('[App] Language:', finalLang)
+
+        const isRTL = finalLang === 'ar'
         if (I18nManager.isRTL !== isRTL) {
           I18nManager.allowRTL(isRTL)
           I18nManager.forceRTL(isRTL)
         }
       } catch (e) {
         console.warn(e)
+        i18n.locale = 'en'
       } finally {
         setAppIsReady(true)
         await SplashScreen.hideAsync()

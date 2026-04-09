@@ -4,6 +4,7 @@ import { Text, FAB } from 'react-native-paper'
 import { Stack, useRouter } from 'expo-router'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import * as TraccarService from '@/services/TraccarService'
+import { useAuth } from '@/context/AuthContext'
 import * as bookcarsTypes from ':bookcars-types'
 import { colors, spacing, typography } from '@/theme'
 import * as toastHelper from '@/utils/toastHelper'
@@ -11,10 +12,12 @@ import i18n from '@/lang/i18n'
 
 const GeofencesScreen = () => {
   const router = useRouter()
+  const { loggedIn } = useAuth()
   const [geofences, setGeofences] = useState<bookcarsTypes.TraccarGeofence[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
 
   const loadGeofences = useCallback(async () => {
+    if (!loggedIn) return
     setLoading(true)
     try {
       const data = await TraccarService.getAllGeofences()
@@ -24,7 +27,7 @@ const GeofencesScreen = () => {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [loggedIn])
 
   useEffect(() => { loadGeofences() }, [loadGeofences])
 

@@ -10,10 +10,13 @@ export const init = (axiosInstance: AxiosInstance) => {
       return retryCount * env.AXIOS_RETRIES_INTERVAL
     },
     retryCondition: (err) => {
-      if (err?.request?._response) {
-        console.log(err?.request?._response)
+      // Never retry auth errors (401, 403)
+      const status = err?.response?.status
+      if (status === 401 || status === 403) {
+        return false
       }
-      return true
+      // Only retry network errors or 5xx
+      return !status || status >= 500
     },
   })
 }

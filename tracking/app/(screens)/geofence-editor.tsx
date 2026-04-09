@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { View, StyleSheet, Alert } from 'react-native'
 import { Text, TextInput, Button, SegmentedButtons } from 'react-native-paper'
 import { Stack, useRouter } from 'expo-router'
-import MapView, { Marker, Circle, Polygon, PROVIDER_GOOGLE } from 'react-native-maps'
+import TrackingMap, { type MapMarker, type MapCircle } from '@/components/map/TrackingMap'
 import { colors, spacing, typography } from '@/theme'
 import * as TraccarService from '@/services/TraccarService'
 import * as mapUtils from '@/utils/map'
@@ -20,8 +20,8 @@ const GeofenceEditorScreen = () => {
   const [radius, setRadius] = useState(500)
   const [saving, setSaving] = useState(false)
 
-  const handleMapPress = (e: any) => {
-    const coord = e.nativeEvent.coordinate as mapUtils.LatLng
+  const handleMapPress = (lat: number, lng: number) => {
+    const coord: mapUtils.LatLng = { latitude: lat, longitude: lng }
     if (mode === 'circle') {
       setPoints([coord])
     } else if (mode === 'rectangle') {
@@ -55,31 +55,31 @@ const GeofenceEditorScreen = () => {
     finally { setSaving(false) }
   }
 
+  // Build markers for tapped points
+  const mapMarkers: MapMarker[] = points.map((p, i) => ({
+    id: `point-${i}`,
+    lat: p.latitude,
+    lng: p.longitude,
+    color: colors.primary,
+    label: `Point ${i + 1}`,
+    status: 'moving',
+  }))
+
+  // Build circles for circle mode
+  const mapCircles: MapCircle[] = mode === 'circle' && points.length >= 1
+    ? [{ id: 'zone', lat: points[0].latitude, lng: points[0].longitude, radius, color: colors.mapGeofenceStroke, fillColor: colors.mapGeofenceFill }]
+    : []
+
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ title: i18n.t('CREATE_GEOFENCE') }} />
-      <MapView style={styles.map} provider={PROVIDER_GOOGLE} onPress={handleMapPress}
-        initialRegion={{ latitude: 33.8938, longitude: 35.5018, latitudeDelta: 0.2, longitudeDelta: 0.2 }}
-      >
-        {points.map((p, i) => <Marker key={i} coordinate={p} pinColor={colors.primary} />)}
-        {mode === 'circle' && points.length >= 1 && (
-          <Circle center={points[0]} radius={radius} fillColor={colors.mapGeofenceFill} strokeColor={colors.mapGeofenceStroke} strokeWidth={2} />
-        )}
-        {mode === 'polygon' && points.length >= 3 && (
-          <Polygon coordinates={points} fillColor={colors.mapGeofenceFill} strokeColor={colors.mapGeofenceStroke} strokeWidth={2} />
-        )}
-        {mode === 'rectangle' && points.length >= 2 && (
-          <Polygon
-            coordinates={[
-              points[0],
-              { latitude: points[0].latitude, longitude: points[1].longitude },
-              points[1],
-              { latitude: points[1].latitude, longitude: points[0].longitude },
-            ]}
-            fillColor={colors.mapGeofenceFill} strokeColor={colors.mapGeofenceStroke} strokeWidth={2}
-          />
-        )}
-      </MapView>
+
+      <TrackingMap
+        markers={mapMarkers}
+        circles={mapCircles}
+        onMapPress={handleMapPress}
+        height="flex"
+      />
 
       <View style={styles.panel}>
         <SegmentedButtons
@@ -115,7 +115,6 @@ const GeofenceEditorScreen = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  map: { flex: 1 },
   panel: { backgroundColor: colors.surface, padding: spacing.xl, paddingBottom: spacing.xxxl, borderTopLeftRadius: 20, borderTopRightRadius: 20 },
   segmented: { marginBottom: spacing.md },
   input: { backgroundColor: colors.background, marginBottom: spacing.sm },
