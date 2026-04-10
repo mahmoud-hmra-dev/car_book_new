@@ -5,7 +5,9 @@
     "version": "1.0.0",
     "scheme": "controtrack",
     "slug": "controtrack",
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "splash": {
       "backgroundColor": "#0D1117"
     },
@@ -14,7 +16,10 @@
       "softwareKeyboardLayoutMode": "pan",
       "package": "com.controtrack.app",
       "backgroundColor": "#0D1117",
-      "permissions": ["android.permission.INTERNET", "android.permission.ACCESS_FINE_LOCATION"]
+      "permissions": [
+        "android.permission.INTERNET",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ]
     },
     "ios": {
       "buildNumber": "1.0.0",
@@ -40,7 +45,10 @@
       "typedRoutes": true
     },
     "extra": {
-      "router": {}
+      "router": {},
+      "eas": {
+        "projectId": "83cf89ce-7695-424a-a3ea-ac5a03212408"
+      }
     }
   }
 }
