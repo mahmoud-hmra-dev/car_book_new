@@ -439,6 +439,17 @@ export interface TraccarComputedAttribute {
   type: string
 }
 
+export interface TraccarAutoCommand {
+  _id?: string
+  geofenceId: number
+  carId: string
+  triggerEvent: 'geofenceEnter' | 'geofenceExit' | 'both'
+  commandType: string
+  commandAttributes?: Record<string, any>
+  textChannel?: boolean
+  enabled?: boolean
+}
+
 export interface CarTrackingSnapshot {
   linked: boolean
   tracking?: TraccarCarTracking

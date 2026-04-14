@@ -75,6 +75,18 @@ const ar = {
   CONFIRM_ENGINE_ON: 'هل أنت متأكد من تشغيل المحرك؟',
   CONFIRM_COMMAND_MSG: 'هل أنت متأكد من إرسال هذا الأمر؟',
   WARNING_REMOTE_CONTROL: 'يجب استخدام التحكم عن بعد فقط في الأوقات المناسبة.',
+  PINNED_COMMANDS: 'الأوامر المثبتة',
+  PIN_COMMAND: 'تثبيت',
+  UNPIN_COMMAND: 'إلغاء التثبيت',
+
+  // Share Location
+  SHARE_LOCATION: 'مشاركة الموقع',
+
+  // Security Mode
+  SECURITY_MODE: 'وضع الأمان',
+  SECURITY_MODE_CONFIRM: 'هل تريد تفعيل وضع الأمان؟ سيتم إنشاء منطقة جغرافية حول موقع المركبة الحالي للكشف عن أي حركة غير مصرح بها.',
+  SECURITY_MODE_ACTIVATED: 'تم تفعيل وضع الأمان',
+  ACTIVATE: 'تفعيل',
 
   // Route History
   ROUTE_HISTORY: 'سجل المسار',
@@ -244,6 +256,21 @@ const ar = {
   PULL_TO_REFRESH: 'اسحب للتحديث',
   CONNECTION_ERROR: 'خطأ في الاتصال. يرجى المحاولة مرة أخرى.',
   UNKNOWN_ERROR: 'حدث خطأ غير متوقع.',
+
+  // Auto-Commands
+  AUTO_COMMAND: 'أمر تلقائي',
+  AUTO_COMMAND_TITLE: 'أمر تلقائي عند خرق المنطقة',
+  TRIGGER_ON_ENTER: 'عند الدخول',
+  TRIGGER_ON_EXIT: 'عند الخروج',
+  TRIGGER_BOTH: 'الدخول والخروج',
+  COMMAND_TYPE: 'نوع الأمر',
+  AUTO_COMMAND_SAVED: 'تم حفظ الأمر التلقائي',
+
+  // Telegram
+  TELEGRAM_SECTION: 'إشعارات تيليجرام',
+  TELEGRAM_CHAT_ID_PLACEHOLDER: 'أدخل معرف دردشة تيليجرام',
+  TEST_TELEGRAM: 'اختبار تيليجرام',
+  TELEGRAM_TEST_SENT: 'تم إرسال رسالة الاختبار',
 }
 
 export default ar

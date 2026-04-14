@@ -92,6 +92,25 @@ export const sendCommand = async (carId: string, data: bookcarsTypes.TraccarComm
   return axiosInstance.post(`/api/commands/${encodeURIComponent(carId)}/send`, data, { headers }).then((res) => res.status)
 }
 
+// ==================== Live Location Sharing ====================
+
+export const createLocationShare = async (carId: string): Promise<{ token: string, shareUrl: string }> => {
+  const headers = await UserService.authHeader()
+  return axiosInstance.post(`/api/tracking/share/${encodeURIComponent(carId)}`, {}, { headers }).then((res) => res.data)
+}
+
+export const revokeLocationShare = async (carId: string): Promise<void> => {
+  const headers = await UserService.authHeader()
+  return axiosInstance.delete(`/api/tracking/share/${encodeURIComponent(carId)}/revoke`, { headers }).then(() => {})
+}
+
+// ==================== Security Mode ====================
+
+export const activateSecurityMode = async (carId: string): Promise<bookcarsTypes.TraccarGeofence> => {
+  const headers = await UserService.authHeader()
+  return axiosInstance.post(`/api/tracking/security-mode/${encodeURIComponent(carId)}`, {}, { headers }).then((res) => res.data)
+}
+
 // ==================== Events ====================
 
 export const getEventCenter = async (params: {
@@ -273,4 +292,39 @@ export const updateComputedAttribute = async (id: number, data: Partial<bookcars
 export const deleteComputedAttribute = async (id: number): Promise<void> => {
   const headers = await UserService.authHeader()
   return axiosInstance.delete(`/api/tracking/attributes/${id}`, { headers }).then(() => undefined)
+}
+
+// ==================== Auto-Commands ====================
+
+export const getAutoCommandByGeofence = async (geofenceId: number): Promise<any> => {
+  const headers = await UserService.authHeader()
+  return axiosInstance
+    .get(`/api/tracking/auto-commands/geofence/${geofenceId}`, { headers })
+    .then((res) => res.data)
+    .catch(() => null)
+}
+
+export const createAutoCommand = async (payload: {
+  geofenceId: number
+  carId: string
+  triggerEvent: 'geofenceEnter' | 'geofenceExit' | 'both'
+  commandType: string
+  commandAttributes?: Record<string, any>
+  textChannel?: boolean
+  enabled?: boolean
+}): Promise<any> => {
+  const headers = await UserService.authHeader()
+  return axiosInstance.post('/api/tracking/auto-commands', payload, { headers }).then((res) => res.data)
+}
+
+export const deleteAutoCommand = async (id: string): Promise<void> => {
+  const headers = await UserService.authHeader()
+  return axiosInstance.delete(`/api/tracking/auto-commands/${id}`, { headers }).then(() => {})
+}
+
+// ==================== Telegram ====================
+
+export const testTelegram = async (chatId: string): Promise<void> => {
+  const headers = await UserService.authHeader()
+  return axiosInstance.post('/api/tracking/telegram-test', { chatId }, { headers }).then(() => {})
 }

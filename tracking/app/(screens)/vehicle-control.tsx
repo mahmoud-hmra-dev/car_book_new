@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { View, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native'
 import { Text, ActivityIndicator } from 'react-native-paper'
 import { useLocalSearchParams, Stack } from 'expo-router'
@@ -8,6 +8,7 @@ import { useFleet } from '@/context/FleetContext'
 import * as bookcarsTypes from ':bookcars-types'
 import { colors, spacing, typography } from '@/theme'
 import * as toastHelper from '@/utils/toastHelper'
+import * as AsyncStorageHelper from '@/utils/AsyncStorage'
 import i18n from '@/lang/i18n'
 
 const COMMAND_ICONS: Record<string, { icon: string, color: string }> = {
@@ -21,6 +22,8 @@ const COMMAND_ICONS: Record<string, { icon: string, color: string }> = {
   requestPhoto: { icon: 'camera', color: colors.info },
 }
 
+const pinnedKey = (carId?: string) => `pinned-commands-${carId || 'unknown'}`
+
 const VehicleControlScreen = () => {
   const { carId } = useLocalSearchParams<{ carId: string }>()
   const { items } = useFleet()
@@ -28,6 +31,7 @@ const VehicleControlScreen = () => {
   const [commandTypes, setCommandTypes] = useState<bookcarsTypes.TraccarCommandType[]>([])
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState<string | null>(null)
+  const [pinnedCommands, setPinnedCommands] = useState<string[]>([])
 
   useEffect(() => {
     const load = async () => {
@@ -42,6 +46,24 @@ const VehicleControlScreen = () => {
       }
     }
     load()
+  }, [carId])
+
+  useEffect(() => {
+    const loadPinned = async () => {
+      if (!carId) return
+      const stored = await AsyncStorageHelper.getObject<string[]>(pinnedKey(carId))
+      if (stored && Array.isArray(stored)) setPinnedCommands(stored)
+    }
+    loadPinned()
+  }, [carId])
+
+  const togglePin = useCallback(async (type: string) => {
+    if (!carId) return
+    setPinnedCommands((prev) => {
+      const next = prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
+      AsyncStorageHelper.storeObject(pinnedKey(carId), next)
+      return next
+    })
   }, [carId])
 
   const handleSendCommand = (type: string) => {
@@ -89,36 +111,83 @@ const VehicleControlScreen = () => {
         {loading ? (
           <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: spacing.xxxl }} />
         ) : (
-          <View style={styles.commandGrid}>
-            {commandTypes.map((cmd) => {
-              const config = COMMAND_ICONS[cmd.type || ''] || { icon: 'console', color: colors.textSecondary }
-              const isSending = sending === cmd.type
-              return (
-                <TouchableOpacity
-                  key={cmd.type}
-                  style={[styles.commandBtn, isSending && styles.commandBtnDisabled]}
-                  onPress={() => handleSendCommand(cmd.type || '')}
-                  disabled={isSending}
-                  activeOpacity={0.7}
-                >
-                  {isSending ? (
-                    <ActivityIndicator size="small" color={config.color} />
-                  ) : (
-                    <MaterialCommunityIcons name={config.icon as any} size={32} color={config.color} />
-                  )}
-                  <Text style={styles.commandLabel}>
-                    {(cmd.type || '').replace(/([A-Z])/g, ' $1').trim()}
-                  </Text>
-                </TouchableOpacity>
-              )
-            })}
-            {commandTypes.length === 0 && (
-              <View style={styles.emptyContainer}>
-                <MaterialCommunityIcons name="console-line" size={48} color={colors.textMuted} />
-                <Text style={styles.emptyText}>{i18n.t('NO_DATA')}</Text>
+          <>
+            {/* Pinned Commands (Quick Access Toolbar) */}
+            {pinnedCommands.length > 0 && (
+              <View style={styles.pinnedSection}>
+                <Text style={styles.pinnedTitle}>{i18n.t('PINNED_COMMANDS')}</Text>
+                <View style={styles.pinnedRow}>
+                  {pinnedCommands.map((type) => {
+                    const config = COMMAND_ICONS[type] || { icon: 'console', color: colors.textSecondary }
+                    const isSending = sending === type
+                    return (
+                      <TouchableOpacity
+                        key={`pinned-${type}`}
+                        style={[styles.pinnedBtn, isSending && styles.commandBtnDisabled]}
+                        onPress={() => handleSendCommand(type)}
+                        disabled={isSending}
+                        activeOpacity={0.7}
+                      >
+                        <MaterialCommunityIcons name="star" size={12} color={colors.warning} style={styles.pinnedStar} />
+                        {isSending ? (
+                          <ActivityIndicator size="small" color={config.color} />
+                        ) : (
+                          <MaterialCommunityIcons name={config.icon as any} size={24} color={config.color} />
+                        )}
+                        <Text style={styles.pinnedLabel} numberOfLines={1}>
+                          {type.replace(/([A-Z])/g, ' $1').trim()}
+                        </Text>
+                      </TouchableOpacity>
+                    )
+                  })}
+                </View>
               </View>
             )}
-          </View>
+
+            <View style={styles.commandGrid}>
+              {commandTypes.map((cmd) => {
+                const type = cmd.type || ''
+                const config = COMMAND_ICONS[type] || { icon: 'console', color: colors.textSecondary }
+                const isSending = sending === type
+                const isPinned = pinnedCommands.includes(type)
+                return (
+                  <TouchableOpacity
+                    key={type}
+                    style={[styles.commandBtn, isSending && styles.commandBtnDisabled]}
+                    onPress={() => handleSendCommand(type)}
+                    disabled={isSending}
+                    activeOpacity={0.7}
+                  >
+                    <TouchableOpacity
+                      style={styles.pinIconBtn}
+                      onPress={() => togglePin(type)}
+                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    >
+                      <MaterialCommunityIcons
+                        name={isPinned ? 'pin' : 'pin-outline'}
+                        size={18}
+                        color={isPinned ? colors.warning : colors.textMuted}
+                      />
+                    </TouchableOpacity>
+                    {isSending ? (
+                      <ActivityIndicator size="small" color={config.color} />
+                    ) : (
+                      <MaterialCommunityIcons name={config.icon as any} size={32} color={config.color} />
+                    )}
+                    <Text style={styles.commandLabel}>
+                      {type.replace(/([A-Z])/g, ' $1').trim()}
+                    </Text>
+                  </TouchableOpacity>
+                )
+              })}
+              {commandTypes.length === 0 && (
+                <View style={styles.emptyContainer}>
+                  <MaterialCommunityIcons name="console-line" size={48} color={colors.textMuted} />
+                  <Text style={styles.emptyText}>{i18n.t('NO_DATA')}</Text>
+                </View>
+              )}
+            </View>
+          </>
         )}
       </ScrollView>
     </View>
@@ -158,6 +227,57 @@ const styles = StyleSheet.create({
   commandLabel: { fontSize: typography.sizes.small, color: colors.textSecondary, textAlign: 'center', textTransform: 'capitalize' },
   emptyContainer: { width: '100%', alignItems: 'center', paddingTop: spacing.xxxl },
   emptyText: { color: colors.textMuted, fontSize: typography.sizes.body, marginTop: spacing.md },
+  pinIconBtn: {
+    position: 'absolute',
+    top: spacing.sm,
+    right: spacing.sm,
+    padding: spacing.xxs,
+  },
+  pinnedSection: {
+    marginBottom: spacing.xl,
+    padding: spacing.lg,
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+  },
+  pinnedTitle: {
+    fontSize: typography.sizes.small,
+    fontWeight: typography.weights.semibold,
+    color: colors.textSecondary,
+    marginBottom: spacing.md,
+    textTransform: 'uppercase',
+  },
+  pinnedRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  pinnedBtn: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    backgroundColor: colors.background,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+    minWidth: 90,
+    gap: spacing.xxs,
+    position: 'relative',
+  },
+  pinnedStar: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+  },
+  pinnedLabel: {
+    fontSize: typography.sizes.caption,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    textTransform: 'capitalize',
+  },
 })
 
 export default VehicleControlScreen

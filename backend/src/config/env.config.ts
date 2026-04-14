@@ -547,6 +547,13 @@ export const TRACCAR_PASSWORD = __env__('BC_TRACCAR_PASSWORD', false, 'admin')
 export const TRACCAR_TIMEOUT = Number.parseInt(__env__('BC_TRACCAR_TIMEOUT', false, '10000'), 10)
 
 /**
+ * Telegram bot token used to send GPS-Trace notifications and test messages.
+ *
+ * @type {string}
+ */
+export const TELEGRAM_BOT_TOKEN = __env__('BC_TELEGRAM_BOT_TOKEN', false, '')
+
+/**
  * Apple Web client ID.
  *
  * @type {string}

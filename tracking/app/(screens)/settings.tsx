@@ -12,7 +12,7 @@ import i18n from '@/lang/i18n'
 
 const SettingsScreen = () => {
   const { signOut } = useAuth()
-  const { mapType, refreshInterval, language, updateSetting } = useSettings()
+  const { mapType, refreshInterval, language, unitSystem, updateSetting } = useSettings()
 
   const handleLanguageChange = async (langCode: string) => {
     if (langCode === language) return
@@ -82,6 +82,20 @@ const SettingsScreen = () => {
             <TouchableOpacity key={lang.code} style={styles.radioRow} onPress={() => handleLanguageChange(lang.code)}>
               <RadioButton value={lang.code} status={language === lang.code ? 'checked' : 'unchecked'} onPress={() => handleLanguageChange(lang.code)} color={colors.primary} />
               <Text style={styles.radioLabel}>{lang.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Unit System */}
+        <Text style={styles.sectionTitle}>{i18n.t('UNIT_SYSTEM')}</Text>
+        <View style={styles.section}>
+          {([
+            { value: 'metric', label: `${i18n.t('METRIC')} (km/h)` },
+            { value: 'imperial', label: `${i18n.t('IMPERIAL')} (mph)` },
+          ] as const).map((item) => (
+            <TouchableOpacity key={item.value} style={styles.radioRow} onPress={() => updateSetting('unitSystem', item.value)}>
+              <RadioButton value={item.value} status={unitSystem === item.value ? 'checked' : 'unchecked'} onPress={() => updateSetting('unitSystem', item.value)} color={colors.primary} />
+              <Text style={styles.radioLabel}>{item.label}</Text>
             </TouchableOpacity>
           ))}
         </View>

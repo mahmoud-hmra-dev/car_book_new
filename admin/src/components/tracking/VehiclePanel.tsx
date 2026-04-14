@@ -1,5 +1,10 @@
-import React from 'react'
+import React, { useState } from 'react'
+import BoltRoundedIcon from '@mui/icons-material/BoltRounded'
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
+import ShareRoundedIcon from '@mui/icons-material/ShareRounded'
+import ShieldRoundedIcon from '@mui/icons-material/ShieldRounded'
+import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded'
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import CenterFocusStrongRoundedIcon from '@mui/icons-material/CenterFocusStrongRounded'
 import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded'
 import PauseRoundedIcon from '@mui/icons-material/PauseRounded'
@@ -26,6 +31,7 @@ import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded'
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded'
 import DirectionsCarFilledRoundedIcon from '@mui/icons-material/DirectionsCarFilledRounded'
 import * as bookcarsTypes from ':bookcars-types'
+import * as TraccarService from '@/services/traccarService'
 import { strings } from '@/lang/tracking'
 import type {
   DraftGeofenceShape,
@@ -284,6 +290,184 @@ const VehiclePanel = ({
   const battery = typeof selectedVehicle.batteryLevel === 'number' ? Math.round(selectedVehicle.batteryLevel) : null
   const batteryPercent = battery !== null ? Math.min(100, Math.max(0, battery)) : 0
 
+  // Live location share state (local to VehiclePanel)
+  const [shareUrl, setShareUrl] = useState<string | null>(null)
+  const [shareLoading, setShareLoading] = useState(false)
+  const [shareDialogOpen, setShareDialogOpen] = useState(false)
+  const [shareCopied, setShareCopied] = useState(false)
+  const [shareError, setShareError] = useState<string | null>(null)
+
+  // Security mode state
+  const [securityLoading, setSecurityLoading] = useState(false)
+  const [securityConfirmOpen, setSecurityConfirmOpen] = useState(false)
+  const [securityToast, setSecurityToast] = useState<string | null>(null)
+
+  // Auto-command state (per-geofence inline form)
+  const [autoCommandGeofenceId, setAutoCommandGeofenceId] = useState<number | null>(null)
+  const [autoCommandForm, setAutoCommandForm] = useState<{
+    triggerEvent: 'geofenceEnter' | 'geofenceExit' | 'both'
+    commandType: string
+  }>({ triggerEvent: 'geofenceExit', commandType: '' })
+  const [autoCommandsByGeofence, setAutoCommandsByGeofence] = useState<Record<number, any | null>>({})
+  const [autoCommandLoadingId, setAutoCommandLoadingId] = useState<number | null>(null)
+  const [autoCommandSavingId, setAutoCommandSavingId] = useState<number | null>(null)
+  const [autoCommandToast, setAutoCommandToast] = useState<string | null>(null)
+
+  const showAutoCommandToast = (message: string) => {
+    setAutoCommandToast(message)
+    window.setTimeout(() => setAutoCommandToast(null), 3000)
+  }
+
+  const handleToggleAutoCommandForm = async (geoId: number) => {
+    if (autoCommandGeofenceId === geoId) {
+      setAutoCommandGeofenceId(null)
+      return
+    }
+    setAutoCommandGeofenceId(geoId)
+    setAutoCommandForm({ triggerEvent: 'geofenceExit', commandType: '' })
+    if (autoCommandsByGeofence[geoId] === undefined) {
+      setAutoCommandLoadingId(geoId)
+      try {
+        const existing = await TraccarService.getAutoCommandByGeofence(geoId)
+        setAutoCommandsByGeofence((prev) => ({ ...prev, [geoId]: existing }))
+        if (existing) {
+          setAutoCommandForm({
+            triggerEvent: existing.triggerEvent || 'geofenceExit',
+            commandType: existing.commandType || '',
+          })
+        }
+      } finally {
+        setAutoCommandLoadingId(null)
+      }
+    } else {
+      const existing = autoCommandsByGeofence[geoId]
+      if (existing) {
+        setAutoCommandForm({
+          triggerEvent: existing.triggerEvent || 'geofenceExit',
+          commandType: existing.commandType || '',
+        })
+      }
+    }
+  }
+
+  const handleSaveAutoCommand = async (geoId: number) => {
+    if (!autoCommandForm.commandType.trim() || !carIdForShare) {
+      return
+    }
+    setAutoCommandSavingId(geoId)
+    try {
+      const created = await TraccarService.createAutoCommand({
+        geofenceId: geoId,
+        carId: carIdForShare,
+        triggerEvent: autoCommandForm.triggerEvent,
+        commandType: autoCommandForm.commandType.trim(),
+      })
+      setAutoCommandsByGeofence((prev) => ({ ...prev, [geoId]: created }))
+      showAutoCommandToast(strings.AUTO_COMMAND_SAVED)
+      setAutoCommandGeofenceId(null)
+    } catch {
+      showAutoCommandToast(strings.AUTO_COMMAND_ERROR)
+    } finally {
+      setAutoCommandSavingId(null)
+    }
+  }
+
+  const handleRemoveAutoCommand = async (geoId: number) => {
+    const existing = autoCommandsByGeofence[geoId]
+    if (!existing?._id) {
+      return
+    }
+    setAutoCommandSavingId(geoId)
+    try {
+      await TraccarService.deleteAutoCommand(existing._id)
+      setAutoCommandsByGeofence((prev) => ({ ...prev, [geoId]: null }))
+      showAutoCommandToast(strings.AUTO_COMMAND_DELETED)
+    } catch {
+      showAutoCommandToast(strings.AUTO_COMMAND_ERROR)
+    } finally {
+      setAutoCommandSavingId(null)
+    }
+  }
+
+  const getAutoCommandTriggerLabel = (trigger?: string) => {
+    if (trigger === 'geofenceEnter') {
+      return strings.AUTO_COMMAND_ON_ENTER
+    }
+    if (trigger === 'both') {
+      return strings.AUTO_COMMAND_ON_BOTH
+    }
+    return strings.AUTO_COMMAND_ON_EXIT
+  }
+
+  const carIdForShare = selectedVehicle.car._id || ''
+
+  const handleCreateShare = async () => {
+    if (!carIdForShare) {
+      return
+    }
+    setShareLoading(true)
+    setShareError(null)
+    try {
+      const result = await TraccarService.createLocationShare(carIdForShare)
+      setShareUrl(result.shareUrl)
+      setShareDialogOpen(true)
+    } catch {
+      setShareError('Failed to create share link')
+      setShareDialogOpen(true)
+    } finally {
+      setShareLoading(false)
+    }
+  }
+
+  const handleRevokeShare = async () => {
+    if (!carIdForShare) {
+      return
+    }
+    setShareLoading(true)
+    try {
+      await TraccarService.revokeLocationShare(carIdForShare)
+      setShareUrl(null)
+      setShareDialogOpen(false)
+      setShareCopied(false)
+    } catch {
+      setShareError('Failed to revoke share link')
+    } finally {
+      setShareLoading(false)
+    }
+  }
+
+  const handleCopyShareUrl = async () => {
+    if (!shareUrl) {
+      return
+    }
+    try {
+      await navigator.clipboard.writeText(shareUrl)
+      setShareCopied(true)
+      window.setTimeout(() => setShareCopied(false), 2000)
+    } catch {
+      // ignore
+    }
+  }
+
+  const handleConfirmSecurityMode = async () => {
+    if (!carIdForShare) {
+      return
+    }
+    setSecurityLoading(true)
+    try {
+      await TraccarService.activateSecurityMode(carIdForShare)
+      setSecurityConfirmOpen(false)
+      setSecurityToast('Security mode activated - 100m safety zone created')
+      onRefreshZones()
+      window.setTimeout(() => setSecurityToast(null), 3500)
+    } catch {
+      setSecurityToast('Failed to activate security mode')
+      window.setTimeout(() => setSecurityToast(null), 3500)
+    } finally {
+      setSecurityLoading(false)
+    }
+  }
+
   const coordinates = selectedVehicle.position
     ? `${formatCoordinate(selectedVehicle.position.latitude)}, ${formatCoordinate(selectedVehicle.position.longitude)}`
     : '-'
@@ -394,6 +578,52 @@ const VehiclePanel = ({
         </div>
       )}
 
+      {/* Share Live Location + Security Mode */}
+      <div className="grid grid-cols-2 gap-2">
+        {shareUrl ? (
+          <button
+            type="button"
+            onClick={handleRevokeShare}
+            disabled={shareLoading}
+            className="py-2.5 rounded-lg bg-danger/10 text-danger border border-danger/30 text-xs font-semibold hover:bg-danger/20 transition-colors disabled:opacity-50 flex items-center justify-center gap-1"
+          >
+            <ShareRoundedIcon style={{ fontSize: 14 }} />
+            {shareLoading ? 'Revoking...' : 'Revoke Share'}
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={handleCreateShare}
+            disabled={shareLoading || !selectedVehicle.isLinked}
+            className="py-2.5 rounded-lg bg-primary/10 text-primary border border-primary/30 text-xs font-semibold hover:bg-primary/20 transition-colors disabled:opacity-50 flex items-center justify-center gap-1"
+          >
+            <ShareRoundedIcon style={{ fontSize: 14 }} />
+            {shareLoading ? 'Sharing...' : 'Share Live Location'}
+          </button>
+        )}
+
+        <button
+          type="button"
+          onClick={() => setSecurityConfirmOpen(true)}
+          disabled={securityLoading || !selectedVehicle.isLinked || !selectedVehicle.position}
+          className="py-2.5 rounded-lg bg-warning/10 text-warning border border-warning/30 text-xs font-semibold hover:bg-warning/20 transition-colors disabled:opacity-50 flex items-center justify-center gap-1"
+        >
+          <ShieldRoundedIcon style={{ fontSize: 14 }} />
+          {securityLoading ? 'Activating...' : 'Security Mode'}
+        </button>
+      </div>
+
+      {shareUrl && (
+        <button
+          type="button"
+          onClick={() => setShareDialogOpen(true)}
+          className="w-full text-[11px] text-primary hover:underline text-left truncate px-1"
+          title={shareUrl}
+        >
+          {`Active share link: ${shareUrl}`}
+        </button>
+      )}
+
       {/* Load Snapshot */}
       <button
         type="button"
@@ -408,6 +638,119 @@ const VehiclePanel = ({
         <div className="flex items-center gap-2 rounded-lg bg-warning/10 px-3 py-2 text-xs text-warning">
           <WarningAmberRoundedIcon style={{ fontSize: 16 }} />
           <span>{strings.TRACKING_NOT_LINKED}</span>
+        </div>
+      )}
+
+      {/* Share Dialog */}
+      {shareDialogOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" onClick={() => setShareDialogOpen(false)}>
+          <div
+            className="bg-surface rounded-xl shadow-xl w-full max-w-md p-5 space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-text flex items-center gap-2">
+                <ShareRoundedIcon style={{ fontSize: 18 }} />
+                Live Location Share
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShareDialogOpen(false)}
+                className="w-7 h-7 rounded text-text-muted hover:text-text flex items-center justify-center"
+              >
+                <CloseRoundedIcon fontSize="small" />
+              </button>
+            </div>
+
+            {shareError ? (
+              <div className="text-sm text-danger">{shareError}</div>
+            ) : (
+              <>
+                <p className="text-xs text-text-muted">
+                  Share this public link with anyone. They will see the vehicle&apos;s live position without logging in.
+                </p>
+                <div className="flex items-stretch gap-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={shareUrl || ''}
+                    className="flex-1 h-9 px-3 rounded-lg border border-border text-xs bg-background font-mono"
+                    onFocus={(e) => e.currentTarget.select()}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleCopyShareUrl}
+                    className="px-3 rounded-lg bg-primary text-white text-xs font-semibold flex items-center gap-1 hover:bg-primary-dark transition-colors"
+                  >
+                    <ContentCopyRoundedIcon style={{ fontSize: 14 }} />
+                    {shareCopied ? 'Copied' : 'Copy'}
+                  </button>
+                </div>
+                <div className="flex gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={handleRevokeShare}
+                    disabled={shareLoading}
+                    className="flex-1 py-2 rounded-lg border border-danger text-danger text-xs font-semibold hover:bg-danger/10 transition-colors disabled:opacity-50"
+                  >
+                    {shareLoading ? 'Revoking...' : 'Revoke Share'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShareDialogOpen(false)}
+                    className="flex-1 py-2 rounded-lg bg-background border border-border text-xs font-semibold text-text-secondary hover:bg-border/40 transition-colors"
+                  >
+                    Close
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Security Mode Confirmation */}
+      {securityConfirmOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" onClick={() => setSecurityConfirmOpen(false)}>
+          <div
+            className="bg-surface rounded-xl shadow-xl w-full max-w-sm p-5 space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-2">
+              <ShieldRoundedIcon className="text-warning" style={{ fontSize: 22 }} />
+              <h3 className="text-base font-bold text-text">Activate Security Mode</h3>
+            </div>
+            <p className="text-sm text-text-secondary">
+              Create 100m safety zone around current position?
+            </p>
+            <p className="text-xs text-text-muted">
+              The vehicle will trigger an alert if it leaves the zone.
+            </p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setSecurityConfirmOpen(false)}
+                className="flex-1 py-2 rounded-lg border border-border text-xs font-semibold text-text-secondary hover:bg-background transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmSecurityMode}
+                disabled={securityLoading}
+                className="flex-1 py-2 rounded-lg bg-warning text-white text-xs font-semibold hover:bg-warning/90 transition-colors disabled:opacity-50"
+              >
+                {securityLoading ? 'Activating...' : 'Confirm'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Security toast */}
+      {securityToast && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-text text-white px-4 py-2 rounded-lg shadow-lg text-xs font-medium">
+          {securityToast}
         </div>
       )}
     </div>
@@ -687,46 +1030,145 @@ const VehiclePanel = ({
             const shapeType = geofence.area?.split('(')[0]?.trim()?.toLowerCase()
               || (geofence.geojson ? 'geojson' : `zone ${index + 1}`)
 
+            const existingAutoCommand = geoId !== null ? autoCommandsByGeofence[geoId] : null
+            const autoCommandFormOpen = geoId !== null && autoCommandGeofenceId === geoId
+            const autoCommandLoading = geoId !== null && autoCommandLoadingId === geoId
+            const autoCommandSaving = geoId !== null && autoCommandSavingId === geoId
+
             return (
-              <div key={geofence.id || `${geofence.name}-${index}`} className="flex items-center justify-between bg-background rounded-lg p-3 border border-border">
-                <div className="min-w-0 flex-1">
-                  <div className="text-sm font-semibold text-text truncate">{geofence.name || `Zone ${index + 1}`}</div>
-                  <div className="text-xs text-text-muted mt-0.5">{shapeType}</div>
-                  {linked && (
-                    <span className="inline-block mt-1 px-1.5 py-0.5 rounded text-[9px] font-semibold bg-success/10 text-success">
-                      {strings.LINKED_TO_SELECTED_CAR}
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-1 shrink-0 ml-2">
-                  <button
-                    type="button"
-                    disabled={!selectedVehicle.isLinked || geoId === null}
-                    onClick={() => geoId !== null && onToggleGeofenceLink(geoId, linked)}
-                    title={linked ? strings.UNLINK_FROM_CAR : strings.LINK_TO_CAR}
-                    className={`w-7 h-7 rounded flex items-center justify-center transition-colors disabled:opacity-50 ${linked ? 'text-success hover:text-success/80' : 'text-text-muted hover:text-primary'}`}
-                  >
-                    {linked ? <LinkRoundedIcon style={{ fontSize: 16 }} /> : <LinkOffRoundedIcon style={{ fontSize: 16 }} />}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onOpenEditZone(geofence)}
-                    title={strings.EDIT_GEOFENCE}
-                    className="w-7 h-7 rounded text-text-muted hover:text-primary flex items-center justify-center transition-colors"
-                  >
-                    <EditRoundedIcon style={{ fontSize: 16 }} />
-                  </button>
-                  {geoId !== null && (
+              <div key={geofence.id || `${geofence.name}-${index}`} className="bg-background rounded-lg border border-border">
+                <div className="flex items-center justify-between p-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-semibold text-text truncate">{geofence.name || `Zone ${index + 1}`}</div>
+                    <div className="text-xs text-text-muted mt-0.5">{shapeType}</div>
+                    <div className="flex flex-wrap items-center gap-1 mt-1">
+                      {linked && (
+                        <span className="inline-block px-1.5 py-0.5 rounded text-[9px] font-semibold bg-success/10 text-success">
+                          {strings.LINKED_TO_SELECTED_CAR}
+                        </span>
+                      )}
+                      {existingAutoCommand && (
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-semibold bg-warning/10 text-warning">
+                          <BoltRoundedIcon style={{ fontSize: 10 }} />
+                          {`${existingAutoCommand.commandType} · ${getAutoCommandTriggerLabel(existingAutoCommand.triggerEvent).toLowerCase()}`}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0 ml-2">
+                    {geoId !== null && linked && (
+                      <button
+                        type="button"
+                        onClick={() => handleToggleAutoCommandForm(geoId)}
+                        title={strings.AUTO_COMMAND_TITLE}
+                        className={`w-7 h-7 rounded flex items-center justify-center transition-colors ${autoCommandFormOpen || existingAutoCommand ? 'text-warning hover:text-warning/80' : 'text-text-muted hover:text-warning'}`}
+                      >
+                        <BoltRoundedIcon style={{ fontSize: 16 }} />
+                      </button>
+                    )}
                     <button
                       type="button"
-                      onClick={() => onDeleteZone(geoId)}
-                      title={strings.DELETE_GEOFENCE_CONFIRM}
-                      className="w-7 h-7 rounded text-text-muted hover:text-danger flex items-center justify-center transition-colors"
+                      disabled={!selectedVehicle.isLinked || geoId === null}
+                      onClick={() => geoId !== null && onToggleGeofenceLink(geoId, linked)}
+                      title={linked ? strings.UNLINK_FROM_CAR : strings.LINK_TO_CAR}
+                      className={`w-7 h-7 rounded flex items-center justify-center transition-colors disabled:opacity-50 ${linked ? 'text-success hover:text-success/80' : 'text-text-muted hover:text-primary'}`}
                     >
-                      <DeleteRoundedIcon style={{ fontSize: 16 }} />
+                      {linked ? <LinkRoundedIcon style={{ fontSize: 16 }} /> : <LinkOffRoundedIcon style={{ fontSize: 16 }} />}
                     </button>
-                  )}
+                    <button
+                      type="button"
+                      onClick={() => onOpenEditZone(geofence)}
+                      title={strings.EDIT_GEOFENCE}
+                      className="w-7 h-7 rounded text-text-muted hover:text-primary flex items-center justify-center transition-colors"
+                    >
+                      <EditRoundedIcon style={{ fontSize: 16 }} />
+                    </button>
+                    {geoId !== null && (
+                      <button
+                        type="button"
+                        onClick={() => onDeleteZone(geoId)}
+                        title={strings.DELETE_GEOFENCE_CONFIRM}
+                        className="w-7 h-7 rounded text-text-muted hover:text-danger flex items-center justify-center transition-colors"
+                      >
+                        <DeleteRoundedIcon style={{ fontSize: 16 }} />
+                      </button>
+                    )}
+                  </div>
                 </div>
+
+                {autoCommandFormOpen && geoId !== null && (
+                  <div className="border-t border-border px-3 py-3 space-y-2 bg-primary/5">
+                    <div className="flex items-center gap-1.5 text-[10px] uppercase font-semibold text-text-muted tracking-wide">
+                      <BoltRoundedIcon style={{ fontSize: 12 }} className="text-warning" />
+                      {strings.AUTO_COMMAND_TITLE}
+                    </div>
+                    <p className="text-[11px] text-text-muted leading-snug">{strings.AUTO_COMMAND_HINT}</p>
+
+                    {autoCommandLoading ? (
+                      <div className="text-xs text-text-muted py-2">...</div>
+                    ) : (
+                      <>
+                        {existingAutoCommand ? (
+                          <div className="flex items-center justify-between gap-2 rounded-md bg-warning/10 border border-warning/30 px-2.5 py-2">
+                            <div className="flex items-center gap-1.5 text-xs text-warning font-semibold min-w-0">
+                              <BoltRoundedIcon style={{ fontSize: 14 }} />
+                              <span className="truncate">
+                                {`${existingAutoCommand.commandType} · ${getAutoCommandTriggerLabel(existingAutoCommand.triggerEvent).toLowerCase()}`}
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveAutoCommand(geoId)}
+                              disabled={autoCommandSaving}
+                              className="shrink-0 px-2 py-1 rounded text-[10px] font-semibold bg-danger/10 text-danger hover:bg-danger/20 transition-colors disabled:opacity-50 flex items-center gap-1"
+                            >
+                              <DeleteRoundedIcon style={{ fontSize: 12 }} />
+                              {strings.AUTO_COMMAND_REMOVE}
+                            </button>
+                          </div>
+                        ) : (
+                          <>
+                            <label className="block">
+                              <span className="block text-[10px] uppercase font-semibold text-text-muted tracking-wide mb-1">
+                                {strings.AUTO_COMMAND_TRIGGER}
+                              </span>
+                              <select
+                                value={autoCommandForm.triggerEvent}
+                                onChange={(e) => setAutoCommandForm((prev) => ({ ...prev, triggerEvent: e.target.value as 'geofenceEnter' | 'geofenceExit' | 'both' }))}
+                                className="w-full h-8 px-2 rounded-md border border-border text-xs bg-white focus:border-primary outline-none"
+                              >
+                                <option value="geofenceEnter">{strings.AUTO_COMMAND_ON_ENTER}</option>
+                                <option value="geofenceExit">{strings.AUTO_COMMAND_ON_EXIT}</option>
+                                <option value="both">{strings.AUTO_COMMAND_ON_BOTH}</option>
+                              </select>
+                            </label>
+                            <label className="block">
+                              <span className="block text-[10px] uppercase font-semibold text-text-muted tracking-wide mb-1">
+                                {strings.AUTO_COMMAND_TYPE}
+                              </span>
+                              <input
+                                type="text"
+                                value={autoCommandForm.commandType}
+                                onChange={(e) => setAutoCommandForm((prev) => ({ ...prev, commandType: e.target.value }))}
+                                placeholder={strings.AUTO_COMMAND_TYPE_PLACEHOLDER}
+                                className="w-full h-8 px-2 rounded-md border border-border text-xs bg-white focus:border-primary outline-none"
+                              />
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() => handleSaveAutoCommand(geoId)}
+                              disabled={autoCommandSaving || !autoCommandForm.commandType.trim()}
+                              className="w-full py-2 rounded-md bg-warning text-white text-xs font-semibold flex items-center justify-center gap-1 hover:bg-warning/90 transition-colors disabled:opacity-50"
+                            >
+                              <BoltRoundedIcon style={{ fontSize: 14 }} />
+                              {strings.AUTO_COMMAND_SAVE}
+                            </button>
+                          </>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             )
           })}
@@ -1019,6 +1461,13 @@ const VehiclePanel = ({
         {activeTab === 'events' && renderEventsTab()}
         {activeTab === 'device' && renderDeviceTab()}
       </div>
+
+      {/* Auto-command toast */}
+      {autoCommandToast && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-text text-white px-4 py-2 rounded-lg shadow-lg text-xs font-medium">
+          {autoCommandToast}
+        </div>
+      )}
     </div>
   )
 }

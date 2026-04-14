@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
-import { View, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native'
+import { View, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Share } from 'react-native'
 import { Text } from 'react-native-paper'
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import TrackingMap, { type MapMarker } from '@/components/map/TrackingMap'
 import { useFleet } from '@/context/FleetContext'
+import { useSettings } from '@/context/SettingsContext'
 import { colors, spacing, typography } from '@/theme'
 import { getStatusColor, formatSpeed, formatRelativeAge, formatCoordinate } from '@/utils/tracking'
 import * as TraccarService from '@/services/TraccarService'
@@ -16,9 +17,12 @@ const VehicleDetailScreen = () => {
   const { carId } = useLocalSearchParams<{ carId: string }>()
   const router = useRouter()
   const { items } = useFleet()
+  const { unitSystem } = useSettings()
   const vehicle = items.find((v) => v.carId === carId)
   const [geofences, setGeofences] = useState<bookcarsTypes.TraccarGeofence[]>([])
   const [geofencesLoading, setGeofencesLoading] = useState(false)
+  const [shareLoading, setShareLoading] = useState(false)
+  const [securityLoading, setSecurityLoading] = useState(false)
 
   const loadGeofences = useCallback(async () => {
     if (!carId) return
@@ -34,6 +38,39 @@ const VehicleDetailScreen = () => {
   }, [carId])
 
   useEffect(() => { loadGeofences() }, [loadGeofences])
+
+  const handleShare = async () => {
+    if (!carId) return
+    setShareLoading(true)
+    try {
+      const result = await TraccarService.createLocationShare(carId)
+      await Share.share({
+        message: `Track ${vehicle?.carName || 'vehicle'} live: ${result.shareUrl}`,
+        url: result.shareUrl,
+      })
+    } catch { toastHelper.error() } finally { setShareLoading(false) }
+  }
+
+  const handleSecurityMode = () => {
+    Alert.alert(
+      i18n.t('SECURITY_MODE'),
+      i18n.t('SECURITY_MODE_CONFIRM'),
+      [
+        { text: i18n.t('CANCEL'), style: 'cancel' },
+        {
+          text: i18n.t('ACTIVATE'),
+          onPress: async () => {
+            setSecurityLoading(true)
+            try {
+              await TraccarService.activateSecurityMode(carId!)
+              toastHelper.success(i18n.t('SECURITY_MODE_ACTIVATED'))
+              loadGeofences()
+            } catch { toastHelper.error() } finally { setSecurityLoading(false) }
+          },
+        },
+      ]
+    )
+  }
 
   const handleUnlinkGeofence = (geofence: bookcarsTypes.TraccarGeofence) => {
     Alert.alert(i18n.t('UNLINK_GEOFENCE'), i18n.t('UNLINK_GEOFENCE_CONFIRM'), [
@@ -103,7 +140,7 @@ const VehicleDetailScreen = () => {
               </Text>
             </View>
           </View>
-          <InfoRow icon="speedometer" label={i18n.t('SPEED')} value={formatSpeed(vehicle.speedKmh)} />
+          <InfoRow icon="speedometer" label={i18n.t('SPEED')} value={formatSpeed(vehicle.speedKmh, unitSystem)} />
           <InfoRow icon="map-marker" label={i18n.t('ADDRESS')} value={vehicle.address || '--'} />
           <InfoRow icon="crosshairs-gps" label={i18n.t('COORDINATES')} value={
             vehicle.position ? `${formatCoordinate(vehicle.position.latitude)}, ${formatCoordinate(vehicle.position.longitude)}` : '--'
@@ -143,6 +180,15 @@ const VehicleDetailScreen = () => {
               <View key={gf.id} style={styles.geofenceRow}>
                 <MaterialCommunityIcons name={getZoneIcon(gf.area) as any} size={20} color={colors.primary} />
                 <Text style={styles.geofenceName} numberOfLines={1}>{gf.name}</Text>
+                <TouchableOpacity
+                  onPress={() => router.push({
+                    pathname: '/(screens)/auto-command',
+                    params: { carId: carId!, geofenceId: String(gf.id), geofenceName: gf.name || '' },
+                  })}
+                  style={styles.autoCmdBtn}
+                >
+                  <MaterialCommunityIcons name="flash" size={18} color={colors.warning} />
+                </TouchableOpacity>
                 <TouchableOpacity onPress={() => handleUnlinkGeofence(gf)} style={styles.unlinkBtn}>
                   <MaterialCommunityIcons name="link-off" size={18} color={colors.danger} />
                 </TouchableOpacity>
@@ -164,6 +210,22 @@ const VehicleDetailScreen = () => {
           <TouchableOpacity style={styles.actionBtn} onPress={() => router.push({ pathname: '/(screens)/reports', params: { carId } })}>
             <MaterialCommunityIcons name="chart-bar" size={24} color={colors.info} />
             <Text style={styles.actionLabel}>{i18n.t('REPORTS')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionBtn} onPress={handleShare} disabled={shareLoading}>
+            {shareLoading ? (
+              <ActivityIndicator size="small" color={colors.success} />
+            ) : (
+              <MaterialCommunityIcons name="share-variant" size={24} color={colors.success} />
+            )}
+            <Text style={styles.actionLabel}>{i18n.t('SHARE_LOCATION')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionBtn} onPress={handleSecurityMode} disabled={securityLoading || !vehicle.position}>
+            {securityLoading ? (
+              <ActivityIndicator size="small" color={colors.danger} />
+            ) : (
+              <MaterialCommunityIcons name="shield-check" size={24} color={colors.danger} />
+            )}
+            <Text style={styles.actionLabel}>{i18n.t('SECURITY_MODE')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -198,9 +260,9 @@ const styles = StyleSheet.create({
   statusBadge: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', paddingHorizontal: spacing.md, paddingVertical: spacing.xs, borderRadius: 8, gap: spacing.xs },
   statusDot: { width: 8, height: 8, borderRadius: 4 },
   statusText: { fontSize: typography.sizes.body, fontWeight: typography.weights.semibold, textTransform: 'capitalize' },
-  actionsRow: { flexDirection: 'row', padding: spacing.xl, gap: spacing.md },
+  actionsRow: { flexDirection: 'row', flexWrap: 'wrap', padding: spacing.xl, gap: spacing.md },
   actionBtn: {
-    flex: 1,
+    width: '47%',
     backgroundColor: colors.surface,
     borderRadius: 12,
     padding: spacing.lg,
@@ -208,6 +270,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.borderLight,
     gap: spacing.sm,
+    minHeight: 80,
+    justifyContent: 'center',
   },
   actionLabel: { fontSize: typography.sizes.caption, color: colors.textSecondary, textAlign: 'center' },
   emptyText: { color: colors.textMuted, fontSize: typography.sizes.body },
@@ -217,6 +281,7 @@ const styles = StyleSheet.create({
   geofenceRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.borderLight },
   geofenceName: { flex: 1, fontSize: typography.sizes.body, color: colors.textPrimary },
   unlinkBtn: { padding: spacing.xs },
+  autoCmdBtn: { padding: spacing.xs },
   noGeofencesText: { color: colors.textMuted, fontSize: typography.sizes.body, paddingVertical: spacing.md },
 })
 

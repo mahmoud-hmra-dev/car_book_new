@@ -42,6 +42,7 @@ const Locations = lazy(() => import('@/pages/Locations'))
 const Suppliers = lazy(() => import('@/pages/Suppliers'))
 const Faq = lazy(() => import('@/pages/Faq'))
 const CookiePolicy = lazy(() => import('@/pages/CookiePolicy'))
+const PublicTracking = lazy(() => import('@/pages/PublicTracking'))
 
 const AppLayout = () => {
   const location = useLocation()
@@ -73,6 +74,14 @@ const AppLayout = () => {
 }
 
 const router = createBrowserRouter([
+  {
+    path: '/track/:token',
+    element: (
+      <Suspense fallback={<NProgressIndicator />}>
+        <PublicTracking />
+      </Suspense>
+    ),
+  },
   {
     path: '/',
     element: <AppLayout />,

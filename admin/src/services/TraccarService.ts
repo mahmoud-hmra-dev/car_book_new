@@ -130,3 +130,49 @@ export const getEventCenter = (params: TraccarEventCenterParams): Promise<bookca
       withCredentials: true,
     })
     .then((res) => res.data)
+
+export const createLocationShare = (carId: string): Promise<{ token: string, shareUrl: string }> =>
+  axiosInstance
+    .post(`/api/tracking/share/${encodeURIComponent(carId)}`, {}, { withCredentials: true })
+    .then((res) => res.data)
+
+export const revokeLocationShare = (carId: string): Promise<void> =>
+  axiosInstance
+    .delete(`/api/tracking/share/${encodeURIComponent(carId)}/revoke`, { withCredentials: true })
+    .then(() => undefined)
+
+export const activateSecurityMode = (carId: string): Promise<any> =>
+  axiosInstance
+    .post(`/api/tracking/security-mode/${encodeURIComponent(carId)}`, {}, { withCredentials: true })
+    .then((res) => res.data)
+
+export interface AutoCommandPayload {
+  geofenceId: number
+  carId: string
+  triggerEvent: 'geofenceEnter' | 'geofenceExit' | 'both'
+  commandType: string
+  commandAttributes?: Record<string, any>
+  textChannel?: boolean
+  enabled?: boolean
+}
+
+export const getAutoCommandByGeofence = (geofenceId: number): Promise<any> =>
+  axiosInstance
+    .get(`/api/tracking/auto-commands/geofence/${geofenceId}`, { withCredentials: true })
+    .then((res) => res.data)
+    .catch(() => null)
+
+export const createAutoCommand = (payload: AutoCommandPayload): Promise<any> =>
+  axiosInstance
+    .post('/api/tracking/auto-commands', payload, { withCredentials: true })
+    .then((res) => res.data)
+
+export const deleteAutoCommand = (id: string): Promise<void> =>
+  axiosInstance
+    .delete(`/api/tracking/auto-commands/${id}`, { withCredentials: true })
+    .then(() => undefined)
+
+export const sendTelegramTest = (chatId: string, carName: string): Promise<void> =>
+  axiosInstance
+    .post('/api/tracking/telegram-test', { chatId, carName }, { withCredentials: true })
+    .then(() => undefined)

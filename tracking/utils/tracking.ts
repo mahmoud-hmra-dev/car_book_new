@@ -80,13 +80,20 @@ export const EVENT_TYPE_COLORS: Record<string, string> = {
 export const getStatusColor = (status: string): string =>
   STATUS_COLORS[status] || colors.offline
 
-export const formatSpeed = (speedKmh?: number): string => {
+export const formatSpeed = (speedKmh?: number, unitSystem: 'metric' | 'imperial' = 'metric'): string => {
   if (speedKmh == null || speedKmh < 0) return '--'
+  if (unitSystem === 'imperial') {
+    return `${Math.round(speedKmh * 0.621371)} mph`
+  }
   return `${Math.round(speedKmh)} km/h`
 }
 
-export const formatDistanceKm = (meters?: number): string => {
+export const formatDistanceKm = (meters?: number, unitSystem: 'metric' | 'imperial' = 'metric'): string => {
   if (meters == null) return '--'
+  if (unitSystem === 'imperial') {
+    const miles = meters / 1609.344
+    return miles >= 10 ? `${Math.round(miles)} mi` : `${miles.toFixed(1)} mi`
+  }
   const km = meters / 1000
   return km >= 10 ? `${Math.round(km)} km` : `${km.toFixed(1)} km`
 }

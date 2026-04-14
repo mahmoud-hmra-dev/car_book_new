@@ -1,10 +1,14 @@
+import crypto from 'node:crypto'
 import { Request, Response } from 'express'
 import * as bookcarsTypes from ':bookcars-types'
 import i18n from '../lang/i18n'
 import * as logger from '../utils/logger'
 import * as env from '../config/env.config'
 import Car from '../models/Car'
+import LocationShare from '../models/LocationShare'
+import GeofenceAutoCommand from '../models/GeofenceAutoCommand'
 import * as traccarService from '../services/traccarService'
+import * as telegramService from '../services/telegramService'
 
 const parseDate = (value: string | undefined, fallback: Date) => {
   if (!value) {
@@ -1043,4 +1047,453 @@ export const deleteComputedAttribute = async (req: Request, res: Response) => {
 
 export const getIntegrationStatus = async (_req: Request, res: Response) => {
   res.json({ enabled: env.TRACCAR_ENABLED, baseUrl: env.TRACCAR_BASE_URL })
+}
+
+// --- Live Location Sharing ---
+
+const LOCATION_SHARE_TTL_MS = 24 * 60 * 60 * 1000
+
+const getLatestPosition = async (deviceId: number): Promise<bookcarsTypes.TraccarPosition | null> => {
+  const positions = await traccarService.getPositions(deviceId)
+  if (!positions.length) {
+    return null
+  }
+
+  return positions.reduce<bookcarsTypes.TraccarPosition | null>((latest, position) => {
+    if (!latest) {
+      return position
+    }
+    return getPositionDate(position) >= getPositionDate(latest) ? position : latest
+  }, null)
+}
+
+const computeMovementStatus = (
+  position: bookcarsTypes.TraccarPosition | null,
+  speedKmh: number,
+): bookcarsTypes.TraccarFleetStatus => {
+  if (!position) {
+    return 'noGps'
+  }
+
+  const attributes = getPositionAttributes(position)
+  const ignition = getBooleanAttribute(attributes, ['ignition', 'ignitionOn', 'io239'])
+  const motion = getBooleanAttribute(attributes, ['motion', 'moving'])
+
+  if (speedKmh >= MOVING_SPEED_KMH || motion === true) {
+    return 'moving'
+  }
+
+  if (speedKmh > STOPPED_SPEED_KMH || ignition === true) {
+    return 'idle'
+  }
+
+  return 'stopped'
+}
+
+export const createLocationShare = async (req: Request, res: Response) => {
+  try {
+    const { carId } = req.params
+
+    const car = await Car.findById(carId)
+    if (!car) {
+      res.status(404).send('Car not found')
+      return
+    }
+
+    const token = crypto.randomBytes(32).toString('hex')
+    const expireAt = new Date(Date.now() + LOCATION_SHARE_TTL_MS)
+
+    // Remove any existing share for this car so there is only one active token
+    await LocationShare.deleteMany({ carId })
+    await LocationShare.create({
+      token,
+      carId,
+      createdAt: new Date(),
+      expireAt,
+    })
+
+    const shareUrl = `${env.FRONTEND_HOST.replace(/\/$/, '')}/track/${token}`
+
+    res.json({ token, shareUrl, expireAt })
+  } catch (err) {
+    logger.error('[traccar.createLocationShare] Error', err)
+    res.status(400).json({ error: i18n.t('ERROR') })
+  }
+}
+
+export const revokeLocationShare = async (req: Request, res: Response) => {
+  try {
+    const { carId } = req.params
+    await LocationShare.deleteMany({ carId })
+    res.status(204).send()
+  } catch (err) {
+    logger.error('[traccar.revokeLocationShare] Error', err)
+    res.status(400).json({ error: i18n.t('ERROR') })
+  }
+}
+
+export const getPublicPosition = async (req: Request, res: Response) => {
+  try {
+    const { token } = req.params
+
+    const share = await LocationShare.findOne({ token })
+    if (!share) {
+      res.status(404).json({ error: 'Not found' })
+      return
+    }
+
+    if (share.expireAt && share.expireAt.getTime() <= Date.now()) {
+      res.status(410).json({ error: 'Link expired' })
+      return
+    }
+
+    const car = await Car.findById(share.carId)
+    if (!car || !car.tracking?.deviceId) {
+      res.status(404).json({ error: 'Car not found' })
+      return
+    }
+
+    const position = await getLatestPosition(car.tracking.deviceId as number)
+
+    const speedKmh = typeof position?.speed === 'number' && Number.isFinite(position.speed)
+      ? Math.round(position.speed * 1.852 * 100) / 100
+      : 0
+
+    const movementStatus = computeMovementStatus(position, speedKmh)
+    const lastUpdate = getPositionTimestamp(position)
+
+    res.json({
+      carName: car.name,
+      licensePlate: car.licensePlate,
+      position,
+      lastUpdate,
+      speedKmh,
+      movementStatus,
+    })
+  } catch (err) {
+    logger.error('[traccar.getPublicPosition] Error', err)
+    res.status(400).json({ error: i18n.t('ERROR') })
+  }
+}
+
+// --- Security Mode (quick 100m geofence around current position) ---
+
+export const activateSecurityMode = async (req: Request, res: Response) => {
+  try {
+    const car = await getCarWithTracking(req.params.carId)
+    const deviceId = car.tracking?.deviceId as number
+
+    const position = await getLatestPosition(deviceId)
+    if (!position || typeof position.latitude !== 'number' || typeof position.longitude !== 'number') {
+      res.status(400).json({ error: 'No current position available for this car' })
+      return
+    }
+
+    const geofence = await traccarService.createGeofence({
+      name: `Security Zone - ${car.name || car._id}`,
+      description: 'Auto-generated 100m security zone',
+      area: `CIRCLE (${position.latitude} ${position.longitude}, 100)`,
+      attributes: {
+        securityMode: true,
+        carId: String(car._id),
+      },
+    })
+
+    if (typeof geofence.id === 'number') {
+      await traccarService.linkDeviceGeofence(deviceId, geofence.id)
+    }
+
+    car.tracking = {
+      ...car.tracking,
+      lastSyncedAt: new Date(),
+      lastEventType: 'securityModeActivated',
+    }
+    await car.save()
+
+    res.json(geofence)
+  } catch (err) {
+    logger.error('[traccar.activateSecurityMode] Error', err)
+    res.status(400).json({ error: i18n.t('ERROR') })
+  }
+}
+
+// --- Towing Detection ---
+
+export const getTowingAlerts = async (req: Request, res: Response) => {
+  try {
+    const now = new Date()
+    const from = parseDate(req.query.from as string | undefined, new Date(now.getTime() - 24 * 60 * 60 * 1000))
+    const to = parseDate(req.query.to as string | undefined, now)
+
+    const cars = await getTrackedCars()
+    if (!cars.length) {
+      res.json([])
+      return
+    }
+
+    const carByDeviceId = new Map<number, typeof cars[number]>()
+    for (const car of cars) {
+      const deviceId = car.tracking?.deviceId
+      if (typeof deviceId === 'number') {
+        carByDeviceId.set(deviceId, car)
+      }
+    }
+
+    const alerts: Array<{
+      carId: string
+      carName?: string
+      position: bookcarsTypes.TraccarPosition | null
+      detectedAt?: string | Date
+      reason: 'alarm' | 'movementWithoutIgnition'
+    }> = []
+
+    // 1) Traccar alarm events with alarm=tow
+    const deviceIds = [...carByDeviceId.keys()]
+    const fleetEvents = await traccarService
+      .getFleetEvents(deviceIds, from.toISOString(), to.toISOString(), ['alarm'])
+      .catch(() => [])
+
+    for (const event of fleetEvents) {
+      const alarm = (event.attributes || {}).alarm
+      if (typeof alarm !== 'string' || alarm.trim().toLowerCase() !== 'tow') {
+        continue
+      }
+
+      const deviceId = event.deviceId
+      const car = typeof deviceId === 'number' ? carByDeviceId.get(deviceId) : undefined
+      if (!car) {
+        continue
+      }
+
+      const position = await getLatestPosition(deviceId as number).catch(() => null)
+      alerts.push({
+        carId: String(car._id),
+        carName: car.name,
+        position,
+        detectedAt: event.eventTime,
+        reason: 'alarm',
+      })
+    }
+
+    // 2) Heuristic: ignition=false but speed > 5 km/h
+    for (const car of cars) {
+      const deviceId = car.tracking?.deviceId
+      if (typeof deviceId !== 'number') {
+        continue
+      }
+
+      const position = await getLatestPosition(deviceId).catch(() => null)
+      if (!position) {
+        continue
+      }
+
+      const speedKmh = typeof position.speed === 'number' && Number.isFinite(position.speed)
+        ? Math.round(position.speed * 1.852 * 100) / 100
+        : 0
+
+      const ignition = getBooleanAttribute(getPositionAttributes(position), ['ignition', 'ignitionOn', 'io239'])
+
+      if (ignition === false && speedKmh > 5) {
+        alerts.push({
+          carId: String(car._id),
+          carName: car.name,
+          position,
+          detectedAt: getPositionTimestamp(position),
+          reason: 'movementWithoutIgnition',
+        })
+      }
+    }
+
+    res.json(alerts)
+  } catch (err) {
+    logger.error('[traccar.getTowingAlerts] Error', err)
+    res.status(400).json({ error: i18n.t('ERROR') })
+  }
+}
+
+// --- Telegram test ---
+
+export const sendTelegramTest = async (req: Request, res: Response) => {
+  try {
+    const { chatId, carName } = req.body as { chatId?: string, carName?: string }
+
+    if (!chatId || typeof chatId !== 'string') {
+      res.status(400).json({ error: 'chatId is required' })
+      return
+    }
+
+    const message = `<b>BookCars GPS-Trace</b>\nTest notification for <b>${carName || 'your fleet'}</b>.`
+    await telegramService.sendTelegramMessage(chatId, message)
+
+    res.status(204).send()
+  } catch (err) {
+    logger.error('[traccar.sendTelegramTest] Error', err)
+    res.status(400).json({ error: i18n.t('ERROR') })
+  }
+}
+
+// --- Geofence auto-commands ---
+
+export const getAutoCommands = async (_req: Request, res: Response) => {
+  try {
+    const autoCommands = await GeofenceAutoCommand.find({}).lean()
+    res.json(autoCommands)
+  } catch (err) {
+    logger.error('[traccar.getAutoCommands] Error', err)
+    res.status(400).json({ error: i18n.t('ERROR') })
+  }
+}
+
+export const createAutoCommand = async (req: Request, res: Response) => {
+  try {
+    const {
+      geofenceId,
+      carId,
+      triggerEvent,
+      commandType,
+      commandAttributes,
+      textChannel,
+      enabled,
+    } = req.body as {
+      geofenceId?: number
+      carId?: string
+      triggerEvent?: 'geofenceEnter' | 'geofenceExit' | 'both'
+      commandType?: string
+      commandAttributes?: Record<string, any>
+      textChannel?: boolean
+      enabled?: boolean
+    }
+
+    if (typeof geofenceId !== 'number' || !Number.isFinite(geofenceId) || geofenceId <= 0) {
+      res.status(400).json({ error: 'geofenceId is required' })
+      return
+    }
+
+    if (!carId || typeof carId !== 'string') {
+      res.status(400).json({ error: 'carId is required' })
+      return
+    }
+
+    if (!commandType || typeof commandType !== 'string') {
+      res.status(400).json({ error: 'commandType is required' })
+      return
+    }
+
+    if (triggerEvent && !['geofenceEnter', 'geofenceExit', 'both'].includes(triggerEvent)) {
+      res.status(400).json({ error: 'Invalid triggerEvent' })
+      return
+    }
+
+    const autoCommand = await GeofenceAutoCommand.create({
+      geofenceId,
+      carId,
+      triggerEvent: triggerEvent || 'both',
+      commandType,
+      commandAttributes: commandAttributes || {},
+      textChannel: textChannel ?? false,
+      enabled: enabled ?? true,
+    })
+
+    res.json(autoCommand)
+  } catch (err) {
+    logger.error('[traccar.createAutoCommand] Error', err)
+    res.status(400).json({ error: i18n.t('ERROR') })
+  }
+}
+
+export const updateAutoCommand = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params
+    const {
+      geofenceId,
+      carId,
+      triggerEvent,
+      commandType,
+      commandAttributes,
+      textChannel,
+      enabled,
+    } = req.body as {
+      geofenceId?: number
+      carId?: string
+      triggerEvent?: 'geofenceEnter' | 'geofenceExit' | 'both'
+      commandType?: string
+      commandAttributes?: Record<string, any>
+      textChannel?: boolean
+      enabled?: boolean
+    }
+
+    if (triggerEvent && !['geofenceEnter', 'geofenceExit', 'both'].includes(triggerEvent)) {
+      res.status(400).json({ error: 'Invalid triggerEvent' })
+      return
+    }
+
+    const update: Record<string, any> = {}
+    if (typeof geofenceId === 'number') {
+      update.geofenceId = geofenceId
+    }
+    if (typeof carId === 'string') {
+      update.carId = carId
+    }
+    if (triggerEvent) {
+      update.triggerEvent = triggerEvent
+    }
+    if (typeof commandType === 'string') {
+      update.commandType = commandType
+    }
+    if (commandAttributes !== undefined) {
+      update.commandAttributes = commandAttributes
+    }
+    if (typeof textChannel === 'boolean') {
+      update.textChannel = textChannel
+    }
+    if (typeof enabled === 'boolean') {
+      update.enabled = enabled
+    }
+
+    const autoCommand = await GeofenceAutoCommand.findByIdAndUpdate(id, update, { new: true })
+
+    if (!autoCommand) {
+      res.status(404).json({ error: i18n.t('ERROR') })
+      return
+    }
+
+    res.json(autoCommand)
+  } catch (err) {
+    logger.error('[traccar.updateAutoCommand] Error', err)
+    res.status(400).json({ error: i18n.t('ERROR') })
+  }
+}
+
+export const deleteAutoCommand = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params
+    const autoCommand = await GeofenceAutoCommand.findByIdAndDelete(id)
+
+    if (!autoCommand) {
+      res.status(404).json({ error: i18n.t('ERROR') })
+      return
+    }
+
+    res.status(204).send()
+  } catch (err) {
+    logger.error('[traccar.deleteAutoCommand] Error', err)
+    res.status(400).json({ error: i18n.t('ERROR') })
+  }
+}
+
+export const getAutoCommandByGeofence = async (req: Request, res: Response) => {
+  try {
+    const geofenceId = parseId(req.params.geofenceId, 'geofenceId')
+    const autoCommand = await GeofenceAutoCommand.findOne({ geofenceId }).lean()
+
+    if (!autoCommand) {
+      res.status(404).json({ error: i18n.t('ERROR') })
+      return
+    }
+
+    res.json(autoCommand)
+  } catch (err) {
+    logger.error('[traccar.getAutoCommandByGeofence] Error', err)
+    res.status(400).json({ error: i18n.t('ERROR') })
+  }
 }

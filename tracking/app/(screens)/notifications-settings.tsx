@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
-import { View, StyleSheet, FlatList, RefreshControl, TouchableOpacity, Alert } from 'react-native'
-import { Text } from 'react-native-paper'
+import { View, StyleSheet, FlatList, RefreshControl, TouchableOpacity, Alert, ActivityIndicator } from 'react-native'
+import { Text, TextInput } from 'react-native-paper'
 import { Stack } from 'expo-router'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import * as TraccarService from '@/services/TraccarService'
@@ -13,6 +13,8 @@ import i18n from '@/lang/i18n'
 const NotificationsSettingsScreen = () => {
   const [notifications, setNotifications] = useState<bookcarsTypes.TraccarNotification[]>([])
   const [loading, setLoading] = useState(true)
+  const [telegramChatId, setTelegramChatId] = useState('')
+  const [telegramTesting, setTelegramTesting] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -22,6 +24,52 @@ const NotificationsSettingsScreen = () => {
   }, [])
 
   useEffect(() => { load() }, [load])
+
+  const handleTestTelegram = async () => {
+    if (!telegramChatId.trim()) return
+    setTelegramTesting(true)
+    try {
+      await TraccarService.testTelegram(telegramChatId.trim())
+      toastHelper.success(i18n.t('TELEGRAM_TEST_SENT'))
+    } catch {
+      toastHelper.error()
+    } finally {
+      setTelegramTesting(false)
+    }
+  }
+
+  const TelegramSection = (
+    <View style={styles.telegramSection}>
+      <View style={styles.telegramHeader}>
+        <MaterialCommunityIcons name="send-circle" size={22} color={colors.info} />
+        <Text style={styles.telegramTitle}>{i18n.t('TELEGRAM_SECTION')}</Text>
+      </View>
+      <TextInput
+        mode="outlined"
+        value={telegramChatId}
+        onChangeText={setTelegramChatId}
+        placeholder={i18n.t('TELEGRAM_CHAT_ID_PLACEHOLDER')}
+        autoCapitalize="none"
+        autoCorrect={false}
+        keyboardType="numbers-and-punctuation"
+        style={styles.telegramInput}
+      />
+      <TouchableOpacity
+        style={[styles.telegramTestBtn, (!telegramChatId.trim() || telegramTesting) && styles.telegramBtnDisabled]}
+        onPress={handleTestTelegram}
+        disabled={!telegramChatId.trim() || telegramTesting}
+      >
+        {telegramTesting ? (
+          <ActivityIndicator size="small" color={colors.white} />
+        ) : (
+          <>
+            <MaterialCommunityIcons name="send" size={18} color={colors.white} />
+            <Text style={styles.telegramTestBtnText}>{i18n.t('TEST_TELEGRAM')}</Text>
+          </>
+        )}
+      </TouchableOpacity>
+    </View>
+  )
 
   const handleDelete = (n: bookcarsTypes.TraccarNotification) => {
     Alert.alert(i18n.t('DELETE'), `Delete ${n.type} notification rule?`, [
@@ -62,6 +110,7 @@ const NotificationsSettingsScreen = () => {
             <Text style={styles.emptyText}>{i18n.t('NO_ALERT_RULES')}</Text>
           </View>
         ) : null}
+        ListFooterComponent={TelegramSection}
       />
     </View>
   )
@@ -78,6 +127,29 @@ const styles = StyleSheet.create({
   alwaysBadge: { fontSize: typography.sizes.caption, color: colors.primary, backgroundColor: colors.primaryLight, paddingHorizontal: spacing.sm, paddingVertical: spacing.xxs, borderRadius: 4 },
   empty: { alignItems: 'center', paddingTop: spacing.massive },
   emptyText: { color: colors.textMuted, fontSize: typography.sizes.body, marginTop: spacing.md },
+  telegramSection: {
+    marginTop: spacing.xl,
+    padding: spacing.lg,
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+    gap: spacing.md,
+  },
+  telegramHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  telegramTitle: { fontSize: typography.sizes.subtitle, fontWeight: typography.weights.semibold, color: colors.textPrimary },
+  telegramInput: { backgroundColor: colors.surface },
+  telegramTestBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.info,
+    paddingVertical: spacing.md,
+    borderRadius: 10,
+  },
+  telegramTestBtnText: { color: colors.white, fontSize: typography.sizes.body, fontWeight: typography.weights.semibold },
+  telegramBtnDisabled: { opacity: 0.5 },
 })
 
 export default NotificationsSettingsScreen

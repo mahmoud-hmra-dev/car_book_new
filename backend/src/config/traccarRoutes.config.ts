@@ -49,6 +49,25 @@ const routes = {
   // Computed Attributes
   computedAttributeCollection: '/api/tracking/attributes',
   computedAttributeEntity: '/api/tracking/attributes/:id',
+
+  // Live location sharing
+  locationShare: '/api/tracking/share/:carId',
+  locationShareRevoke: '/api/tracking/share/:carId/revoke',
+  locationPublic: '/api/tracking/public/:token',
+
+  // Security mode (quick 100m geofence)
+  securityMode: '/api/tracking/security-mode/:carId',
+
+  // Towing detection
+  towingAlerts: '/api/tracking/towing-alerts',
+
+  // Telegram notifications
+  telegramTest: '/api/tracking/telegram-test',
+
+  // Geofence auto-commands
+  autoCommandCollection: '/api/tracking/auto-commands',
+  autoCommandEntity: '/api/tracking/auto-commands/:id',
+  autoCommandByGeofence: '/api/tracking/auto-commands/geofence/:geofenceId',
 }
 
 export default routes

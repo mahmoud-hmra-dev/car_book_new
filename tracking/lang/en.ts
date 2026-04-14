@@ -75,6 +75,18 @@ const en = {
   CONFIRM_ENGINE_ON: 'Are you sure you want to turn on the engine?',
   CONFIRM_COMMAND_MSG: 'Are you sure you want to send this command?',
   WARNING_REMOTE_CONTROL: 'Remote vehicle control should only be used when safe to do so.',
+  PINNED_COMMANDS: 'Pinned Commands',
+  PIN_COMMAND: 'Pin',
+  UNPIN_COMMAND: 'Unpin',
+
+  // Share Location
+  SHARE_LOCATION: 'Share Location',
+
+  // Security Mode
+  SECURITY_MODE: 'Security Mode',
+  SECURITY_MODE_CONFIRM: 'Activate security mode? A geofence will be created around the current vehicle position to detect unauthorized movement.',
+  SECURITY_MODE_ACTIVATED: 'Security mode activated',
+  ACTIVATE: 'Activate',
 
   // Route History
   ROUTE_HISTORY: 'Route History',
@@ -244,6 +256,21 @@ const en = {
   PULL_TO_REFRESH: 'Pull to refresh',
   CONNECTION_ERROR: 'Connection error. Please try again.',
   UNKNOWN_ERROR: 'An unexpected error occurred.',
+
+  // Auto-Commands
+  AUTO_COMMAND: 'Auto-command',
+  AUTO_COMMAND_TITLE: 'Auto-Command on Zone Breach',
+  TRIGGER_ON_ENTER: 'On Enter',
+  TRIGGER_ON_EXIT: 'On Exit',
+  TRIGGER_BOTH: 'Enter & Exit',
+  COMMAND_TYPE: 'Command type',
+  AUTO_COMMAND_SAVED: 'Auto-command saved',
+
+  // Telegram
+  TELEGRAM_SECTION: 'Telegram Notifications',
+  TELEGRAM_CHAT_ID_PLACEHOLDER: 'Enter Telegram chat ID',
+  TEST_TELEGRAM: 'Test Telegram',
+  TELEGRAM_TEST_SENT: 'Test message sent',
 }
 
 export default en

@@ -80,4 +80,30 @@ routes.route(routeNames.computedAttributeEntity)
   .put(authJwt.verifyToken, authJwt.authAdmin, traccarController.updateComputedAttribute)
   .delete(authJwt.verifyToken, authJwt.authAdmin, traccarController.deleteComputedAttribute)
 
+// Live location sharing
+routes.route(routeNames.locationShare)
+  .post(authJwt.verifyToken, authJwt.authAdmin, traccarController.createLocationShare)
+  .delete(authJwt.verifyToken, authJwt.authAdmin, traccarController.revokeLocationShare)
+routes.route(routeNames.locationShareRevoke)
+  .delete(authJwt.verifyToken, authJwt.authAdmin, traccarController.revokeLocationShare)
+routes.route(routeNames.locationPublic).get(traccarController.getPublicPosition)
+
+// Security mode
+routes.route(routeNames.securityMode).post(authJwt.verifyToken, authJwt.authAdmin, traccarController.activateSecurityMode)
+
+// Towing detection
+routes.route(routeNames.towingAlerts).get(authJwt.verifyToken, authJwt.authAdmin, traccarController.getTowingAlerts)
+
+// Telegram notifications
+routes.route(routeNames.telegramTest).post(authJwt.verifyToken, authJwt.authAdmin, traccarController.sendTelegramTest)
+
+// Geofence auto-commands (by-geofence route MUST be registered before the :id param route)
+routes.route(routeNames.autoCommandByGeofence).get(authJwt.verifyToken, authJwt.authAdmin, traccarController.getAutoCommandByGeofence)
+routes.route(routeNames.autoCommandCollection)
+  .get(authJwt.verifyToken, authJwt.authAdmin, traccarController.getAutoCommands)
+  .post(authJwt.verifyToken, authJwt.authAdmin, traccarController.createAutoCommand)
+routes.route(routeNames.autoCommandEntity)
+  .put(authJwt.verifyToken, authJwt.authAdmin, traccarController.updateAutoCommand)
+  .delete(authJwt.verifyToken, authJwt.authAdmin, traccarController.deleteAutoCommand)
+
 export default routes
