@@ -22,3 +22,9 @@ allprojects {
 
 apply plugin: "expo-root-project"
 apply plugin: "com.facebook.react.rootproject"
+
+subprojects {
+    pluginManager.withPlugin('com.android.library') {
+        android.defaultConfig.minSdkVersion 24
+    }
+}
