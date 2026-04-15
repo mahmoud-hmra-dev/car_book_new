@@ -182,7 +182,7 @@ const VehicleDetailScreen = () => {
                 <Text style={styles.geofenceName} numberOfLines={1}>{gf.name}</Text>
                 <TouchableOpacity
                   onPress={() => router.push({
-                    pathname: '/(screens)/auto-command',
+                    pathname: '/(screens)/auto-command' as any,
                     params: { carId: carId!, geofenceId: String(gf.id), geofenceName: gf.name || '' },
                   })}
                   style={styles.autoCmdBtn}

@@ -8,7 +8,7 @@ import * as helper from '@/utils/helper'
 import { snapRouteToRoads, type RoadPoint } from '@/utils/googleRoads'
 import * as CarService from '@/services/CarService'
 import * as SupplierService from '@/services/SupplierService'
-import * as TraccarService from '@/services/TraccarService'
+import * as TraccarService from '@/services/traccarService'
 import type {
   DraftGeofenceShape,
   GeofenceEditorType,
