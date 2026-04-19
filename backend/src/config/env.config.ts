@@ -138,6 +138,13 @@ export const DB_DEBUG = helper.StringToBoolean(__env__('BC_DB_DEBUG', false, 'fa
  */
 export const COOKIE_SECRET = __env__('BC_COOKIE_SECRET', false, 'bookcars')
 
+if (!COOKIE_SECRET || COOKIE_SECRET === 'bookcars') {
+  throw new Error('SECURITY: BC_COOKIE_SECRET must be set to a non-default value')
+}
+if (COOKIE_SECRET.length < 32) {
+  throw new Error('SECURITY: BC_COOKIE_SECRET must be at least 32 characters long')
+}
+
 /**
  * Authentication cookie domain.
  * Leave empty to use a host-only cookie.
@@ -193,12 +200,11 @@ export const X_ACCESS_TOKEN = 'x-access-token'
  */
 export const JWT_SECRET = __env__('BC_JWT_SECRET', false, 'bookcars')
 
-if (process.env.NODE_ENV === 'production' && JWT_SECRET === 'bookcars') {
-  throw new Error('SECURITY: BC_JWT_SECRET must be changed from default in production!')
+if (!JWT_SECRET || JWT_SECRET === 'bookcars') {
+  throw new Error('SECURITY: BC_JWT_SECRET must be set to a non-default value')
 }
-
-if (process.env.NODE_ENV === 'production' && COOKIE_SECRET === 'bookcars') {
-  throw new Error('SECURITY: BC_COOKIE_SECRET must be changed from default in production!')
+if (JWT_SECRET.length < 32) {
+  throw new Error('SECURITY: BC_JWT_SECRET must be at least 32 characters long')
 }
 
 /**
@@ -347,6 +353,14 @@ export const ADMIN_HOST = __env__('BC_ADMIN_HOST', true)
  * @type {string}
  */
 export const FRONTEND_HOST = __env__('BC_FRONTEND_HOST', true)
+
+/**
+ * Backend host. Used for building outbound URLs (e.g. email activation links).
+ * Never rely on request headers (Host) for building these URLs, as they can be spoofed.
+ *
+ * @type {string}
+ */
+export const BACKEND_HOST = __env__('BC_BACKEND_HOST', false, '')
 
 /**
  * Additional browser origins allowed to access the backend.

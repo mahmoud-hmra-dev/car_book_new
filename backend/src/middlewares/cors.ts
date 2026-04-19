@@ -1,17 +1,27 @@
 import cors from 'cors'
+import { getAllowedOrigins } from '../utils/originHelper'
 
 /**
  * CORS configuration.
- * Reflects the requesting origin back so credentials (cookies/auth headers)
- * work across all origins while satisfying browser security requirements.
+ * Only allows origins present in the configured allowlist
+ * (ADMIN_HOST, FRONTEND_HOST, ALLOWED_ORIGINS). Requests with
+ * no origin (e.g. server-to-server, curl, mobile apps) are
+ * rejected from browser CORS handling but otherwise unaffected.
  *
  * @type {cors.CorsOptions}
  */
 const CORS_CONFIG: cors.CorsOptions = {
   origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, curl, server-to-server)
-    // and reflect back any browser origin so credentials: 'include' works
-    callback(null, origin || '*')
+    if (!origin) {
+      callback(null, false)
+      return
+    }
+    const allowed = getAllowedOrigins()
+    if (allowed.includes(origin)) {
+      callback(null, origin)
+    } else {
+      callback(new Error(`Origin ${origin} not allowed by CORS`))
+    }
   },
   credentials: true,
   optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204

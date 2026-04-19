@@ -170,8 +170,8 @@ try {
     const isVerified = payload.email_verified === true || payload.email_verified === 'true'
 
     return Boolean(payload.sub && emailMatches && isVerified)
-  } catch (err) {
-    console.error('Apple Token Verification Failed:', err)
+  } catch {
+    console.error('Apple token verification failed')
     return false
   }
 }

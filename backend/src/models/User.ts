@@ -44,7 +44,7 @@ const userSchema = new Schema<env.User>(
     },
     password: {
       type: String,
-      minlength: 6,
+      minlength: 8,
     },
     birthDate: {
       type: Date,

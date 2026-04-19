@@ -62,7 +62,7 @@ const SignUp = () => {
         }
       }
     } catch (err) {
-      console.error(err)
+      console.error('SignUp error:', err instanceof Error ? err.message : err)
       setError('root', { message: strings.SIGN_UP_ERROR })
     }
   }

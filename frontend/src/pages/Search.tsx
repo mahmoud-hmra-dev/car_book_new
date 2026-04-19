@@ -32,6 +32,7 @@ import CarSeatsFilter from '@/components/CarSeatsFilter'
 import Map from '@/components/Map'
 import ViewOnMapButton from '@/components/ViewOnMapButton'
 import MapDialog from '@/components/MapDialog'
+import { getDefaultReturnDate } from '@/utils/dateHelper'
 
 import '@/assets/css/search.css'
 
@@ -475,7 +476,7 @@ const Search = () => {
                       pickupLocation={{ _id: '', name: '' } as bookcarsTypes.Location}
                       dropOffLocation={{ _id: '', name: '' } as bookcarsTypes.Location}
                       from={new Date()}
-                      to={new Date(Date.now() + 24 * 60 * 60 * 1000)}
+                      to={getDefaultReturnDate(new Date())}
                       onSubmit={handleCarFilterSubmit}
                     />
                   </div>

@@ -2,7 +2,7 @@ import express from 'express'
 import multer from 'multer'
 import routeNames from '../config/userRoutes.config'
 import authJwt from '../middlewares/authJwt'
-import { authLimiter } from '../middlewares/rateLimiter'
+import { authLimiter, uploadLimiter } from '../middlewares/rateLimiter'
 import * as userController from '../controllers/userController'
 
 const routes = express.Router()
@@ -29,8 +29,8 @@ routes.route(routeNames.update).post(authJwt.verifyToken, userController.update)
 routes.route(routeNames.updateEmailNotifications).post(authJwt.verifyToken, userController.updateEmailNotifications)
 routes.route(routeNames.updateLanguage).post(authJwt.verifyToken, userController.updateLanguage)
 routes.route(routeNames.getUser).get(authJwt.verifyToken, userController.getUser)
-routes.route(routeNames.createAvatar).post([authJwt.verifyToken, multer({ storage: multer.memoryStorage() }).single('image')], userController.createAvatar)
-routes.route(routeNames.updateAvatar).post([authJwt.verifyToken, multer({ storage: multer.memoryStorage() }).single('image')], userController.updateAvatar)
+routes.route(routeNames.createAvatar).post([uploadLimiter, authJwt.verifyToken, multer({ storage: multer.memoryStorage() }).single('image')], userController.createAvatar)
+routes.route(routeNames.updateAvatar).post([uploadLimiter, authJwt.verifyToken, multer({ storage: multer.memoryStorage() }).single('image')], userController.updateAvatar)
 routes.route(routeNames.deleteAvatar).post(authJwt.verifyToken, userController.deleteAvatar)
 routes.route(routeNames.deleteTempAvatar).post(authJwt.verifyToken, userController.deleteTempAvatar)
 routes.route(routeNames.changePassword).post(authJwt.verifyToken, userController.changePassword)
@@ -40,8 +40,8 @@ routes.route(routeNames.delete).post(authJwt.verifyToken, authJwt.authSupplier, 
 routes.route(routeNames.verifyRecaptcha).post(userController.verifyRecaptcha)
 routes.route(routeNames.sendEmail).post(userController.sendEmail)
 routes.route(routeNames.hasPassword).get(authJwt.verifyToken, userController.hasPassword)
-routes.route(routeNames.createLicense).post([multer({ storage: multer.memoryStorage() }).single('file')], userController.createLicense)
-routes.route(routeNames.updateLicense).post([authJwt.verifyToken, multer({ storage: multer.memoryStorage() }).single('file')], userController.updateLicense)
+routes.route(routeNames.createLicense).post([uploadLimiter, multer({ storage: multer.memoryStorage() }).single('file')], userController.createLicense)
+routes.route(routeNames.updateLicense).post([uploadLimiter, authJwt.verifyToken, multer({ storage: multer.memoryStorage() }).single('file')], userController.updateLicense)
 routes.route(routeNames.deleteLicense).post(authJwt.verifyToken, userController.deleteLicense)
 routes.route(routeNames.deleteTempLicense).post(userController.deleteTempLicense)
 

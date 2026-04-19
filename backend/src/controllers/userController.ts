@@ -36,6 +36,24 @@ const getStatusMessage = (lang: string, msg: string) => (
 )
 
 /**
+ * Redact sensitive fields from a request body before logging.
+ * Prevents cleartext credentials from being written to logs.
+ *
+ * @param {Record<string, unknown>} body
+ * @returns {Record<string, unknown>}
+ */
+const redactBody = (body: Record<string, unknown>) => {
+  const sensitive = ['password', 'newPassword', 'token', 'accessToken', 'auth0AccessToken']
+  const copy = { ...body }
+  for (const key of sensitive) {
+    if (key in copy) {
+      copy[key] = '[REDACTED]'
+    }
+  }
+  return copy
+}
+
+/**
  * Sign Up.
  *
  * @async
@@ -147,7 +165,7 @@ const _signup = async (req: Request, res: Response, userType: bookcarsTypes.User
     // Send email
     i18n.locale = user.language
 
-    const activationLink = `http${env.HTTPS ? 's' : ''}://${req.headers.host}/api/confirm-email/${user.email}/${token.token}`
+    const activationLink = `http${env.HTTPS ? 's' : ''}://${env.BACKEND_HOST || env.FRONTEND_HOST}/api/confirm-email/${user.email}/${token.token}`
 
     const mailOptions: nodemailer.SendMailOptions = {
       from: env.SMTP_FROM,
@@ -1182,7 +1200,7 @@ export const resendLink = async (req: Request, res: Response) => {
     // Send email
     i18n.locale = user.language
 
-    const activateLink = `http${env.HTTPS ? 's' : ''}://${req.headers.host}/api/confirm-email/${user.email}/${token.token}`
+    const activateLink = `http${env.HTTPS ? 's' : ''}://${env.BACKEND_HOST || env.FRONTEND_HOST}/api/confirm-email/${user.email}/${token.token}`
 
     const mailOptions: nodemailer.SendMailOptions = {
       from: env.SMTP_FROM,
@@ -1296,7 +1314,7 @@ export const update = async (req: Request, res: Response) => {
     await user.save()
     res.sendStatus(200)
   } catch (err) {
-    logger.error(`[user.update] ${i18n.t('ERROR')} ${JSON.stringify(req.body)}`, err)
+    logger.error(`[user.update] ${i18n.t('ERROR')} ${JSON.stringify(redactBody(req.body))}`, err)
     res.status(400).json({ error: i18n.t('ERROR') })
   }
 }
@@ -1398,7 +1416,7 @@ export const updateLanguage = async (req: Request, res: Response) => {
     await user.save()
     res.sendStatus(200)
   } catch (err) {
-    logger.error(`[user.updateLanguage] ${i18n.t('ERROR')} ${JSON.stringify(req.body)}`, err)
+    logger.error(`[user.updateLanguage] ${i18n.t('ERROR')} ${JSON.stringify(redactBody(req.body))}`, err)
     res.status(400).json({ error: i18n.t('ERROR') })
   }
 }
@@ -1502,6 +1520,12 @@ export const updateAvatar = async (req: Request, res: Response) => {
   const { userId } = req.params
 
   try {
+    // ownership check: caller must be the owner or an admin
+    if (req.user?._id.toString() !== userId && req.user?.type !== bookcarsTypes.UserType.Admin) {
+      res.sendStatus(403)
+      return
+    }
+
     if (!req.file) {
       const msg = 'req.file not found'
       logger.error(`[user.updateAvatar] ${msg}`)
@@ -1930,7 +1954,7 @@ export const deleteUsers = async (req: Request, res: Response) => {
 
     res.sendStatus(200)
   } catch (err) {
-    logger.error(`[user.delete] ${i18n.t('ERROR')} ${JSON.stringify(req.body)}`, err)
+    logger.error(`[user.delete] ${i18n.t('ERROR')} ${JSON.stringify(redactBody(req.body))}`, err)
     res.status(400).json({ error: i18n.t('ERROR') })
   }
 }
@@ -1955,7 +1979,7 @@ export const verifyRecaptcha = async (req: Request, res: Response) => {
     }
     res.sendStatus(204)
   } catch (err) {
-    logger.error(`[user.delete] ${i18n.t('ERROR')} ${JSON.stringify(req.body)}`, err)
+    logger.error(`[user.delete] ${i18n.t('ERROR')} ${JSON.stringify(redactBody(req.body))}`, err)
     res.status(400).json({ error: i18n.t('ERROR') })
   }
 }
@@ -1993,7 +2017,7 @@ export const sendEmail = async (req: Request, res: Response) => {
 
     res.sendStatus(200)
   } catch (err) {
-    logger.error(`[user.sendEmail] ${JSON.stringify(req.body)}`, err)
+    logger.error(`[user.sendEmail] ${JSON.stringify(redactBody(req.body))}`, err)
     res.status(400).json({ error: i18n.t('ERROR') })
   }
 }
@@ -2076,6 +2100,12 @@ export const updateLicense = async (req: Request, res: Response) => {
   const { file } = req
 
   try {
+    // ownership check: caller must be the owner or an admin
+    if (req.user?._id.toString() !== id && req.user?.type !== bookcarsTypes.UserType.Admin) {
+      res.sendStatus(403)
+      return
+    }
+
     if (!file) {
       throw new Error('req.file not found')
     }

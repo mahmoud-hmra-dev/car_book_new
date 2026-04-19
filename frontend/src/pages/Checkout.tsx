@@ -48,6 +48,7 @@ import * as CarService from '@/services/CarService'
 import * as LocationService from '@/services/LocationService'
 import * as PaymentService from '@/services/PaymentService'
 import * as StripeService from '@/services/StripeService'
+import ErrorBoundary from '@/components/ErrorBoundary'
 import * as AreebaService from '@/services/AreebaService'
 import * as PayPalService from '@/services/PayPalService'
 import { useRecaptchaContext, RecaptchaContextType } from '@/context/RecaptchaContext'
@@ -512,7 +513,7 @@ const Checkout = () => {
   }, [authenticated, car, adManuallyChecked, additionalDriver])
 
   return (
-    <>
+    <ErrorBoundary>
       <Layout onLoad={onLoad} strict={false}>
         {!user?.blacklisted && visible && car && from && to && pickupLocation && dropOffLocation && (
           <>
@@ -1376,7 +1377,7 @@ const Checkout = () => {
       </Layout>
 
       {loadingPage && !noMatch && <Progress />}
-    </>
+    </ErrorBoundary>
   )
 }
 
