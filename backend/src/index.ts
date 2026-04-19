@@ -7,6 +7,7 @@ import * as env from './config/env.config'
 import * as databaseHelper from './utils/databaseHelper'
 import app from './app'
 import * as logger from './utils/logger'
+import { initWsNotificationService, shutdownWsNotificationService } from './services/wsNotificationService'
 
 /**
  * Creates and returns an HTTP or HTTPS server based on environment configuration.
@@ -56,6 +57,9 @@ const start = async (): Promise<void> => {
       logger.info(`${protocol} server is running on port ${env.PORT}`)
     })
 
+    // Attach WebSocket notification service to the HTTP/HTTPS server
+    await initWsNotificationService(server)
+
     const shutdown = async (signal: string): Promise<void> => {
       logger.info(`Received ${signal}. Gracefully stopping server...`)
 
@@ -64,6 +68,8 @@ const start = async (): Promise<void> => {
         logger.warn('Forced shutdown due to timeout')
         process.exit(1)
       }, shutdownTimeoutMs)
+
+      await shutdownWsNotificationService()
 
       server.close(async () => {
         clearTimeout(shutdownTimeout)
