@@ -24,6 +24,7 @@ import assistantRoutes from './routes/assistantRoutes'
 import traccarRoutes from './routes/traccarRoutes'
 import healthRoutes from './routes/healthRoutes'
 import seedRoutes from './routes/seedRoutes'
+import alertRoutes from './routes/alertRoutes'
 import { apiLimiter } from './middlewares/rateLimiter'
 import * as helper from './utils/helper'
 
@@ -74,6 +75,7 @@ app.use('/', settingRoutes)
 app.use('/', assistantRoutes)
 app.use('/', traccarRoutes)
 app.use('/', seedRoutes)
+app.use('/', alertRoutes)
 
 if (env.ENABLE_SENTRY) {
   Sentry.setupExpressErrorHandler(app)

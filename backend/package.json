@@ -44,6 +44,7 @@
     "nocache": "^4.0.0",
     "nodemailer": "^8.0.1",
     "stripe": "^20.4.0",
+    "twilio": "^5.13.1",
     "validator": "^13.15.26",
     "winston": "^3.19.0"
   },
