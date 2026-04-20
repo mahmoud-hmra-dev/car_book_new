@@ -1,0 +1,10 @@
+class AppConstants {
+  static const String tokenKey = 'access_token';
+  static const String userKey = 'current_user';
+  static const String themeKey = 'theme_mode';
+  static const String unitsKey = 'units_system';
+  static const String refreshIntervalKey = 'refresh_interval';
+  static const String mapTypeKey = 'map_type';
+
+  static const String darkMapStyle = '[{"elementType":"geometry","stylers":[{"color":"#0a0e1a"}]},{"elementType":"labels.icon","stylers":[{"visibility":"off"}]},{"elementType":"labels.text.fill","stylers":[{"color":"#6b7280"}]},{"elementType":"labels.text.stroke","stylers":[{"color":"#0a0e1a"}]},{"featureType":"administrative","elementType":"geometry","stylers":[{"color":"#1a2236"}]},{"featureType":"administrative.country","elementType":"labels.text.fill","stylers":[{"color":"#9ca3af"}]},{"featureType":"administrative.land_parcel","stylers":[{"visibility":"off"}]},{"featureType":"administrative.locality","elementType":"labels.text.fill","stylers":[{"color":"#bfdbfe"}]},{"featureType":"poi","elementType":"labels.text.fill","stylers":[{"color":"#6b7280"}]},{"featureType":"poi.park","elementType":"geometry","stylers":[{"color":"#0f1a14"}]},{"featureType":"poi.park","elementType":"labels.text.fill","stylers":[{"color":"#4b5563"}]},{"featureType":"road","elementType":"geometry","stylers":[{"color":"#1e2d4a"}]},{"featureType":"road","elementType":"labels.text.fill","stylers":[{"color":"#9ca3af"}]},{"featureType":"road.arterial","elementType":"geometry","stylers":[{"color":"#1a2d4a"}]},{"featureType":"road.highway","elementType":"geometry","stylers":[{"color":"#0d3057"}]},{"featureType":"road.highway","elementType":"geometry.stroke","stylers":[{"color":"#1d4070"}]},{"featureType":"road.highway","elementType":"labels.text.fill","stylers":[{"color":"#bfdbfe"}]},{"featureType":"transit","elementType":"geometry","stylers":[{"color":"#131929"}]},{"featureType":"transit.station","elementType":"labels.text.fill","stylers":[{"color":"#6b7280"}]},{"featureType":"water","elementType":"geometry","stylers":[{"color":"#060d1a"}]},{"featureType":"water","elementType":"labels.text.fill","stylers":[{"color":"#374151"}]}]';
+}
