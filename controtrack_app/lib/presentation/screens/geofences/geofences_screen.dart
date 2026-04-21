@@ -9,6 +9,7 @@ import '../../../data/repositories/geofence_repository.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../widgets/common/app_error.dart';
 import '../../widgets/common/app_loading.dart';
+import '../../widgets/web/web_page_scaffold.dart';
 
 class GeofencesScreen extends StatefulWidget {
   const GeofencesScreen({super.key});
@@ -182,38 +183,43 @@ class _GeofencesScreenState extends State<GeofencesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(context.tr('geofences')),
-        leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded),
-            onPressed: () => context.pop()),
-      ),
-      floatingActionButton: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          // Country zone mini FAB
-          FloatingActionButton.small(
-            heroTag: 'fab_country',
-            onPressed: _openCountryPicker,
-            backgroundColor: AppColors.accent,
-            foregroundColor: Colors.black,
-            tooltip: context.tr('country_zone'),
-            child: const Icon(Icons.public_rounded),
-          ),
-          const SizedBox(height: 12),
-          // Draw geofence main FAB
-          FloatingActionButton.extended(
-            heroTag: 'fab_draw',
-            onPressed: _openEditor,
-            icon: const Icon(Icons.add_rounded),
-            label: Text(context.tr('draw_geofence')),
-            backgroundColor: AppColors.primary,
-            foregroundColor: Colors.black,
-          ),
-        ],
-      ),
+    final isWide = MediaQuery.sizeOf(context).width >= 900;
+    final scaffold = Scaffold(
+      appBar: isWide
+          ? null
+          : AppBar(
+              title: Text(context.tr('geofences')),
+              leading: IconButton(
+                  icon: const Icon(Icons.arrow_back_rounded),
+                  onPressed: () => context.pop()),
+            ),
+      floatingActionButton: isWide
+          ? null
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                // Country zone mini FAB
+                FloatingActionButton.small(
+                  heroTag: 'fab_country',
+                  onPressed: _openCountryPicker,
+                  backgroundColor: AppColors.accent,
+                  foregroundColor: Colors.black,
+                  tooltip: context.tr('country_zone'),
+                  child: const Icon(Icons.public_rounded),
+                ),
+                const SizedBox(height: 12),
+                // Draw geofence main FAB
+                FloatingActionButton.extended(
+                  heroTag: 'fab_draw',
+                  onPressed: _openEditor,
+                  icon: const Icon(Icons.add_rounded),
+                  label: Text(context.tr('draw_geofence')),
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.black,
+                ),
+              ],
+            ),
       body: FutureBuilder<List<GeofenceModel>>(
         future: _future,
         builder: (context, snap) {
@@ -240,6 +246,25 @@ class _GeofencesScreenState extends State<GeofencesScreen> {
                   g.area.trim().toUpperCase().startsWith('POLYGON'))
               .length;
           final filtered = _filter(list);
+          if (isWide) {
+            return _WebGeofencesLayout(
+              all: list,
+              filtered: filtered,
+              circles: circleCount,
+              polygons: polygonCount,
+              searchController: _searchCtrl,
+              query: _query,
+              onQueryChanged: (v) => setState(() => _query = v),
+              onClearQuery: () {
+                _searchCtrl.clear();
+                setState(() => _query = '');
+              },
+              expandedIds: _expandedIds,
+              onToggleExpanded: _toggleExpanded,
+              onDelete: _delete,
+              onRefresh: _refresh,
+            );
+          }
           return RefreshIndicator(
             color: AppColors.primary,
             onRefresh: _refresh,
@@ -354,6 +379,23 @@ class _GeofencesScreenState extends State<GeofencesScreen> {
           );
         },
       ),
+    );
+
+    if (!isWide) return scaffold;
+
+    return WebPageScaffoldScrollable(
+      title: context.tr('geofences'),
+      subtitle: 'Virtual zones & boundaries',
+      actions: [
+        ElevatedButton.icon(
+          icon: const Icon(Icons.add_location_alt_rounded),
+          label: const Text('New Geofence'),
+          onPressed: () => context.push('/geofence-editor').then((_) {
+            if (mounted) _refresh();
+          }),
+        ),
+      ],
+      child: scaffold,
     );
   }
 }
@@ -1122,6 +1164,523 @@ class _CountryCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Web layout (two-column: list on left, stats on right)
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _WebGeofencesLayout extends StatelessWidget {
+  final List<GeofenceModel> all;
+  final List<GeofenceModel> filtered;
+  final int circles;
+  final int polygons;
+  final TextEditingController searchController;
+  final String query;
+  final ValueChanged<String> onQueryChanged;
+  final VoidCallback onClearQuery;
+  final Set<String> expandedIds;
+  final void Function(String) onToggleExpanded;
+  final Future<void> Function(GeofenceModel) onDelete;
+  final Future<void> Function() onRefresh;
+
+  const _WebGeofencesLayout({
+    required this.all,
+    required this.filtered,
+    required this.circles,
+    required this.polygons,
+    required this.searchController,
+    required this.query,
+    required this.onQueryChanged,
+    required this.onClearQuery,
+    required this.expandedIds,
+    required this.onToggleExpanded,
+    required this.onDelete,
+    required this.onRefresh,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final total = all.length;
+    final otherCount = total - circles - polygons;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(28, 20, 28, 28),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // ── Left column: list (55%) ────────────────────────────────────────
+          Expanded(
+            flex: 55,
+            child: Container(
+              decoration: BoxDecoration(
+                color: context.cardColor,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: context.dividerColor),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
+                    child: Row(
+                      children: [
+                        Icon(Icons.layers_rounded,
+                            color: AppColors.primary, size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Geofences',
+                          style: TextStyle(
+                            color: context.textPrimaryColor,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            '$total',
+                            style: const TextStyle(
+                              color: AppColors.primary,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  _SearchField(
+                    controller: searchController,
+                    query: query,
+                    onChanged: onQueryChanged,
+                    onClear: onClearQuery,
+                  ),
+                  Expanded(
+                    child: filtered.isEmpty
+                        ? Center(
+                            child: Text(
+                              context.tr('no_zones_match'),
+                              style: TextStyle(
+                                  color: context.textSecondaryColor),
+                            ),
+                          )
+                        : RefreshIndicator(
+                            color: AppColors.primary,
+                            onRefresh: onRefresh,
+                            child: ListView.separated(
+                              padding: const EdgeInsets.fromLTRB(
+                                  16, 4, 16, 20),
+                              itemCount: filtered.length,
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(height: 12),
+                              itemBuilder: (_, i) {
+                                final g = filtered[i];
+                                return _WebGeofenceCard(
+                                  geofence: g,
+                                  expanded: expandedIds.contains(g.id),
+                                  onToggleExpanded: () =>
+                                      onToggleExpanded(g.id),
+                                  onDelete: () => onDelete(g),
+                                );
+                              },
+                            ),
+                          ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 20),
+          // ── Right column: stats (45%) ──────────────────────────────────────
+          Expanded(
+            flex: 45,
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _WebStatCard(
+                    icon: Icons.layers_rounded,
+                    iconColor: AppColors.primary,
+                    label: 'Total Geofences',
+                    value: '$total',
+                    hint: 'All virtual zones configured',
+                  ),
+                  const SizedBox(height: 14),
+                  _WebStatCard(
+                    icon: Icons.notifications_active_rounded,
+                    iconColor: AppColors.warning,
+                    label: 'Active Alerts',
+                    value: '${all.where((g) => g.linkedCarIds.isNotEmpty).length}',
+                    hint: 'Zones with linked vehicles',
+                  ),
+                  const SizedBox(height: 14),
+                  Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: context.cardColor,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: context.dividerColor),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.pie_chart_rounded,
+                                size: 18,
+                                color: context.textSecondaryColor),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Zone Types',
+                              style: TextStyle(
+                                color: context.textPrimaryColor,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 14),
+                        _ZoneTypeRow(
+                          label: 'Circle',
+                          count: circles,
+                          total: total,
+                          color: AppColors.primary,
+                          icon: Icons.radio_button_unchecked_rounded,
+                        ),
+                        const SizedBox(height: 10),
+                        _ZoneTypeRow(
+                          label: 'Polygon',
+                          count: polygons,
+                          total: total,
+                          color: AppColors.accent,
+                          icon: Icons.hexagon_outlined,
+                        ),
+                        if (otherCount > 0) ...[
+                          const SizedBox(height: 10),
+                          _ZoneTypeRow(
+                            label: 'Other',
+                            count: otherCount,
+                            total: total,
+                            color: AppColors.secondary,
+                            icon: Icons.place_rounded,
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WebStatCard extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final String label;
+  final String value;
+  final String hint;
+
+  const _WebStatCard({
+    required this.icon,
+    required this.iconColor,
+    required this.label,
+    required this.value,
+    required this.hint,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: context.cardColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: context.dividerColor),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: iconColor.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: iconColor, size: 24),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: context.textSecondaryColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  value,
+                  style: TextStyle(
+                    color: context.textPrimaryColor,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  hint,
+                  style: TextStyle(
+                    color: context.textMutedColor,
+                    fontSize: 11,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ZoneTypeRow extends StatelessWidget {
+  final String label;
+  final int count;
+  final int total;
+  final Color color;
+  final IconData icon;
+
+  const _ZoneTypeRow({
+    required this.label,
+    required this.count,
+    required this.total,
+    required this.color,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final pct = total == 0 ? 0.0 : count / total;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: 14, color: color),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: context.textPrimaryColor,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            Text(
+              '$count',
+              style: TextStyle(
+                color: color,
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: pct,
+            minHeight: 6,
+            backgroundColor: color.withValues(alpha: 0.12),
+            valueColor: AlwaysStoppedAnimation<Color>(color),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _WebGeofenceCard extends StatelessWidget {
+  final GeofenceModel geofence;
+  final bool expanded;
+  final VoidCallback onToggleExpanded;
+  final VoidCallback onDelete;
+
+  const _WebGeofenceCard({
+    required this.geofence,
+    required this.expanded,
+    required this.onToggleExpanded,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final type = _typeFor(geofence.area);
+    final linkedCount = geofence.linkedCarIds.length;
+    final hasCoords =
+        geofence.centerLat != null && geofence.centerLng != null;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onToggleExpanded,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: context.surfaceColor,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: expanded
+                  ? type.color.withValues(alpha: 0.5)
+                  : context.dividerColor,
+              width: expanded ? 1.3 : 1,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: type.color.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(type.icon, color: type.color, size: 24),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          geofence.name,
+                          style: TextStyle(
+                            color: context.textPrimaryColor,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        if (geofence.description != null &&
+                            geofence.description!.isNotEmpty) ...[
+                          const SizedBox(height: 3),
+                          Text(
+                            geofence.description!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                                color: context.textSecondaryColor,
+                                fontSize: 12),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: type.color.withValues(alpha: 0.14),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: type.color.withValues(alpha: 0.4),
+                      ),
+                    ),
+                    child: Text(
+                      type.label,
+                      style: TextStyle(
+                        color: type.color,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline,
+                        color: AppColors.error, size: 20),
+                    tooltip: context.tr('delete'),
+                    onPressed: onDelete,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 16,
+                runSpacing: 8,
+                children: [
+                  if (hasCoords)
+                    _WebInfoItem(
+                      icon: Icons.my_location_rounded,
+                      label: '${geofence.centerLat!.toStringAsFixed(5)}, '
+                          '${geofence.centerLng!.toStringAsFixed(5)}',
+                    ),
+                  if (geofence.radius != null)
+                    _WebInfoItem(
+                      icon: Icons.straighten_rounded,
+                      label: '${geofence.radius!.toStringAsFixed(0)} m',
+                    ),
+                  _WebInfoItem(
+                    icon: Icons.directions_car_filled_rounded,
+                    label: '$linkedCount linked',
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _WebInfoItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  const _WebInfoItem({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 13, color: context.textMutedColor),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: TextStyle(
+            color: context.textSecondaryColor,
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
     );
   }
 }

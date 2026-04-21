@@ -11,6 +11,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../blocs/fleet/fleet_cubit.dart';
 import '../../widgets/common/app_error.dart';
 import '../../widgets/common/app_loading.dart';
+import '../../widgets/web/web_page_scaffold.dart';
 import 'driver_metrics.dart';
 
 String _driverVehicleKey(String driverId) => 'driver_vehicle_$driverId';
@@ -145,104 +146,385 @@ class _DriversScreenState extends State<DriversScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(context.tr('drivers')),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => context.pop(),
-        ),
-        bottom: TabBar(
-          controller: _tab,
-          labelColor: AppColors.primary,
-          unselectedLabelColor: context.textSecondaryColor,
-          indicatorColor: AppColors.primary,
-          tabs: [
-            Tab(
-              icon: const Icon(Icons.badge_rounded, size: 18),
-              text: context.tr('drivers'),
-            ),
-            Tab(
-              icon: const Icon(Icons.insights_rounded, size: 18),
-              text: context.tr('behavior_summary'),
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: ListenableBuilder(
-        listenable: _tab,
-        builder: (context, _) {
-          if (_tab.index != 0) return const SizedBox.shrink();
-          return FloatingActionButton.extended(
-            onPressed: () => _edit(null),
-            icon: const Icon(Icons.person_add_rounded),
-            label: Text(context.tr('add_driver')),
-          );
-        },
-      ),
-      body: TabBarView(
-        controller: _tab,
-        children: [
-          // ── Tab 1: Driver list ──
-          FutureBuilder<List<DriverModel>>(
-            future: _future,
-            builder: (context, snap) {
-              if (snap.connectionState == ConnectionState.waiting) {
-                return const ShimmerList();
-              }
-              if (snap.hasError) {
-                return AppError(
-                    message: snap.error.toString(), onRetry: _refresh);
-              }
-              final list = snap.data ?? [];
-              if (list.isEmpty) {
-                return EmptyState(
-                  title: context.tr('no_drivers'),
-                  subtitle: context.tr('no_drivers_subtitle'),
-                  icon: Icons.badge_outlined,
-                );
-              }
-              return RefreshIndicator(
-                color: AppColors.primary,
-                onRefresh: _refresh,
-                child: ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 90),
-                  itemCount: list.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 10),
-                  itemBuilder: (_, i) => _DriverTile(
-                    driver: list[i],
-                    onTap: () {
-                      final d = list[i];
-                      final name = Uri.encodeQueryComponent(
-                        d.name.isEmpty ? 'Driver' : d.name,
-                      );
-                      context.push('/drivers/${d.id}/behavior?name=$name');
-                    },
-                    onEdit: () => _edit(list[i]),
-                    onDelete: () => _delete(list[i]),
-                    onAssign: () => _openAssignSheet(list[i]),
-                  ),
-                ),
-              );
-            },
-          ),
+    final isWide = MediaQuery.sizeOf(context).width >= 900;
 
-          // ── Tab 2: Behavior summary ──
-          FutureBuilder<List<DriverModel>>(
-            future: _future,
-            builder: (context, snap) {
-              if (snap.connectionState == ConnectionState.waiting) {
-                return const ShimmerList();
-              }
-              if (snap.hasError) {
-                return AppError(
-                    message: snap.error.toString(), onRetry: _refresh);
-              }
-              final list = snap.data ?? [];
-              return _BehaviorSummaryTab(drivers: list);
-            },
+    final scaffold = Scaffold(
+      appBar: isWide
+          ? null
+          : AppBar(
+              title: Text(context.tr('drivers')),
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back_rounded),
+                onPressed: () => context.pop(),
+              ),
+              bottom: TabBar(
+                controller: _tab,
+                labelColor: AppColors.primary,
+                unselectedLabelColor: context.textSecondaryColor,
+                indicatorColor: AppColors.primary,
+                tabs: [
+                  Tab(
+                    icon: const Icon(Icons.badge_rounded, size: 18),
+                    text: context.tr('drivers'),
+                  ),
+                  Tab(
+                    icon: const Icon(Icons.insights_rounded, size: 18),
+                    text: context.tr('behavior_summary'),
+                  ),
+                ],
+              ),
+            ),
+      floatingActionButton: isWide
+          ? null
+          : ListenableBuilder(
+              listenable: _tab,
+              builder: (context, _) {
+                if (_tab.index != 0) return const SizedBox.shrink();
+                return FloatingActionButton.extended(
+                  onPressed: () => _edit(null),
+                  icon: const Icon(Icons.person_add_rounded),
+                  label: Text(context.tr('add_driver')),
+                );
+              },
+            ),
+      body: Column(
+        children: [
+          if (isWide)
+            Container(
+              margin: const EdgeInsets.fromLTRB(0, 16, 0, 8),
+              decoration: BoxDecoration(
+                color: context.surfaceColor,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: context.dividerColor),
+              ),
+              child: TabBar(
+                controller: _tab,
+                labelColor: AppColors.primary,
+                unselectedLabelColor: context.textSecondaryColor,
+                indicatorColor: AppColors.primary,
+                dividerColor: Colors.transparent,
+                tabs: [
+                  Tab(
+                    icon: const Icon(Icons.badge_rounded, size: 18),
+                    text: context.tr('drivers'),
+                  ),
+                  Tab(
+                    icon: const Icon(Icons.insights_rounded, size: 18),
+                    text: context.tr('behavior_summary'),
+                  ),
+                ],
+              ),
+            ),
+          Expanded(
+            child: TabBarView(
+              controller: _tab,
+              children: [
+                // ── Tab 1: Driver list ──
+                FutureBuilder<List<DriverModel>>(
+                  future: _future,
+                  builder: (context, snap) {
+                    if (snap.connectionState == ConnectionState.waiting) {
+                      return const ShimmerList();
+                    }
+                    if (snap.hasError) {
+                      return AppError(
+                          message: snap.error.toString(), onRetry: _refresh);
+                    }
+                    final list = snap.data ?? [];
+                    if (list.isEmpty) {
+                      return EmptyState(
+                        title: context.tr('no_drivers'),
+                        subtitle: context.tr('no_drivers_subtitle'),
+                        icon: Icons.badge_outlined,
+                      );
+                    }
+                    if (isWide) {
+                      return RefreshIndicator(
+                        color: AppColors.primary,
+                        onRefresh: _refresh,
+                        child: GridView.builder(
+                          padding: const EdgeInsets.fromLTRB(0, 12, 0, 24),
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 16,
+                            childAspectRatio: 1.4,
+                          ),
+                          itemCount: list.length,
+                          itemBuilder: (_, i) => _DriverWebCard(
+                            driver: list[i],
+                            onTap: () {
+                              final d = list[i];
+                              final name = Uri.encodeQueryComponent(
+                                d.name.isEmpty ? 'Driver' : d.name,
+                              );
+                              context.push(
+                                  '/drivers/${d.id}/behavior?name=$name');
+                            },
+                            onEdit: () => _edit(list[i]),
+                            onDelete: () => _delete(list[i]),
+                            onAssign: () => _openAssignSheet(list[i]),
+                          ),
+                        ),
+                      );
+                    }
+                    return RefreshIndicator(
+                      color: AppColors.primary,
+                      onRefresh: _refresh,
+                      child: ListView.separated(
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 90),
+                        itemCount: list.length,
+                        separatorBuilder: (_, __) =>
+                            const SizedBox(height: 10),
+                        itemBuilder: (_, i) => _DriverTile(
+                          driver: list[i],
+                          onTap: () {
+                            final d = list[i];
+                            final name = Uri.encodeQueryComponent(
+                              d.name.isEmpty ? 'Driver' : d.name,
+                            );
+                            context
+                                .push('/drivers/${d.id}/behavior?name=$name');
+                          },
+                          onEdit: () => _edit(list[i]),
+                          onDelete: () => _delete(list[i]),
+                          onAssign: () => _openAssignSheet(list[i]),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+
+                // ── Tab 2: Behavior summary ──
+                FutureBuilder<List<DriverModel>>(
+                  future: _future,
+                  builder: (context, snap) {
+                    if (snap.connectionState == ConnectionState.waiting) {
+                      return const ShimmerList();
+                    }
+                    if (snap.hasError) {
+                      return AppError(
+                          message: snap.error.toString(), onRetry: _refresh);
+                    }
+                    final list = snap.data ?? [];
+                    return _BehaviorSummaryTab(drivers: list);
+                  },
+                ),
+              ],
+            ),
           ),
         ],
+      ),
+    );
+
+    if (!isWide) return scaffold;
+
+    return WebPageScaffoldScrollable(
+      title: context.tr('drivers'),
+      subtitle: 'Driver management & performance',
+      actions: [
+        ElevatedButton.icon(
+          icon: const Icon(Icons.add),
+          label: const Text('Add Driver'),
+          onPressed: () => _edit(null),
+        ),
+      ],
+      child: scaffold,
+    );
+  }
+}
+
+// ============================================================================
+// Web driver card (grid view)
+// ============================================================================
+
+class _DriverWebCard extends StatelessWidget {
+  final DriverModel driver;
+  final VoidCallback onTap;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+  final VoidCallback onAssign;
+
+  const _DriverWebCard({
+    required this.driver,
+    required this.onTap,
+    required this.onEdit,
+    required this.onDelete,
+    required this.onAssign,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final hasAssignment =
+        driver.assignedCarId != null && driver.assignedCarId!.isNotEmpty;
+    final statusColor =
+        hasAssignment ? AppColors.success : context.textMutedColor;
+    final statusLabel = hasAssignment ? 'Active' : 'Inactive';
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            gradient: context.cardGradientColor,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: context.dividerColor),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  // Avatar circle
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      gradient: AppColors.primaryGradient,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Text(
+                        (driver.name.isNotEmpty ? driver.name[0] : 'D')
+                            .toUpperCase(),
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 22,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          driver.name.isEmpty ? '—' : driver.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: context.textPrimaryColor,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          (driver.licenseNumber != null &&
+                                  driver.licenseNumber!.isNotEmpty)
+                              ? '${context.tr('license')}: ${driver.licenseNumber}'
+                              : (driver.phone ?? driver.email ?? '—'),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: context.textSecondaryColor,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Edit/Delete
+                  PopupMenuButton<String>(
+                    icon: Icon(Icons.more_horiz,
+                        color: context.textSecondaryColor),
+                    onSelected: (v) {
+                      if (v == 'edit') onEdit();
+                      if (v == 'delete') onDelete();
+                      if (v == 'assign') onAssign();
+                    },
+                    itemBuilder: (_) => [
+                      PopupMenuItem(
+                        value: 'edit',
+                        child: Row(children: [
+                          const Icon(Icons.edit_outlined, size: 18),
+                          const SizedBox(width: 8),
+                          Text(context.tr('edit')),
+                        ]),
+                      ),
+                      PopupMenuItem(
+                        value: 'assign',
+                        child: Row(children: [
+                          const Icon(Icons.directions_car_outlined, size: 18),
+                          const SizedBox(width: 8),
+                          Text(context.tr('assign_vehicle')),
+                        ]),
+                      ),
+                      PopupMenuItem(
+                        value: 'delete',
+                        child: Row(children: [
+                          const Icon(Icons.delete_outline,
+                              size: 18, color: AppColors.error),
+                          const SizedBox(width: 8),
+                          Text(
+                            context.tr('delete'),
+                            style: const TextStyle(color: AppColors.error),
+                          ),
+                        ]),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              // Status badge
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                  border:
+                      Border.all(color: statusColor.withValues(alpha: 0.4)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 7,
+                      height: 7,
+                      decoration: BoxDecoration(
+                        color: statusColor,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      statusLabel,
+                      style: TextStyle(
+                        color: statusColor,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Spacer(),
+              // View Behavior button
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: onTap,
+                  icon: const Icon(Icons.insights_rounded, size: 16),
+                  label: const Text('View Behavior'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                    side: BorderSide(
+                        color: AppColors.primary.withValues(alpha: 0.6)),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

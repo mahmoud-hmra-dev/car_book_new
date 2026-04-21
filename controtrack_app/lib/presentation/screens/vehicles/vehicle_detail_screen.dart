@@ -361,8 +361,15 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isWide = MediaQuery.sizeOf(context).width >= 900;
     return Scaffold(
       backgroundColor: context.bgColor,
+      appBar: isWide
+          ? PreferredSize(
+              preferredSize: const Size.fromHeight(64),
+              child: _WebDetailAppBar(carId: widget.carId),
+            )
+          : null,
       body: BlocBuilder<FleetCubit, FleetState>(
         builder: (context, state) {
           if (state.status == FleetStatus.loading && state.items.isEmpty) {
@@ -387,6 +394,31 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
           final hasPos =
               pos != null && !(pos.latitude == 0 && pos.longitude == 0);
           final isMoving = item.movementStatus == 'moving';
+
+          if (isWide) {
+            return _WebDetailLayout(
+              item: item,
+              color: color,
+              hasPos: hasPos,
+              isMoving: isMoving,
+              assignedDriver: _assignedDriver,
+              sharingLocation: _sharingLocation,
+              securingMode: _securingMode,
+              onShareLocation: _shareLocation,
+              onStreetView: hasPos
+                  ? () => _openStreetView(pos.latitude, pos.longitude)
+                  : null,
+              onActivateSecurity: _activateSecurityMode,
+              onAssignDriver: () => _showAssignDriverSheet(item!.carName),
+              geofencesFuture: _geofencesFuture,
+              zonesExpanded: _zonesExpanded,
+              onZonesToggle: () =>
+                  setState(() => _zonesExpanded = !_zonesExpanded),
+              onUnlinkZone: _unlinkGeofence,
+              onManageZones: () => _openLinkScreen(item!.carName),
+              onZonesRefresh: _refreshGeofences,
+            );
+          }
 
           return CustomScrollView(
             physics: const BouncingScrollPhysics(),
@@ -2099,6 +2131,536 @@ class _ZoneTypeStyle {
     required this.icon,
     required this.color,
   });
+}
+
+// =============================================================================
+// Web-only: Taller AppBar with vehicle info in the title row
+// =============================================================================
+
+class _WebDetailAppBar extends StatelessWidget implements PreferredSizeWidget {
+  final String carId;
+  const _WebDetailAppBar({required this.carId});
+
+  @override
+  Size get preferredSize => const Size.fromHeight(64);
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<FleetCubit, FleetState>(
+      builder: (context, state) {
+        FleetItem? item;
+        for (final it in state.items) {
+          if (it.carId == carId) {
+            item = it;
+            break;
+          }
+        }
+        final name = item?.carName ?? context.tr('unnamed_vehicle');
+        final status = item?.movementStatus ?? '';
+        final color = item != null
+            ? AppColors.statusColor(item.movementStatus)
+            : AppColors.primary;
+        final speed = item?.speedKmh ?? 0.0;
+
+        return AppBar(
+          toolbarHeight: 64,
+          backgroundColor: context.bgColor,
+          foregroundColor: context.textPrimaryColor,
+          elevation: 0,
+          leading: _CircleBackButton(onPressed: () => context.pop()),
+          title: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name.isEmpty ? context.tr('unnamed_vehicle') : name,
+                      style: TextStyle(
+                        color: context.textPrimaryColor,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.3,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (item != null)
+                      Text(
+                        item.licensePlate.isNotEmpty
+                            ? item.licensePlate
+                            : carId,
+                        style: TextStyle(
+                          color: context.textMutedColor,
+                          fontSize: 12,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                  ],
+                ),
+              ),
+              if (status.isNotEmpty) ...[
+                const SizedBox(width: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.18),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: color.withValues(alpha: 0.5)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: color,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        status.toUpperCase(),
+                        style: TextStyle(
+                          color: color,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: context.cardColor,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: context.dividerColor),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.speed_rounded,
+                        size: 14,
+                        color: AppColors.secondary,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '${speed.toStringAsFixed(0)} km/h',
+                        style: TextStyle(
+                          color: context.textPrimaryColor,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+// =============================================================================
+// Web-only: 2-column layout for the vehicle detail screen
+// =============================================================================
+
+class _WebDetailLayout extends StatelessWidget {
+  final FleetItem item;
+  final Color color;
+  final bool hasPos;
+  final bool isMoving;
+  final DriverModel? assignedDriver;
+  final bool sharingLocation;
+  final bool securingMode;
+  final VoidCallback onShareLocation;
+  final VoidCallback? onStreetView;
+  final VoidCallback onActivateSecurity;
+  final VoidCallback onAssignDriver;
+  final Future<List<GeofenceModel>> geofencesFuture;
+  final bool zonesExpanded;
+  final VoidCallback onZonesToggle;
+  final ValueChanged<GeofenceModel> onUnlinkZone;
+  final VoidCallback onManageZones;
+  final VoidCallback onZonesRefresh;
+
+  const _WebDetailLayout({
+    required this.item,
+    required this.color,
+    required this.hasPos,
+    required this.isMoving,
+    required this.assignedDriver,
+    required this.sharingLocation,
+    required this.securingMode,
+    required this.onShareLocation,
+    required this.onStreetView,
+    required this.onActivateSecurity,
+    required this.onAssignDriver,
+    required this.geofencesFuture,
+    required this.zonesExpanded,
+    required this.onZonesToggle,
+    required this.onUnlinkZone,
+    required this.onManageZones,
+    required this.onZonesRefresh,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final pos = item.position;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // ─────────── Left column (45%) ───────────
+          Expanded(
+            flex: 45,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.only(right: 12),
+              physics: const BouncingScrollPhysics(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _HeroHeader(
+                    item: item,
+                    color: color,
+                    isMoving: isMoving,
+                  ),
+                  const SizedBox(height: 16),
+                  // Live position details card
+                  _InfoCard(
+                    children: [
+                      _DetailRow(
+                        icon: Icons.location_on_outlined,
+                        label: context.tr('address'),
+                        value: item.address ?? context.tr('no_location'),
+                      ),
+                      _DetailRow(
+                        icon: Icons.access_time_rounded,
+                        label: context.tr('last_update'),
+                        value: item.lastPositionAt != null
+                            ? '${timeago.format(item.lastPositionAt!, locale: context.isRtl ? 'ar' : 'en')} · ${_VehicleDetailScreenState._fmt(item.lastPositionAt!)}'
+                            : '—',
+                      ),
+                      if (pos != null)
+                        _DetailRow(
+                          icon: Icons.my_location_rounded,
+                          label: context.tr('coordinates'),
+                          value:
+                              '${pos.latitude.toStringAsFixed(5)}, ${pos.longitude.toStringAsFixed(5)}',
+                          isLast: true,
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  // Assigned driver card
+                  _AssignedDriverCard(
+                    driver: assignedDriver,
+                    onAssign: onAssignDriver,
+                  ),
+                  const SizedBox(height: 16),
+                  // Quick action buttons 2x2 grid
+                  Text(
+                    context.tr('commands').toUpperCase(),
+                    style: TextStyle(
+                      color: context.textMutedColor,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  _WebQuickActionsGrid(
+                    carId: item.carId,
+                    sharingLocation: sharingLocation,
+                    securingMode: securingMode,
+                    onShareLocation: onShareLocation,
+                    onStreetView: onStreetView,
+                    onActivateSecurity: onActivateSecurity,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          // Vertical divider
+          Container(
+            width: 1,
+            color: context.dividerColor,
+          ),
+          const SizedBox(width: 12),
+          // ─────────── Right column (55%) ───────────
+          Expanded(
+            flex: 55,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.only(left: 12),
+              physics: const BouncingScrollPhysics(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Map preview
+                  _MapPreview(
+                    item: item,
+                    hasPos: hasPos,
+                    onTapFull: () => context.go('/map'),
+                  ),
+                  const SizedBox(height: 16),
+                  // Stats row (distance/trips/runtime)
+                  _TodayStatsStrip(item: item),
+                  const SizedBox(height: 16),
+                  // Metric cards (speed, heading, battery, ignition)
+                  Row(
+                    children: [
+                      _MetricCard(
+                        index: 0,
+                        label: context.tr('speed'),
+                        value: item.speedKmh.toStringAsFixed(0),
+                        unit: 'km/h',
+                        icon: Icons.speed_rounded,
+                        color: AppColors.secondary,
+                      ),
+                      const SizedBox(width: 10),
+                      _MetricCard(
+                        index: 1,
+                        label: context.tr('heading'),
+                        value:
+                            pos != null ? pos.course.toStringAsFixed(0) : '—',
+                        unit: pos != null ? '°' : '',
+                        icon: Icons.explore_rounded,
+                        color: AppColors.accent,
+                      ),
+                      const SizedBox(width: 10),
+                      _MetricCard(
+                        index: 2,
+                        label: context.tr('battery'),
+                        value: item.batteryLevel != null
+                            ? item.batteryLevel!.toStringAsFixed(0)
+                            : '—',
+                        unit: item.batteryLevel != null ? '%' : '',
+                        icon: Icons.battery_charging_full_rounded,
+                        color: AppColors.warning,
+                      ),
+                      const SizedBox(width: 10),
+                      _MetricCard(
+                        index: 3,
+                        label: context.tr('ignition'),
+                        value: item.ignition == true
+                            ? context.tr('on')
+                            : context.tr('off'),
+                        unit: '',
+                        icon: item.ignition == true
+                            ? Icons.power_settings_new_rounded
+                            : Icons.power_off_rounded,
+                        color: item.ignition == true
+                            ? AppColors.statusMoving
+                            : AppColors.statusOffline,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  // Linked geofences (recent events/alerts)
+                  _LinkedGeofencesSection(
+                    future: geofencesFuture,
+                    expanded: zonesExpanded,
+                    onToggle: onZonesToggle,
+                    onUnlink: onUnlinkZone,
+                    onManage: onManageZones,
+                    onRefresh: onZonesRefresh,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// =============================================================================
+// Web-only: Quick actions 2x2 grid
+// =============================================================================
+
+class _WebQuickActionsGrid extends StatelessWidget {
+  final String carId;
+  final bool sharingLocation;
+  final bool securingMode;
+  final VoidCallback onShareLocation;
+  final VoidCallback? onStreetView;
+  final VoidCallback onActivateSecurity;
+
+  const _WebQuickActionsGrid({
+    required this.carId,
+    required this.sharingLocation,
+    required this.securingMode,
+    required this.onShareLocation,
+    required this.onStreetView,
+    required this.onActivateSecurity,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final actions = <_WebQuickAction>[
+      _WebQuickAction(
+        icon: Icons.settings_remote_rounded,
+        label: context.tr('commands'),
+        color: AppColors.primary,
+        onTap: () => context.push('/vehicles/$carId/commands'),
+      ),
+      _WebQuickAction(
+        icon: Icons.sensors_rounded,
+        label: context.tr('sensors'),
+        color: AppColors.primary,
+        onTap: () => context.push('/vehicles/$carId/sensors'),
+      ),
+      _WebQuickAction(
+        icon: Icons.folder_rounded,
+        label: context.tr('documents'),
+        color: AppColors.accent,
+        onTap: () => context.push('/vehicles/$carId/documents'),
+      ),
+      _WebQuickAction(
+        icon: Icons.block_rounded,
+        label: context.tr('immobilize'),
+        color: AppColors.warning,
+        onTap: () => context.push('/vehicles/$carId/immobilize'),
+      ),
+      _WebQuickAction(
+        icon: Icons.sos_rounded,
+        label: context.tr('panic'),
+        color: AppColors.error,
+        onTap: () => context.push('/vehicles/$carId/panic'),
+      ),
+      _WebQuickAction(
+        icon: Icons.timeline_rounded,
+        label: context.tr('route_history'),
+        color: AppColors.accent,
+        onTap: () => context.push('/route-history'),
+      ),
+      _WebQuickAction(
+        icon: Icons.share_location_rounded,
+        label: context.tr('share_location'),
+        color: AppColors.secondary,
+        loading: sharingLocation,
+        onTap: sharingLocation ? null : onShareLocation,
+      ),
+      _WebQuickAction(
+        icon: Icons.streetview_rounded,
+        label: context.tr('street_view'),
+        color: AppColors.secondary,
+        onTap: onStreetView,
+      ),
+      _WebQuickAction(
+        icon: Icons.shield_rounded,
+        label: context.tr('security_mode'),
+        color: AppColors.warning,
+        loading: securingMode,
+        onTap: securingMode ? null : onActivateSecurity,
+      ),
+    ];
+    return GridView.count(
+      crossAxisCount: 2,
+      mainAxisSpacing: 10,
+      crossAxisSpacing: 10,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      childAspectRatio: 2.4,
+      children: actions
+          .map((a) => _WebQuickActionCard(action: a))
+          .toList(),
+    );
+  }
+}
+
+class _WebQuickAction {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback? onTap;
+  final bool loading;
+  const _WebQuickAction({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+    this.loading = false,
+  });
+}
+
+class _WebQuickActionCard extends StatelessWidget {
+  final _WebQuickAction action;
+  const _WebQuickActionCard({required this.action});
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = action.onTap != null && !action.loading;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: enabled ? action.onTap : null,
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          padding:
+              const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: enabled
+                ? action.color.withValues(alpha: 0.12)
+                : context.cardColor,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: enabled
+                  ? action.color.withValues(alpha: 0.4)
+                  : context.dividerColor,
+            ),
+          ),
+          child: Row(
+            children: [
+              if (action.loading)
+                SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor:
+                        AlwaysStoppedAnimation<Color>(action.color),
+                  ),
+                )
+              else
+                Icon(action.icon, color: action.color, size: 20),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  action.label,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: enabled
+                        ? action.color
+                        : context.textMutedColor,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 _ZoneTypeStyle _geofenceTypeFor(String area) {

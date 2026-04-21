@@ -216,6 +216,7 @@ class _SensorsScreenState extends State<SensorsScreen> {
   }
 
   Widget _buildGrid(BuildContext context) {
+    final isWide = MediaQuery.sizeOf(context).width >= 900;
     final cards = <Widget>[];
     int idx = 0;
 
@@ -226,6 +227,102 @@ class _SensorsScreenState extends State<SensorsScreen> {
           .slideY(begin: 0.1, end: 0);
       idx++;
       return anim;
+    }
+
+    if (isWide) {
+      // Web-only: use compact 2-column cards with name/value/last updated/trend icon
+      final lastUpdateText = _lastUpdated != null
+          ? DateFormat('MMM d, HH:mm').format(_lastUpdated!)
+          : '—';
+      if (_fuel != null) {
+        cards.add(wrap(_WebSensorCard(
+          icon: Icons.local_gas_station_rounded,
+          label: context.tr('fuel_level'),
+          value: _fuel!.toStringAsFixed(0),
+          unit: '%',
+          color: _colorForFuel(_fuel!),
+          lastUpdated: lastUpdateText,
+          trendIcon: Icons.trending_flat_rounded,
+        )));
+      }
+      if (_temp1 != null) {
+        cards.add(wrap(_WebSensorCard(
+          icon: Icons.thermostat_rounded,
+          label: context.tr('temperature'),
+          value: _temp1!.toStringAsFixed(1),
+          unit: '°C',
+          color: _colorForTemp(_temp1!),
+          lastUpdated: lastUpdateText,
+          trendIcon: Icons.trending_up_rounded,
+        )));
+      }
+      if (_batteryLevel != null) {
+        cards.add(wrap(_WebSensorCard(
+          icon: Icons.battery_charging_full_rounded,
+          label: context.tr('battery'),
+          value: _batteryLevel!.toStringAsFixed(0),
+          unit: '%',
+          color: _colorForBattery(_batteryLevel!),
+          lastUpdated: lastUpdateText,
+          trendIcon: Icons.trending_down_rounded,
+        )));
+      }
+      if (_rpm != null) {
+        cards.add(wrap(_WebSensorCard(
+          icon: Icons.speed_rounded,
+          label: 'RPM',
+          value: NumberFormat.decimalPattern().format(_rpm!),
+          unit: '',
+          color: AppColors.secondary,
+          lastUpdated: lastUpdateText,
+          trendIcon: Icons.show_chart_rounded,
+        )));
+      }
+      if (_hours != null) {
+        cards.add(wrap(_WebSensorCard(
+          icon: Icons.timer_rounded,
+          label: context.tr('engine_hours'),
+          value: _hours!.toStringAsFixed(1),
+          unit: 'hrs',
+          color: AppColors.accent,
+          lastUpdated: lastUpdateText,
+          trendIcon: Icons.trending_flat_rounded,
+        )));
+      }
+
+      return ListView(
+        padding: const EdgeInsets.fromLTRB(28, 24, 28, 100),
+        children: [
+          GridView.count(
+            crossAxisCount: 2,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            mainAxisSpacing: 16,
+            crossAxisSpacing: 16,
+            childAspectRatio: 2.4,
+            children: cards,
+          ),
+          const SizedBox(height: 24),
+          if (_lastUpdated != null)
+            Center(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.schedule_rounded,
+                      size: 13, color: context.textMutedColor),
+                  const SizedBox(width: 6),
+                  Text(
+                    '${context.tr('last_update')}: ${DateFormat('MMM d, HH:mm:ss').format(_lastUpdated!)}',
+                    style: TextStyle(
+                      color: context.textMutedColor,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      );
     }
 
     if (_fuel != null) {
@@ -295,6 +392,140 @@ class _SensorsScreenState extends State<SensorsScreen> {
             ),
           ),
       ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Web-only sensor card: compact 2-col card with value, last-updated, trend icon
+// ─────────────────────────────────────────────────────────────────────────────
+class _WebSensorCard extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final String unit;
+  final Color color;
+  final String lastUpdated;
+  final IconData trendIcon;
+
+  const _WebSensorCard({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.unit,
+    required this.color,
+    required this.lastUpdated,
+    required this.trendIcon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        gradient: context.cardGradientColor,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: context.dividerColor),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(icon, color: color, size: 26),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: context.textSecondaryColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.3,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        value,
+                        style: TextStyle(
+                          color: context.textPrimaryColor,
+                          fontSize: 24,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: -0.5,
+                          height: 1,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (unit.isNotEmpty) ...[
+                      const SizedBox(width: 4),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 2),
+                        child: Text(
+                          unit,
+                          style: TextStyle(
+                            color: context.textMutedColor,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.schedule_rounded,
+                      size: 11,
+                      color: context.textMutedColor,
+                    ),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        lastUpdated,
+                        style: TextStyle(
+                          color: context.textMutedColor,
+                          fontSize: 11,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(trendIcon, color: color, size: 22),
+          ),
+        ],
+      ),
     );
   }
 }

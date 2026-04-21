@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../widgets/web/web_page_scaffold.dart';
+
 class EmergencyContact {
   EmergencyContact({
     required this.id,
@@ -258,6 +260,75 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isWide = MediaQuery.sizeOf(context).width >= 900;
+
+    if (isWide) {
+      return WebPageScaffold(
+        title: 'Emergency Contacts',
+        subtitle: 'SOS & emergency contact management',
+        scrollable: true,
+        actions: [
+          ElevatedButton.icon(
+            onPressed: _openAddContactSheet,
+            icon: const Icon(Icons.person_add_alt_1, size: 18),
+            label: Text(context.tr('add_contact')),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.black,
+              elevation: 0,
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          ),
+        ],
+        child: _loading
+            ? const Padding(
+                padding: EdgeInsets.symmetric(vertical: 80),
+                child: Center(
+                  child:
+                      CircularProgressIndicator(color: AppColors.primary),
+                ),
+              )
+            : Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildWarningBanner(),
+                    _buildSosSettingsCard(),
+                    _buildContactsHeader(),
+                    if (_contacts.isEmpty)
+                      _buildEmptyState()
+                    else
+                      Padding(
+                        padding:
+                            const EdgeInsets.symmetric(horizontal: 16),
+                        child: GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: _contacts.length,
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            mainAxisSpacing: 14,
+                            crossAxisSpacing: 14,
+                            childAspectRatio: 2.4,
+                          ),
+                          itemBuilder: (ctx, i) =>
+                              _buildContactCardWeb(_contacts[i], i),
+                        ),
+                      ),
+                    _buildTestSosButton(),
+                    const SizedBox(height: 32),
+                  ],
+                ),
+              ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: context.bgColor,
       appBar: AppBar(
@@ -310,6 +381,141 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
                 ],
               ),
             ),
+    );
+  }
+
+  // Web-variant contact card (no reorder drag handle, fits in grid).
+  Widget _buildContactCardWeb(EmergencyContact contact, int index) {
+    final Color priorityColor = <Color>[
+      AppColors.primary,
+      AppColors.secondary,
+      AppColors.accent,
+      AppColors.warning,
+      AppColors.error,
+    ][index.clamp(0, 4)];
+
+    return Container(
+      decoration: BoxDecoration(
+        color: context.cardColor,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: context.dividerColor),
+      ),
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Container(
+                width: 40,
+                height: 40,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: <Color>[
+                      priorityColor.withValues(alpha: 0.9),
+                      priorityColor.withValues(alpha: 0.5),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '#${index + 1}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      contact.name,
+                      style: TextStyle(
+                        color: context.textPrimaryColor,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      contact.phone,
+                      style: TextStyle(
+                        color: context.textSecondaryColor,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: priorityColor.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  contact.relationship,
+                  style: TextStyle(
+                    color: priorityColor,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              IconButton(
+                tooltip: 'Remove',
+                onPressed: () => _deleteContact(contact),
+                icon: const Icon(
+                  Icons.delete_outline,
+                  color: AppColors.error,
+                ),
+              ),
+            ],
+          ),
+          const Spacer(),
+          Container(
+            height: 1,
+            color: context.dividerColor.withValues(alpha: 0.5),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: _inlineToggle(
+                  icon: Icons.sms_outlined,
+                  label: 'SMS',
+                  value: contact.sendSms,
+                  onChanged: (bool v) {
+                    setState(() => contact.sendSms = v);
+                    _saveContacts();
+                  },
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _inlineToggle(
+                  icon: Icons.call_outlined,
+                  label: 'Call',
+                  value: contact.allowCall,
+                  onChanged: (bool v) {
+                    setState(() => contact.allowCall = v);
+                    _saveContacts();
+                  },
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 

@@ -17,6 +17,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../blocs/fleet/fleet_cubit.dart';
 import '../../widgets/common/app_error.dart';
 import '../../widgets/common/app_loading.dart';
+import '../../widgets/web/web_page_scaffold.dart';
 
 class RouteHistoryScreen extends StatefulWidget {
   const RouteHistoryScreen({super.key});
@@ -597,6 +598,256 @@ class _RouteHistoryScreenState extends State<RouteHistoryScreen> {
       }
     }
 
+    final isWide = MediaQuery.sizeOf(context).width >= 900;
+
+    // Filter controls used by both layouts
+    Widget buildFilterPanel() {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          DropdownButtonFormField<String>(
+            value: _selected?.carId,
+            style: TextStyle(color: context.textPrimaryColor, fontSize: 15),
+            decoration: InputDecoration(
+              labelText: context.tr('vehicle'),
+              prefixIcon: const Icon(Icons.directions_car_rounded),
+            ),
+            dropdownColor: context.cardColor,
+            items: fleetItems
+                .map((e) => DropdownMenuItem(
+                      value: e.carId,
+                      child: Text('${e.carName} • ${e.licensePlate}'),
+                    ))
+                .toList(),
+            onChanged: (v) {
+              if (v == null) return;
+              setState(() {
+                _selected = fleetItems.firstWhere((e) => e.carId == v);
+              });
+            },
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            height: 34,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              children: [
+                _PresetChip(label: context.tr('last_hour'),  icon: Icons.timer_rounded,      onTap: () => _applyPreset(const Duration(hours: 1))),
+                _PresetChip(label: context.tr('today'),      icon: Icons.today_rounded,       onTap: _applyToday),
+                _PresetChip(label: context.tr('yesterday'),  icon: Icons.history_rounded,     onTap: _applyYesterday),
+                _PresetChip(label: context.tr('last_7_days'),icon: Icons.date_range_rounded,  onTap: () => _applyPreset(const Duration(days: 7))),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(child: _DatePickerCard(label: context.tr('from'), date: _from, onTap: () => _pickDate(true))),
+              const SizedBox(width: 10),
+              Expanded(child: _DatePickerCard(label: context.tr('to'),   date: _to,   onTap: () => _pickDate(false))),
+            ],
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: (_loading || _snapping) ? null : _fetchRoute,
+              icon: const Icon(Icons.search_rounded),
+              label: Text(context.tr(_loading || _snapping ? 'loading' : 'load_route')),
+            ),
+          ),
+        ],
+      );
+    }
+
+    // Map widget shared between layouts
+    Widget buildMapStack() {
+      return Stack(
+        children: [
+          GoogleMap(
+            initialCameraPosition: const CameraPosition(
+              target: LatLng(24.7136, 46.6753),
+              zoom: 10,
+            ),
+            polylines: polylines,
+            markers: markers,
+            style: context.isDarkMode ? AppConstants.darkMapStyle : null,
+            zoomControlsEnabled: false,
+            myLocationButtonEnabled: false,
+            onMapCreated: (c) => _mapController = c,
+          ),
+
+          // Speed legend (top-left)
+          if (hasRoute && !_loading)
+            Positioned(
+              top: 12, left: 12,
+              child: _SpeedLegend(
+                labels: {for (final b in _SpeedBand.values) b: _bandLabel(context, b)},
+                colors: {for (final b in _SpeedBand.values) b: _bandColor(b)},
+              ),
+            ),
+
+          // Follow-camera toggle (top-right)
+          if (hasRoute && !_loading)
+            Positioned(
+              top: 12, right: 12,
+              child: _FrostedIconButton(
+                icon: _followCamera ? Icons.gps_fixed_rounded : Icons.gps_not_fixed_rounded,
+                active: _followCamera,
+                tooltip: 'Follow camera',
+                onTap: () => setState(() => _followCamera = !_followCamera),
+              ),
+            ),
+
+          // Loading overlay
+          if (_loading)
+            Container(
+              color: Colors.black.withValues(alpha: 0.5),
+              child: AppLoading(message: context.tr('loading_route')),
+            ),
+
+          // Snapping banner
+          if (_snapping && !_loading)
+            Positioned(
+              top: 12, left: 12, right: 12,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: context.surfaceColor.withValues(alpha: 0.95),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: context.dividerColor),
+                ),
+                child: Row(
+                  children: [
+                    const SizedBox(
+                      width: 16, height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        context.tr('snapping_roads'),
+                        style: TextStyle(color: context.textPrimaryColor, fontSize: 13, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+          // Live playback info overlay
+          if (hasRoute && !_loading && _playbackIndex > 0)
+            Positioned(
+              left: 12, right: 12, bottom: 12,
+              child: _PlaybackInfoCard(position: _route![_playbackIndex]),
+            ),
+
+          if (_error != null)
+            AppError(message: _error!, onRetry: _fetchRoute),
+        ],
+      );
+    }
+
+    Widget replayPanel() => _ReplayPanel(
+          route:          _route!,
+          playbackIndex:  _playbackIndex,
+          isPlaying:      _isPlaying,
+          playbackSpeed:  _playbackSpeed,
+          currentTimeStr: _currentTimeStr,
+          totalTimeStr:   _totalTimeStr,
+          onTogglePlay:   _togglePlay,
+          onSeek:         _seekTo,
+          onJumpStart:    _jumpToStart,
+          onJumpEnd:      _jumpToEnd,
+          onSetSpeed:     _setSpeed,
+          distanceKm:     _distanceKm(),
+          durationSec:    _durationSec(),
+          maxSpeedKmh:    _maxSpeed(),
+          avgSpeedKmh:    _avgSpeed(),
+          stops:          _stops,
+          totalStopDur:   _totalStopDuration,
+          onCopyStats:    _exportStats,
+          fmtDuration:    _fmtDuration,
+        );
+
+    if (isWide) {
+      // ── Web: 2-column layout ────────────────────────────────
+      return WebPageScaffoldScrollable(
+        title: context.tr('route_history'),
+        subtitle: 'Past trips & route replay',
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Left (60%): map
+              Expanded(
+                flex: 3,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(18),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: context.dividerColor),
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: buildMapStack(),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              // Right (40%): sidebar panel
+              Expanded(
+                flex: 2,
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: context.cardGradientColor,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: context.dividerColor),
+                  ),
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        buildFilterPanel(),
+                        const SizedBox(height: 20),
+                        if (hasRoute && !_loading) ...[
+                          _WebTripStats(
+                            distanceKm: _distanceKm(),
+                            durationSec: _durationSec(),
+                            maxSpeedKmh: _maxSpeed(),
+                            avgSpeedKmh: _avgSpeed(),
+                            fmtDuration: _fmtDuration,
+                          ),
+                          const SizedBox(height: 16),
+                          replayPanel(),
+                          if (_stops.isNotEmpty) ...[
+                            const SizedBox(height: 16),
+                            _WebStopsList(
+                              stops: _stops,
+                              fmtDuration: _fmtDuration,
+                            ),
+                          ],
+                        ] else if (!_loading) ...[
+                          _EmptyHintCard(
+                            icon: Icons.timeline_rounded,
+                            title: context.tr('route_history'),
+                            subtitle: 'Select a vehicle and date range, then load the route.',
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // ── Mobile (unchanged) ────────────────────────────────────
     return Scaffold(
       appBar: AppBar(
         title: Text(context.tr('route_history')),
@@ -610,178 +861,16 @@ class _RouteHistoryScreenState extends State<RouteHistoryScreen> {
           // ── Filter panel ─────────────────────────────────────
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-            child: Column(
-              children: [
-                DropdownButtonFormField<String>(
-                  value: _selected?.carId,
-                  style: TextStyle(color: context.textPrimaryColor, fontSize: 15),
-                  decoration: InputDecoration(
-                    labelText: context.tr('vehicle'),
-                    prefixIcon: const Icon(Icons.directions_car_rounded),
-                  ),
-                  dropdownColor: context.cardColor,
-                  items: fleetItems
-                      .map((e) => DropdownMenuItem(
-                            value: e.carId,
-                            child: Text('${e.carName} • ${e.licensePlate}'),
-                          ))
-                      .toList(),
-                  onChanged: (v) {
-                    if (v == null) return;
-                    setState(() {
-                      _selected = fleetItems.firstWhere((e) => e.carId == v);
-                    });
-                  },
-                ),
-                const SizedBox(height: 10),
-                // Preset chips
-                SizedBox(
-                  height: 34,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    children: [
-                      _PresetChip(label: context.tr('last_hour'),  icon: Icons.timer_rounded,      onTap: () => _applyPreset(const Duration(hours: 1))),
-                      _PresetChip(label: context.tr('today'),      icon: Icons.today_rounded,       onTap: _applyToday),
-                      _PresetChip(label: context.tr('yesterday'),  icon: Icons.history_rounded,     onTap: _applyYesterday),
-                      _PresetChip(label: context.tr('last_7_days'),icon: Icons.date_range_rounded,  onTap: () => _applyPreset(const Duration(days: 7))),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    Expanded(child: _DatePickerCard(label: context.tr('from'), date: _from, onTap: () => _pickDate(true))),
-                    const SizedBox(width: 10),
-                    Expanded(child: _DatePickerCard(label: context.tr('to'),   date: _to,   onTap: () => _pickDate(false))),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: (_loading || _snapping) ? null : _fetchRoute,
-                    icon: const Icon(Icons.search_rounded),
-                    label: Text(context.tr(_loading || _snapping ? 'loading' : 'load_route')),
-                  ),
-                ),
-                const SizedBox(height: 4),
-              ],
-            ),
+            child: buildFilterPanel(),
           ),
-
+          const SizedBox(height: 4),
           // ── Map + overlays ────────────────────────────────────
-          Expanded(
-            child: Stack(
-              children: [
-                GoogleMap(
-                  initialCameraPosition: const CameraPosition(
-                    target: LatLng(24.7136, 46.6753),
-                    zoom: 10,
-                  ),
-                  polylines: polylines,
-                  markers: markers,
-                  style: context.isDarkMode ? AppConstants.darkMapStyle : null,
-                  zoomControlsEnabled: false,
-                  myLocationButtonEnabled: false,
-                  onMapCreated: (c) => _mapController = c,
-                ),
-
-                // Speed legend (top-left)
-                if (hasRoute && !_loading)
-                  Positioned(
-                    top: 12, left: 12,
-                    child: _SpeedLegend(
-                      labels: {for (final b in _SpeedBand.values) b: _bandLabel(context, b)},
-                      colors: {for (final b in _SpeedBand.values) b: _bandColor(b)},
-                    ),
-                  ),
-
-                // Follow-camera toggle (top-right)
-                if (hasRoute && !_loading)
-                  Positioned(
-                    top: 12, right: 12,
-                    child: _FrostedIconButton(
-                      icon: _followCamera ? Icons.gps_fixed_rounded : Icons.gps_not_fixed_rounded,
-                      active: _followCamera,
-                      tooltip: 'Follow camera',
-                      onTap: () => setState(() => _followCamera = !_followCamera),
-                    ),
-                  ),
-
-                // Loading overlay
-                if (_loading)
-                  Container(
-                    color: Colors.black.withValues(alpha: 0.5),
-                    child: AppLoading(message: context.tr('loading_route')),
-                  ),
-
-                // Snapping banner
-                if (_snapping && !_loading)
-                  Positioned(
-                    top: 12, left: 12, right: 12,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: context.surfaceColor.withValues(alpha: 0.95),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: context.dividerColor),
-                      ),
-                      child: Row(
-                        children: [
-                          const SizedBox(
-                            width: 16, height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              context.tr('snapping_roads'),
-                              style: TextStyle(color: context.textPrimaryColor, fontSize: 13, fontWeight: FontWeight.w600),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                // ── Live playback info overlay ───────────────────
-                if (hasRoute && !_loading && _playbackIndex > 0)
-                  Positioned(
-                    left: 12, right: 12, bottom: 12,
-                    child: _PlaybackInfoCard(position: _route![_playbackIndex]),
-                  ),
-
-                if (_error != null)
-                  AppError(message: _error!, onRetry: _fetchRoute),
-              ],
-            ),
-          ),
-
+          Expanded(child: buildMapStack()),
           // ── Playback & stats panel (shown when route is loaded) ──
           if (hasRoute && !_loading)
             SafeArea(
               top: false,
-              child: _ReplayPanel(
-                route:          _route!,
-                playbackIndex:  _playbackIndex,
-                isPlaying:      _isPlaying,
-                playbackSpeed:  _playbackSpeed,
-                currentTimeStr: _currentTimeStr,
-                totalTimeStr:   _totalTimeStr,
-                onTogglePlay:   _togglePlay,
-                onSeek:         _seekTo,
-                onJumpStart:    _jumpToStart,
-                onJumpEnd:      _jumpToEnd,
-                onSetSpeed:     _setSpeed,
-                distanceKm:     _distanceKm(),
-                durationSec:    _durationSec(),
-                maxSpeedKmh:    _maxSpeed(),
-                avgSpeedKmh:    _avgSpeed(),
-                stops:          _stops,
-                totalStopDur:   _totalStopDuration,
-                onCopyStats:    _exportStats,
-                fmtDuration:    _fmtDuration,
-              ),
+              child: replayPanel(),
             ),
         ],
       ),
@@ -1360,6 +1449,201 @@ class _StatMini extends StatelessWidget {
           const SizedBox(height: 3),
           Text(value, style: TextStyle(color: context.textPrimaryColor, fontSize: 12, fontWeight: FontWeight.w800)),
           Text(label,  style: TextStyle(color: context.textMutedColor,  fontSize: 10)),
+        ],
+      ),
+    );
+  }
+}
+
+// =============================================================================
+//  Web-only sidebar helpers
+// =============================================================================
+
+class _WebTripStats extends StatelessWidget {
+  final double distanceKm;
+  final int    durationSec;
+  final double maxSpeedKmh;
+  final double avgSpeedKmh;
+  final String Function(int) fmtDuration;
+
+  const _WebTripStats({
+    required this.distanceKm,
+    required this.durationSec,
+    required this.maxSpeedKmh,
+    required this.avgSpeedKmh,
+    required this.fmtDuration,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: context.surfaceColor,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: context.dividerColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Trip Stats',
+            style: TextStyle(
+              color: context.textMutedColor,
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.2,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              _StatMini(icon: Icons.route_rounded,       label: 'km',    value: distanceKm.toStringAsFixed(1),            color: AppColors.primary),
+              _StatMini(icon: Icons.access_time_rounded, label: 'time',  value: fmtDuration(durationSec),                  color: AppColors.secondary),
+              _StatMini(icon: Icons.speed_rounded,       label: 'max',   value: '${maxSpeedKmh.toStringAsFixed(0)} km/h', color: AppColors.error),
+              _StatMini(icon: Icons.show_chart_rounded,  label: 'avg',   value: '${avgSpeedKmh.toStringAsFixed(0)} km/h', color: AppColors.warning),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WebStopsList extends StatelessWidget {
+  final List<_Stop> stops;
+  final String Function(int) fmtDuration;
+
+  const _WebStopsList({required this.stops, required this.fmtDuration});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: context.surfaceColor,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: context.dividerColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.pin_drop_rounded,
+                  size: 15, color: AppColors.primary),
+              const SizedBox(width: 6),
+              Text(
+                '${context.tr('stops')} (${stops.length})',
+                style: TextStyle(
+                  color: context.textMutedColor,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          for (int i = 0; i < stops.length; i++)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                children: [
+                  Container(
+                    width: 24,
+                    height: 24,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      '${i + 1}',
+                      style: const TextStyle(
+                        color: AppColors.primary,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      DateFormat('MMM d, HH:mm').format(stops[i].start),
+                      style: TextStyle(
+                        color: context.textPrimaryColor,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    fmtDuration(stops[i].duration.inSeconds),
+                    style: TextStyle(
+                      color: context.textSecondaryColor,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EmptyHintCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+
+  const _EmptyHintCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: context.surfaceColor,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: context.dividerColor),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: AppColors.primary, size: 26),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            title,
+            style: TextStyle(
+              color: context.textPrimaryColor,
+              fontSize: 15,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            subtitle,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: context.textMutedColor,
+              fontSize: 12,
+            ),
+          ),
         ],
       ),
     );

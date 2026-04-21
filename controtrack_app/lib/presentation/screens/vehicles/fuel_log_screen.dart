@@ -254,6 +254,7 @@ class _FuelLogScreenState extends State<FuelLogScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isWide = MediaQuery.sizeOf(context).width >= 900;
     return Scaffold(
       backgroundColor: context.bgColor,
       appBar: AppBar(
@@ -265,82 +266,267 @@ class _FuelLogScreenState extends State<FuelLogScreen> {
           onPressed: () => context.pop(),
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _addEntry,
-        icon: const Icon(Icons.add_rounded),
-        label: Text(context.tr('add_fuel')),
-      ),
+      floatingActionButton: isWide
+          ? null
+          : FloatingActionButton.extended(
+              onPressed: _addEntry,
+              icon: const Icon(Icons.add_rounded),
+              label: Text(context.tr('add_fuel')),
+            ),
       body: _loading
           ? const Center(
               child: CircularProgressIndicator(color: AppColors.primary),
             )
-          : _entries.isEmpty
-              ? ListView(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
-                  children: [
-                    _SummaryCard(
-                      monthSpent: _monthSpent,
-                      monthLiters: _monthLiters,
-                      avgConsumption: _avgConsumption,
-                      costPerKm: _costPerKm,
-                      carId: widget.carId,
-                    ),
-                    const SizedBox(height: 180),
-                    EmptyState(
-                      title: context.tr('no_fuel_entries'),
-                      subtitle: context.tr('no_fuel_entries_subtitle'),
-                      icon: Icons.local_gas_station_rounded,
-                    ),
-                  ],
-                )
-              : ListView(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
-                  children: [
-                    _SummaryCard(
-                      monthSpent: _monthSpent,
-                      monthLiters: _monthLiters,
-                      avgConsumption: _avgConsumption,
-                      costPerKm: _costPerKm,
-                      carId: widget.carId,
-                    ),
-                    const SizedBox(height: 14),
-                    _EfficiencyInsightsCard(
-                      totalKm: _totalOdometerKm,
-                      trend: _efficiencyTrend,
-                      fuelTypeCount: _fuelTypeCount,
-                    ),
-                    const SizedBox(height: 14),
-                    if (_entries.length >= 2) ...[
-                      _CostChart(entries: _entries.take(10).toList().reversed.toList()),
-                      const SizedBox(height: 14),
-                    ],
-                    for (final e in _entries) ...[
-                      Dismissible(
-                        key: ValueKey(e.id),
-                        direction: DismissDirection.endToStart,
-                        background: Container(
-                          alignment: Alignment.centerRight,
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          margin: const EdgeInsets.only(bottom: 10),
-                          decoration: BoxDecoration(
-                            color: AppColors.error.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: const Icon(Icons.delete_outline,
-                              color: AppColors.error),
+          : isWide
+              ? _buildWideLayout(context)
+              : _entries.isEmpty
+                  ? ListView(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
+                      children: [
+                        _SummaryCard(
+                          monthSpent: _monthSpent,
+                          monthLiters: _monthLiters,
+                          avgConsumption: _avgConsumption,
+                          costPerKm: _costPerKm,
+                          carId: widget.carId,
                         ),
-                        onDismissed: (_) => _delete(e),
-                        child: Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: _FuelTile(
-                            entry: e,
-                            consumption: _consumptionFor(e),
-                          ),
+                        const SizedBox(height: 180),
+                        EmptyState(
+                          title: context.tr('no_fuel_entries'),
+                          subtitle: context.tr('no_fuel_entries_subtitle'),
+                          icon: Icons.local_gas_station_rounded,
                         ),
-                      ),
-                    ],
-                  ],
+                      ],
+                    )
+                  : ListView(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
+                      children: [
+                        _SummaryCard(
+                          monthSpent: _monthSpent,
+                          monthLiters: _monthLiters,
+                          avgConsumption: _avgConsumption,
+                          costPerKm: _costPerKm,
+                          carId: widget.carId,
+                        ),
+                        const SizedBox(height: 14),
+                        _EfficiencyInsightsCard(
+                          totalKm: _totalOdometerKm,
+                          trend: _efficiencyTrend,
+                          fuelTypeCount: _fuelTypeCount,
+                        ),
+                        const SizedBox(height: 14),
+                        if (_entries.length >= 2) ...[
+                          _CostChart(
+                              entries:
+                                  _entries.take(10).toList().reversed.toList()),
+                          const SizedBox(height: 14),
+                        ],
+                        for (final e in _entries) ...[
+                          Dismissible(
+                            key: ValueKey(e.id),
+                            direction: DismissDirection.endToStart,
+                            background: Container(
+                              alignment: Alignment.centerRight,
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 20),
+                              margin: const EdgeInsets.only(bottom: 10),
+                              decoration: BoxDecoration(
+                                color: AppColors.error.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: const Icon(Icons.delete_outline,
+                                  color: AppColors.error),
+                            ),
+                            onDismissed: (_) => _delete(e),
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: _FuelTile(
+                                entry: e,
+                                consumption: _consumptionFor(e),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+    );
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Web 2-column layout
+  // ──────────────────────────────────────────────────────────────────────────
+  Widget _buildWideLayout(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(28, 16, 28, 16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // ─── Left column: fuel entries list ───
+          Expanded(
+            flex: 6,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12, left: 2),
+                  child: Text(
+                    context.tr('fuel_log').toUpperCase(),
+                    style: TextStyle(
+                      color: context.textMutedColor,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
                 ),
+                Expanded(
+                  child: _entries.isEmpty
+                      ? Center(
+                          child: EmptyState(
+                            title: context.tr('no_fuel_entries'),
+                            subtitle: context.tr('no_fuel_entries_subtitle'),
+                            icon: Icons.local_gas_station_rounded,
+                          ),
+                        )
+                      : ListView.builder(
+                          padding: const EdgeInsets.only(right: 8, bottom: 16),
+                          physics: const BouncingScrollPhysics(),
+                          itemCount: _entries.length,
+                          itemBuilder: (_, i) {
+                            final e = _entries[i];
+                            return Dismissible(
+                              key: ValueKey(e.id),
+                              direction: DismissDirection.endToStart,
+                              background: Container(
+                                alignment: Alignment.centerRight,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 20),
+                                margin: const EdgeInsets.only(bottom: 10),
+                                decoration: BoxDecoration(
+                                  color:
+                                      AppColors.error.withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: const Icon(Icons.delete_outline,
+                                    color: AppColors.error),
+                              ),
+                              onDismissed: (_) => _delete(e),
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.only(bottom: 10),
+                                child: _FuelTile(
+                                  entry: e,
+                                  consumption: _consumptionFor(e),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 20),
+          // ─── Right column: summary + inline add form ───
+          Expanded(
+            flex: 5,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.only(left: 4, bottom: 16),
+              physics: const BouncingScrollPhysics(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _SummaryCard(
+                    monthSpent: _monthSpent,
+                    monthLiters: _monthLiters,
+                    avgConsumption: _avgConsumption,
+                    costPerKm: _costPerKm,
+                    carId: widget.carId,
+                  ),
+                  const SizedBox(height: 14),
+                  _EfficiencyInsightsCard(
+                    totalKm: _totalOdometerKm,
+                    trend: _efficiencyTrend,
+                    fuelTypeCount: _fuelTypeCount,
+                  ),
+                  const SizedBox(height: 14),
+                  if (_entries.length >= 2) ...[
+                    _CostChart(
+                      entries:
+                          _entries.take(10).toList().reversed.toList(),
+                    ),
+                    const SizedBox(height: 14),
+                  ],
+                  // Inline add entry card
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      gradient: context.cardGradientColor,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: context.dividerColor),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              width: 32,
+                              height: 32,
+                              decoration: BoxDecoration(
+                                color: AppColors.primary
+                                    .withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(9),
+                              ),
+                              child: const Icon(Icons.add_rounded,
+                                  color: AppColors.primary, size: 18),
+                            ),
+                            const SizedBox(width: 10),
+                            Text(
+                              context.tr('add_fuel'),
+                              style: TextStyle(
+                                color: context.textPrimaryColor,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          context.tr('no_fuel_entries_subtitle'),
+                          style: TextStyle(
+                            color: context.textMutedColor,
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: _addEntry,
+                            icon: const Icon(Icons.add_rounded),
+                            label: Text(context.tr('add_fuel')),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

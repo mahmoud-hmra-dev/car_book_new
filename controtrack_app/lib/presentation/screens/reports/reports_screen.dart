@@ -11,6 +11,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../blocs/fleet/fleet_cubit.dart';
 import '../../widgets/common/app_error.dart';
 import '../../widgets/common/app_loading.dart';
+import '../../widgets/web/web_page_scaffold.dart';
 
 class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
@@ -179,91 +180,179 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: context.bgColor,
-      appBar: AppBar(
+    final isWide = MediaQuery.sizeOf(context).width >= 900;
+    return WebPageScaffoldScrollable(
+      title: context.tr('reports'),
+      subtitle: 'Analytics & performance insights',
+      child: Scaffold(
         backgroundColor: context.bgColor,
-        elevation: 0,
-        title: Text(context.tr('reports')),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => context.pop(),
-        ),
+        appBar: isWide
+            ? null
+            : AppBar(
+                backgroundColor: context.bgColor,
+                elevation: 0,
+                title: Text(context.tr('reports')),
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back_rounded),
+                  onPressed: () => context.pop(),
+                ),
+              ),
+        body: isWide ? _buildWebBody(context) : _buildMobileBody(context),
       ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+    );
+  }
+
+  Widget _buildMobileBody(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+      children: [
+        Text(
+          context.tr('reports'),
+          style: TextStyle(
+            color: context.textPrimaryColor,
+            fontSize: 22,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.3,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Analytics, performance and violations',
+          style: TextStyle(color: context.textMutedColor, fontSize: 13),
+        ),
+        const SizedBox(height: 20),
+        GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+          childAspectRatio: 1.05,
+          children: [
+            _ReportCard(
+              icon: Icons.speed_rounded,
+              color: AppColors.error,
+              title: context.tr('speed_violations'),
+              subtitle: 'Overspeed incidents',
+              onTap: () => context.push('/reports/speed-violations'),
+            ).animate().fadeIn(delay: 50.ms, duration: 350.ms).slideY(
+                  begin: 0.1,
+                  end: 0,
+                ),
+            _ReportCard(
+              icon: Icons.route_rounded,
+              color: AppColors.primary,
+              title: 'Route Reports',
+              subtitle: 'Distance & duration',
+              onTap: _openRouteReport,
+            ).animate().fadeIn(delay: 100.ms, duration: 350.ms).slideY(
+                  begin: 0.1,
+                  end: 0,
+                ),
+            _ReportCard(
+              icon: Icons.assignment_rounded,
+              color: AppColors.secondary,
+              title: 'Fleet Summary',
+              subtitle: 'Daily / weekly report',
+              onTap: () => context.push('/reports/summary'),
+            ).animate().fadeIn(delay: 200.ms, duration: 350.ms).slideY(
+                  begin: 0.1,
+                  end: 0,
+                ),
+            _ReportCard(
+              icon: Icons.pie_chart_rounded,
+              color: AppColors.accent,
+              title: 'Quick Summary',
+              subtitle: 'Status overview',
+              onTap: _openFleetSummarySheet,
+            ).animate().fadeIn(delay: 400.ms, duration: 350.ms).slideY(
+                  begin: 0.1,
+                  end: 0,
+                ),
+          ],
+        ),
+        if (_showRouteReport) ...[
+          const SizedBox(height: 24),
+          _buildRouteReportForm(context)
+              .animate()
+              .fadeIn(duration: 300.ms)
+              .slideY(begin: 0.05, end: 0),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildWebBody(BuildContext context) {
+    final cards = <_WebReportCardData>[
+      _WebReportCardData(
+        icon: Icons.speed_rounded,
+        color: AppColors.error,
+        title: context.tr('speed_violations'),
+        description:
+            'Review overspeed incidents, severity, drivers and locations.',
+        onTap: () => context.push('/reports/speed-violations'),
+      ),
+      _WebReportCardData(
+        icon: Icons.route_rounded,
+        color: AppColors.primary,
+        title: 'Route Reports',
+        description:
+            'Distance travelled, durations, stops and per-vehicle routes.',
+        onTap: _openRouteReport,
+      ),
+      _WebReportCardData(
+        icon: Icons.assignment_rounded,
+        color: AppColors.secondary,
+        title: 'Fleet Summary',
+        description:
+            'Daily and weekly KPIs, health score, performance and safety.',
+        onTap: () => context.push('/reports/summary'),
+      ),
+      _WebReportCardData(
+        icon: Icons.pie_chart_rounded,
+        color: AppColors.accent,
+        title: 'Quick Summary',
+        description:
+            'Live snapshot of fleet status distribution at a glance.',
+        onTap: _openFleetSummarySheet,
+      ),
+    ];
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(28, 24, 28, 40),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            context.tr('reports'),
-            style: TextStyle(
-              color: context.textPrimaryColor,
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-              letterSpacing: -0.3,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Analytics, performance and violations',
-            style: TextStyle(color: context.textMutedColor, fontSize: 13),
-          ),
-          const SizedBox(height: 20),
-          GridView.count(
-            crossAxisCount: 2,
+          GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 12,
-            crossAxisSpacing: 12,
-            childAspectRatio: 1.05,
-            children: [
-              _ReportCard(
-                icon: Icons.speed_rounded,
-                color: AppColors.error,
-                title: context.tr('speed_violations'),
-                subtitle: 'Overspeed incidents',
-                onTap: () => context.push('/reports/speed-violations'),
-              ).animate().fadeIn(delay: 50.ms, duration: 350.ms).slideY(
-                    begin: 0.1,
-                    end: 0,
-                  ),
-              _ReportCard(
-                icon: Icons.route_rounded,
-                color: AppColors.primary,
-                title: 'Route Reports',
-                subtitle: 'Distance & duration',
-                onTap: _openRouteReport,
-              ).animate().fadeIn(delay: 100.ms, duration: 350.ms).slideY(
-                    begin: 0.1,
-                    end: 0,
-                  ),
-              _ReportCard(
-                icon: Icons.assignment_rounded,
-                color: AppColors.secondary,
-                title: 'Fleet Summary',
-                subtitle: 'Daily / weekly report',
-                onTap: () => context.push('/reports/summary'),
-              ).animate().fadeIn(delay: 200.ms, duration: 350.ms).slideY(
-                    begin: 0.1,
-                    end: 0,
-                  ),
-              _ReportCard(
-                icon: Icons.pie_chart_rounded,
-                color: AppColors.accent,
-                title: 'Quick Summary',
-                subtitle: 'Status overview',
-                onTap: _openFleetSummarySheet,
-              ).animate().fadeIn(delay: 400.ms, duration: 350.ms).slideY(
-                    begin: 0.1,
-                    end: 0,
-                  ),
-            ],
+            itemCount: cards.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              mainAxisSpacing: 18,
+              crossAxisSpacing: 18,
+              childAspectRatio: 1.6,
+            ),
+            itemBuilder: (_, i) {
+              final c = cards[i];
+              return _WebReportCard(data: c)
+                  .animate()
+                  .fadeIn(
+                    delay: Duration(milliseconds: 60 * i),
+                    duration: 300.ms,
+                  )
+                  .slideY(begin: 0.08, end: 0);
+            },
           ),
           if (_showRouteReport) ...[
-            const SizedBox(height: 24),
-            _buildRouteReportForm(context)
-                .animate()
-                .fadeIn(duration: 300.ms)
-                .slideY(begin: 0.05, end: 0),
+            const SizedBox(height: 28),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 720),
+              child: _buildRouteReportForm(context)
+                  .animate()
+                  .fadeIn(duration: 300.ms)
+                  .slideY(begin: 0.05, end: 0),
+            ),
           ],
         ],
       ),
@@ -580,6 +669,165 @@ class _SummaryTile extends StatelessWidget {
               style:
                   TextStyle(color: context.textMutedColor, fontSize: 11)),
         ],
+      ),
+    );
+  }
+}
+
+class _WebReportCardData {
+  final IconData icon;
+  final Color color;
+  final String title;
+  final String description;
+  final VoidCallback onTap;
+  const _WebReportCardData({
+    required this.icon,
+    required this.color,
+    required this.title,
+    required this.description,
+    required this.onTap,
+  });
+}
+
+class _WebReportCard extends StatefulWidget {
+  final _WebReportCardData data;
+  const _WebReportCard({required this.data});
+
+  @override
+  State<_WebReportCard> createState() => _WebReportCardState();
+}
+
+class _WebReportCardState extends State<_WebReportCard> {
+  bool _hover = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final d = widget.data;
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      cursor: SystemMouseCursors.click,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOut,
+        transform: Matrix4.translationValues(0, _hover ? -2 : 0, 0),
+        decoration: BoxDecoration(
+          gradient: context.cardGradientColor,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: _hover
+                ? d.color.withValues(alpha: 0.55)
+                : context.dividerColor,
+            width: _hover ? 1.2 : 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: _hover
+                  ? d.color.withValues(alpha: 0.18)
+                  : Colors.black.withValues(alpha: 0.05),
+              blurRadius: _hover ? 22 : 10,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: d.onTap,
+            borderRadius: BorderRadius.circular(18),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: d.color.withValues(alpha: 0.16),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: d.color.withValues(alpha: 0.35),
+                      ),
+                    ),
+                    child: Icon(d.icon, color: d.color, size: 28),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          d.title,
+                          style: TextStyle(
+                            color: context.textPrimaryColor,
+                            fontSize: 17,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.2,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 6),
+                        Expanded(
+                          child: Text(
+                            d.description,
+                            style: TextStyle(
+                              color: context.textSecondaryColor,
+                              fontSize: 12.5,
+                              height: 1.4,
+                            ),
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 180),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: _hover ? 12 : 10,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: _hover
+                                  ? d.color.withValues(alpha: 0.18)
+                                  : d.color.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: d.color.withValues(alpha: 0.4),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'Open',
+                                  style: TextStyle(
+                                    color: d.color,
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 0.3,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Icon(
+                                  Icons.arrow_forward_rounded,
+                                  color: d.color,
+                                  size: 14,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -9,6 +9,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../blocs/fleet/fleet_cubit.dart';
 import '../../widgets/common/app_error.dart';
 import '../../widgets/common/app_loading.dart';
+import '../../widgets/web/web_page_scaffold.dart';
 
 class MaintenanceScreen extends StatefulWidget {
   const MaintenanceScreen({super.key});
@@ -143,19 +144,24 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(context.tr('maintenance')),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => context.pop(),
-        ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _edit(null),
-        icon: const Icon(Icons.add_rounded),
-        label: Text(context.tr('add')),
-      ),
+    final isWide = MediaQuery.sizeOf(context).width >= 900;
+    final scaffold = Scaffold(
+      appBar: isWide
+          ? null
+          : AppBar(
+              title: Text(context.tr('maintenance')),
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back_rounded),
+                onPressed: () => context.pop(),
+              ),
+            ),
+      floatingActionButton: isWide
+          ? null
+          : FloatingActionButton.extended(
+              onPressed: () => _edit(null),
+              icon: const Icon(Icons.add_rounded),
+              label: Text(context.tr('add')),
+            ),
       body: FutureBuilder<List<MaintenanceModel>>(
         future: _future,
         builder: (context, snap) {
@@ -173,6 +179,16 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
           final all = snap.data ?? [];
           final list = _applyFilters(all);
           final stats = _MaintenanceStats.from(all);
+          if (isWide) {
+            return _WebMaintenanceLayout(
+              stats: stats,
+              rows: list,
+              all: all,
+              onEdit: _edit,
+              onDelete: _delete,
+              onRefresh: _refresh,
+            );
+          }
           return Column(
             children: [
               _SummaryBar(stats: stats),
@@ -410,6 +426,21 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
           );
         },
       ),
+    );
+
+    if (!isWide) return scaffold;
+
+    return WebPageScaffoldScrollable(
+      title: context.tr('maintenance'),
+      subtitle: 'Service schedules & history',
+      actions: [
+        ElevatedButton.icon(
+          icon: const Icon(Icons.add_rounded),
+          label: const Text('Add Record'),
+          onPressed: () => _edit(null),
+        ),
+      ],
+      child: scaffold,
     );
   }
 }
@@ -1240,6 +1271,439 @@ class _StatusFilterChip extends StatelessWidget {
             fontSize: 12,
             fontWeight: FontWeight.w700,
           ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Web layout: summary cards + table
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _WebMaintenanceLayout extends StatelessWidget {
+  final _MaintenanceStats stats;
+  final List<MaintenanceModel> rows;
+  final List<MaintenanceModel> all;
+  final Future<void> Function(MaintenanceModel?) onEdit;
+  final Future<void> Function(MaintenanceModel) onDelete;
+  final Future<void> Function() onRefresh;
+
+  const _WebMaintenanceLayout({
+    required this.stats,
+    required this.rows,
+    required this.all,
+    required this.onEdit,
+    required this.onDelete,
+    required this.onRefresh,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(28, 20, 28, 28),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Summary cards row
+          Row(
+            children: [
+              Expanded(
+                child: _WebSummaryCard(
+                  icon: Icons.build_rounded,
+                  color: AppColors.primary,
+                  label: 'Total Records',
+                  value: stats.total,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: _WebSummaryCard(
+                  icon: Icons.error_outline_rounded,
+                  color: AppColors.error,
+                  label: context.tr('overdue'),
+                  value: stats.overdue,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: _WebSummaryCard(
+                  icon: Icons.schedule_rounded,
+                  color: AppColors.warning,
+                  label: context.tr('due_soon'),
+                  value: stats.dueSoon,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: _WebSummaryCard(
+                  icon: Icons.check_circle_outline_rounded,
+                  color: AppColors.success,
+                  label: 'On Schedule',
+                  value: stats.total - stats.overdue - stats.dueSoon,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          // Table card
+          Container(
+            decoration: BoxDecoration(
+              color: context.cardColor,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: context.dividerColor),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Table title
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
+                  child: Row(
+                    children: [
+                      Icon(Icons.table_rows_rounded,
+                          color: AppColors.primary, size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Maintenance Records',
+                        style: TextStyle(
+                          color: context.textPrimaryColor,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        '${rows.length} of ${all.length}',
+                        style: TextStyle(
+                          color: context.textMutedColor,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Divider(height: 1, color: context.dividerColor),
+                // Header row
+                _WebTableHeader(),
+                Divider(height: 1, color: context.dividerColor),
+                // Data rows
+                if (rows.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 40),
+                    child: Center(
+                      child: Text(
+                        context.tr('no_maintenance'),
+                        style: TextStyle(
+                          color: context.textSecondaryColor,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  )
+                else
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: rows.length,
+                    itemBuilder: (ctx, i) {
+                      final m = rows[i];
+                      final isDark = ctx.isDarkMode;
+                      final altColor = isDark
+                          ? Colors.white.withValues(alpha: 0.03)
+                          : Colors.black.withValues(alpha: 0.02);
+                      return _WebTableRow(
+                        item: m,
+                        backgroundColor: i.isOdd ? altColor : Colors.transparent,
+                        onEdit: () => onEdit(m),
+                        onDelete: () => onDelete(m),
+                      );
+                    },
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WebSummaryCard extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final String label;
+  final int value;
+
+  const _WebSummaryCard({
+    required this.icon,
+    required this.color,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: context.cardColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: context.dividerColor),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: color, size: 24),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: context.textSecondaryColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  '$value',
+                  style: TextStyle(
+                    color: context.textPrimaryColor,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WebTableHeader extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final style = TextStyle(
+      color: context.textSecondaryColor,
+      fontSize: 11,
+      fontWeight: FontWeight.w700,
+      letterSpacing: 0.5,
+    );
+    return Container(
+      height: 48,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          Expanded(flex: 3, child: Text('VEHICLE', style: style)),
+          Expanded(flex: 2, child: Text('TYPE', style: style)),
+          Expanded(flex: 2, child: Text('LAST SERVICE', style: style)),
+          Expanded(flex: 2, child: Text('NEXT SERVICE', style: style)),
+          Expanded(flex: 2, child: Text('COST', style: style)),
+          Expanded(flex: 2, child: Text('STATUS', style: style)),
+          const SizedBox(width: 80, child: Text('')),
+        ],
+      ),
+    );
+  }
+}
+
+class _WebTableRow extends StatelessWidget {
+  final MaintenanceModel item;
+  final Color backgroundColor;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  const _WebTableRow({
+    required this.item,
+    required this.backgroundColor,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final status = _dueStatus(item.endDate);
+    final (serviceIcon, serviceIconColor) = _serviceIconFor(item.type);
+    final typeLabel = _serviceTypeLabel(context, item.type);
+
+    Color statusBgColor;
+    Color statusFgColor;
+    String statusLabel;
+    switch (status) {
+      case _DueStatus.overdue:
+        statusBgColor = AppColors.error;
+        statusFgColor = AppColors.error;
+        statusLabel = context.tr('overdue').toUpperCase();
+        break;
+      case _DueStatus.dueSoon:
+        statusBgColor = AppColors.warning;
+        statusFgColor = AppColors.warning;
+        statusLabel = context.tr('due_soon').toUpperCase();
+        break;
+      case _DueStatus.ok:
+        statusBgColor = AppColors.success;
+        statusFgColor = AppColors.success;
+        statusLabel = 'OK';
+        break;
+      case _DueStatus.unknown:
+        statusBgColor = context.textMutedColor;
+        statusFgColor = context.textMutedColor;
+        statusLabel = '—';
+        break;
+    }
+
+    final textStyle = TextStyle(
+      color: context.textPrimaryColor,
+      fontSize: 13,
+      fontWeight: FontWeight.w500,
+    );
+    final mutedStyle = TextStyle(
+      color: context.textSecondaryColor,
+      fontSize: 12,
+    );
+
+    return InkWell(
+      onTap: onEdit,
+      child: Container(
+        height: 56,
+        color: backgroundColor,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          children: [
+            // Vehicle
+            Expanded(
+              flex: 3,
+              child: Row(
+                children: [
+                  Icon(Icons.directions_car_rounded,
+                      size: 16, color: context.textMutedColor),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      item.carName ?? '—',
+                      style: textStyle,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Type
+            Expanded(
+              flex: 2,
+              child: Row(
+                children: [
+                  Icon(serviceIcon, size: 15, color: serviceIconColor),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      typeLabel,
+                      style: textStyle,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Last service
+            Expanded(
+              flex: 2,
+              child: Text(
+                item.startDate != null
+                    ? DateFormat('MMM d, yyyy').format(item.startDate!)
+                    : '—',
+                style: mutedStyle,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            // Next service
+            Expanded(
+              flex: 2,
+              child: Text(
+                item.endDate != null
+                    ? DateFormat('MMM d, yyyy').format(item.endDate!)
+                    : '—',
+                style: mutedStyle,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            // Cost
+            Expanded(
+              flex: 2,
+              child: Text(
+                item.cost != null
+                    ? '\$${item.cost!.toStringAsFixed(2)}'
+                    : '—',
+                style: textStyle.copyWith(fontWeight: FontWeight.w600),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            // Status
+            Expanded(
+              flex: 2,
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: statusBgColor.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: statusBgColor.withValues(alpha: 0.4),
+                    ),
+                  ),
+                  child: Text(
+                    statusLabel,
+                    style: TextStyle(
+                      color: statusFgColor,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            // Actions
+            SizedBox(
+              width: 80,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.edit_outlined, size: 18),
+                    color: AppColors.primary,
+                    tooltip: context.tr('edit'),
+                    onPressed: onEdit,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline, size: 18),
+                    color: AppColors.error,
+                    tooltip: context.tr('delete'),
+                    onPressed: onDelete,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

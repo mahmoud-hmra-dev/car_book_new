@@ -12,6 +12,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../blocs/fleet/fleet_cubit.dart';
 import '../../widgets/common/app_error.dart';
 import '../../widgets/common/app_loading.dart';
+import '../../widgets/web/web_page_scaffold.dart';
 
 const _telegramChatIdKey = 'telegram_chat_id';
 const _telegramBlue = Color(0xFF229ED9);
@@ -243,6 +244,210 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isWide = MediaQuery.sizeOf(context).width >= 900;
+
+    if (isWide) {
+      return WebPageScaffoldScrollable(
+        title: context.tr('notification_rules'),
+        subtitle: 'Event triggers & alert channels',
+        actions: [
+          ElevatedButton.icon(
+            onPressed: _addRule,
+            icon: const Icon(Icons.add_alert_rounded, size: 18),
+            label: Text(context.tr('add_rule')),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.black,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          ),
+        ],
+        child: RefreshIndicator(
+          color: AppColors.primary,
+          onRefresh: _refresh,
+          child: FutureBuilder<List<Map<String, dynamic>>>(
+            future: _future,
+            builder: (context, snap) {
+              if (snap.connectionState == ConnectionState.waiting) {
+                return const ShimmerList();
+              }
+              if (snap.hasError) {
+                return AppError(
+                  message: snap.error.toString(),
+                  onRetry: _refresh,
+                );
+              }
+              final rules = snap.data ?? const [];
+              final activeCount = rules.where((r) {
+                final enabled = r['enabled'];
+                if (enabled is bool) return enabled;
+                if (enabled is num) return enabled != 0;
+                return true;
+              }).length;
+              final disabledCount = rules.length - activeCount;
+
+              final filtered = _typeFilter == null
+                  ? rules
+                  : rules
+                      .where((r) =>
+                          (r['type'] ?? '').toString() == _typeFilter)
+                      .toList();
+
+              final types = rules
+                  .map((r) => (r['type'] ?? '').toString())
+                  .where((t) => t.isNotEmpty)
+                  .toSet()
+                  .toList();
+
+              return SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(28, 20, 28, 32),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Summary stats chips row
+                    Row(
+                      children: [
+                        _WebStatChip(
+                          label: context.tr('total'),
+                          value: rules.length,
+                          color: AppColors.secondary,
+                          icon: Icons.notifications_rounded,
+                        ),
+                        const SizedBox(width: 12),
+                        _WebStatChip(
+                          label: context.tr('active'),
+                          value: activeCount,
+                          color: AppColors.primary,
+                          icon: Icons.check_circle_rounded,
+                        ),
+                        const SizedBox(width: 12),
+                        _WebStatChip(
+                          label: context.tr('disabled'),
+                          value: disabledCount,
+                          color: context.textMutedColor,
+                          icon: Icons.do_not_disturb_on_rounded,
+                        ),
+                      ],
+                    ),
+                    if (types.isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        height: 36,
+                        child: ListView(
+                          scrollDirection: Axis.horizontal,
+                          children: [
+                            _NotifFilterChip(
+                              label: context.tr('all'),
+                              selected: _typeFilter == null,
+                              color: AppColors.primary,
+                              onTap: () =>
+                                  setState(() => _typeFilter = null),
+                            ),
+                            ...types.map((t) {
+                              final (_, color) =
+                                  _NotificationMeta.iconColor(t);
+                              return Padding(
+                                padding: const EdgeInsets.only(left: 6),
+                                child: _NotifFilterChip(
+                                  label: _NotificationMeta.label(t),
+                                  selected: _typeFilter == t,
+                                  color: color,
+                                  onTap: () => setState(() => _typeFilter =
+                                      _typeFilter == t ? null : t),
+                                ),
+                              );
+                            }),
+                          ],
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 20),
+                    if (filtered.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 60),
+                        child: Column(
+                          children: [
+                            Container(
+                              width: 84,
+                              height: 84,
+                              decoration: BoxDecoration(
+                                color: context.cardColor,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.notifications_off_rounded,
+                                color: context.textMutedColor,
+                                size: 40,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              _typeFilter != null
+                                  ? context.tr('no_results')
+                                  : context.tr('no_notification_rules'),
+                              style: TextStyle(
+                                color: context.textPrimaryColor,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              _typeFilter != null
+                                  ? context.tr('try_adjusting_filters')
+                                  : context
+                                      .tr('no_notification_rules_subtitle'),
+                              style: TextStyle(
+                                  color: context.textSecondaryColor),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      )
+                    else
+                      GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: filtered.length,
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 14,
+                          crossAxisSpacing: 14,
+                          childAspectRatio: 2.2,
+                        ),
+                        itemBuilder: (context, i) {
+                          final r = filtered[i];
+                          return _RuleTile(
+                            rule: r,
+                            carNameResolver: _carNameFor,
+                            onDelete: () => _deleteRule(r),
+                            onToggle: (v) => _toggleEnabled(r, v),
+                          );
+                        },
+                      ),
+                    const SizedBox(height: 24),
+                    _TelegramCard(
+                      controller: _telegramCtrl,
+                      loaded: _telegramLoaded,
+                      saving: _savingChatId,
+                      testing: _testingChatId,
+                      onSave: _saveTelegramChatId,
+                      onTest: _testTelegram,
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: context.bgColor,
       appBar: AppBar(
@@ -512,6 +717,67 @@ class _StatItem extends StatelessWidget {
                 style: TextStyle(
                   color: context.textMutedColor,
                   fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WebStatChip extends StatelessWidget {
+  final String label;
+  final int value;
+  final Color color;
+  final IconData icon;
+
+  const _WebStatChip({
+    required this.label,
+    required this.value,
+    required this.color,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: context.cardColor,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: context.dividerColor),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.18),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: color, size: 18),
+          ),
+          const SizedBox(width: 10),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '$value',
+                style: TextStyle(
+                  color: color,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              Text(
+                label,
+                style: TextStyle(
+                  color: context.textMutedColor,
+                  fontSize: 11,
                   fontWeight: FontWeight.w600,
                 ),
               ),

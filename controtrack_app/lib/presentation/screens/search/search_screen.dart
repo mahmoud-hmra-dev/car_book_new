@@ -13,6 +13,7 @@ import '../../../data/repositories/tracking_repository.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../blocs/fleet/fleet_cubit.dart';
 import '../../widgets/common/app_loading.dart';
+import '../../widgets/web/web_page_scaffold.dart';
 
 /// Lightweight snapshot of an infraction used only inside the search screen.
 /// We intentionally duplicate a handful of fields here instead of importing
@@ -222,142 +223,194 @@ class _SearchScreenState extends State<SearchScreen> {
     final totalResults =
         vehicles.length + drivers.length + infractions.length;
 
-    return Scaffold(
-      backgroundColor: context.bgColor,
-      appBar: AppBar(
-        backgroundColor: context.bgColor,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => context.pop(),
-        ),
-        title: Text(context.tr('search')),
+    final isWide = MediaQuery.sizeOf(context).width >= 900;
+
+    final searchField = TextField(
+      controller: _controller,
+      autofocus: true,
+      textInputAction: TextInputAction.search,
+      onSubmitted: (v) => _saveSearch(v),
+      style: TextStyle(
+        color: context.textPrimaryColor,
+        fontSize: isWide ? 15 : 14,
       ),
-      body: Column(
+      decoration: InputDecoration(
+        hintText: context.tr('search_hint'),
+        prefixIcon: Icon(
+          Icons.search_rounded,
+          size: isWide ? 22 : 20,
+          color: AppColors.primary,
+        ),
+        suffixIcon: _query.isEmpty
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.close_rounded),
+                onPressed: () => _controller.clear(),
+              ),
+        filled: true,
+        fillColor: context.cardColor,
+        contentPadding: isWide
+            ? const EdgeInsets.symmetric(horizontal: 18, vertical: 18)
+            : const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(isWide ? 20 : 14),
+          borderSide: BorderSide(color: context.dividerColor),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(isWide ? 20 : 14),
+          borderSide: BorderSide(color: context.dividerColor),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(isWide ? 20 : 14),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.6),
+        ),
+      ),
+    );
+
+    Widget resultsChild;
+    if (_loading) {
+      resultsChild = const ShimmerList(count: 4);
+    } else if (!hasQuery) {
+      resultsChild = _recentSearches.isEmpty
+          ? _EmptyHint(
+              title: context.tr('search'),
+              subtitle: context.tr('search_hint'),
+            )
+          : _RecentSearchesPanel(
+              searches: _recentSearches,
+              onTap: _applySearch,
+              onRemove: _removeSearch,
+              onClear: _clearHistory,
+            );
+    } else if (totalResults == 0) {
+      resultsChild = _EmptyHint(
+        title: context.tr('no_results'),
+        subtitle: context.tr('search_hint'),
+        icon: Icons.search_off_rounded,
+      );
+    } else if (isWide) {
+      resultsChild = _WebResultsGrid(
+        vehicles: vehicles,
+        drivers: drivers,
+        infractions: infractions,
+        onVehicleTap: (v) {
+          _saveSearch(_controller.text.trim());
+          context.push('/vehicles/${v.carId}');
+        },
+        onDriverTap: (d) {
+          final name = Uri.encodeQueryComponent(
+            d.name.isEmpty ? 'Driver' : d.name,
+          );
+          context.push('/drivers/${d.id}/behavior?name=$name');
+        },
+        onInfractionTap: _openInfractionSheet,
+      );
+    } else {
+      resultsChild = ListView(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
-            child: TextField(
-              controller: _controller,
-              autofocus: true,
-              textInputAction: TextInputAction.search,
-              onSubmitted: (v) => _saveSearch(v),
-              decoration: InputDecoration(
-                hintText: context.tr('search_hint'),
-                prefixIcon: const Icon(Icons.search_rounded),
-                suffixIcon: _query.isEmpty
-                    ? null
-                    : IconButton(
-                        icon: const Icon(Icons.close_rounded),
-                        onPressed: () => _controller.clear(),
-                      ),
-                filled: true,
-                fillColor: context.cardColor,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide(color: context.dividerColor),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide(color: context.dividerColor),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: AppColors.primary),
+          if (vehicles.isNotEmpty) ...[
+            _SectionHeader(
+              title: '${context.tr('vehicles')} (${vehicles.length})',
+            ),
+            const SizedBox(height: 8),
+            for (final v in vehicles)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: _VehicleTile(
+                  item: v,
+                  onTap: () {
+                    _saveSearch(_controller.text.trim());
+                    context.push('/vehicles/${v.carId}');
+                  },
                 ),
               ),
+            const SizedBox(height: 10),
+          ],
+          if (drivers.isNotEmpty) ...[
+            _SectionHeader(
+              title: '${context.tr('drivers')} (${drivers.length})',
             ),
-          ),
-          Expanded(
-            child: _loading
-                ? const ShimmerList(count: 4)
-                : !hasQuery
-                    ? _recentSearches.isEmpty
-                        ? _EmptyHint(
-                            title: context.tr('search'),
-                            subtitle: context.tr('search_hint'),
-                          )
-                        : _RecentSearchesPanel(
-                            searches: _recentSearches,
-                            onTap: _applySearch,
-                            onRemove: _removeSearch,
-                            onClear: _clearHistory,
-                          )
-                    : totalResults == 0
-                        ? _EmptyHint(
-                            title: context.tr('no_results'),
-                            subtitle: context.tr('search_hint'),
-                            icon: Icons.search_off_rounded,
-                          )
-                        : ListView(
-                            padding:
-                                const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                            children: [
-                              if (vehicles.isNotEmpty) ...[
-                                _SectionHeader(
-                                  title:
-                                      '${context.tr('vehicles')} (${vehicles.length})',
-                                ),
-                                const SizedBox(height: 8),
-                                for (final v in vehicles)
-                                  Padding(
-                                    padding:
-                                        const EdgeInsets.only(bottom: 10),
-                                    child: _VehicleTile(
-                                      item: v,
-                                      onTap: () {
-                                        _saveSearch(_controller.text.trim());
-                                        context.push('/vehicles/${v.carId}');
-                                      },
-                                    ),
-                                  ),
-                                const SizedBox(height: 10),
-                              ],
-                              if (drivers.isNotEmpty) ...[
-                                _SectionHeader(
-                                  title:
-                                      '${context.tr('drivers')} (${drivers.length})',
-                                ),
-                                const SizedBox(height: 8),
-                                for (final d in drivers)
-                                  Padding(
-                                    padding:
-                                        const EdgeInsets.only(bottom: 10),
-                                    child: _DriverTile(
-                                      driver: d,
-                                      onTap: () {
-                                        final name = Uri.encodeQueryComponent(
-                                          d.name.isEmpty ? 'Driver' : d.name,
-                                        );
-                                        context.push(
-                                          '/drivers/${d.id}/behavior?name=$name',
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                const SizedBox(height: 10),
-                              ],
-                              if (infractions.isNotEmpty) ...[
-                                _SectionHeader(
-                                  title:
-                                      '${context.tr('infractions')} (${infractions.length})',
-                                ),
-                                const SizedBox(height: 8),
-                                for (final i in infractions)
-                                  Padding(
-                                    padding:
-                                        const EdgeInsets.only(bottom: 10),
-                                    child: _InfractionTile(
-                                      model: i,
-                                      onTap: () => _openInfractionSheet(i),
-                                    ),
-                                  ),
-                              ],
-                            ],
-                          ),
-          ),
+            const SizedBox(height: 8),
+            for (final d in drivers)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: _DriverTile(
+                  driver: d,
+                  onTap: () {
+                    final name = Uri.encodeQueryComponent(
+                      d.name.isEmpty ? 'Driver' : d.name,
+                    );
+                    context.push('/drivers/${d.id}/behavior?name=$name');
+                  },
+                ),
+              ),
+            const SizedBox(height: 10),
+          ],
+          if (infractions.isNotEmpty) ...[
+            _SectionHeader(
+              title: '${context.tr('infractions')} (${infractions.length})',
+            ),
+            const SizedBox(height: 8),
+            for (final i in infractions)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: _InfractionTile(
+                  model: i,
+                  onTap: () => _openInfractionSheet(i),
+                ),
+              ),
+          ],
         ],
-      ),
+      );
+    }
+
+    final body = Scaffold(
+      backgroundColor: context.bgColor,
+      appBar: isWide
+          ? null
+          : AppBar(
+              backgroundColor: context.bgColor,
+              elevation: 0,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back_rounded),
+                onPressed: () => context.pop(),
+              ),
+              title: Text(context.tr('search')),
+            ),
+      body: isWide
+          ? Column(
+              children: [
+                const SizedBox(height: 20),
+                Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 700),
+                    child: SizedBox(
+                      height: 56,
+                      child: searchField,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Expanded(child: resultsChild),
+              ],
+            )
+          : Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+                  child: searchField,
+                ),
+                Expanded(child: resultsChild),
+              ],
+            ),
+    );
+
+    return WebPageScaffold(
+      title: context.tr('search'),
+      subtitle: 'Search vehicles, drivers & events',
+      scrollable: false,
+      child: body,
     );
   }
 }
@@ -1056,6 +1109,90 @@ class _SheetRow extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Web-only results grid (2-3 columns depending on available width)
+// ---------------------------------------------------------------------------
+
+class _WebResultsGrid extends StatelessWidget {
+  final List<FleetItem> vehicles;
+  final List<DriverModel> drivers;
+  final List<_SearchInfraction> infractions;
+  final ValueChanged<FleetItem> onVehicleTap;
+  final ValueChanged<DriverModel> onDriverTap;
+  final ValueChanged<_SearchInfraction> onInfractionTap;
+
+  const _WebResultsGrid({
+    required this.vehicles,
+    required this.drivers,
+    required this.infractions,
+    required this.onVehicleTap,
+    required this.onDriverTap,
+    required this.onInfractionTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        // 2 cols below 1200, 3 cols at/above 1200
+        final columns = width >= 1200 ? 3 : 2;
+        const gap = 14.0;
+        final tileWidth = (width - (columns - 1) * gap - 32) / columns;
+
+        Widget buildSection(String title, List<Widget> tiles) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _SectionHeader(title: title),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: gap,
+                runSpacing: gap,
+                children: [
+                  for (final t in tiles)
+                    SizedBox(width: tileWidth, child: t),
+                ],
+              ),
+              const SizedBox(height: 18),
+            ],
+          );
+        }
+
+        return ListView(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+          children: [
+            if (vehicles.isNotEmpty)
+              buildSection(
+                '${context.tr('vehicles')} (${vehicles.length})',
+                [
+                  for (final v in vehicles)
+                    _VehicleTile(item: v, onTap: () => onVehicleTap(v)),
+                ],
+              ),
+            if (drivers.isNotEmpty)
+              buildSection(
+                '${context.tr('drivers')} (${drivers.length})',
+                [
+                  for (final d in drivers)
+                    _DriverTile(driver: d, onTap: () => onDriverTap(d)),
+                ],
+              ),
+            if (infractions.isNotEmpty)
+              buildSection(
+                '${context.tr('infractions')} (${infractions.length})',
+                [
+                  for (final i in infractions)
+                    _InfractionTile(model: i, onTap: () => onInfractionTap(i)),
+                ],
+              ),
+          ],
+        );
+      },
     );
   }
 }

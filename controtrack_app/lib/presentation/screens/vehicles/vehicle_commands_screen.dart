@@ -258,11 +258,18 @@ class _VehicleCommandsScreenState extends State<VehicleCommandsScreen> {
               .where((c) => !_pinned.contains((c['type'] ?? '').toString()))
               .toList();
 
+          final isWide = MediaQuery.sizeOf(context).width >= 900;
+
           return RefreshIndicator(
             color: AppColors.primary,
             onRefresh: _refresh,
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+              padding: EdgeInsets.fromLTRB(
+                isWide ? 28 : 16,
+                isWide ? 24 : 16,
+                isWide ? 28 : 16,
+                32,
+              ),
               children: [
                 if (pinnedCommands.isNotEmpty) ...[
                   Row(
@@ -287,6 +294,7 @@ class _VehicleCommandsScreenState extends State<VehicleCommandsScreen> {
                     pinned: _pinned,
                     onTap: _confirmAndSend,
                     onLongPress: _togglePin,
+                    isWide: isWide,
                   ),
                   const SizedBox(height: 24),
                 ],
@@ -309,6 +317,7 @@ class _VehicleCommandsScreenState extends State<VehicleCommandsScreen> {
                     pinned: _pinned,
                     onTap: _confirmAndSend,
                     onLongPress: _togglePin,
+                    isWide: isWide,
                   ),
                 ],
                 const SizedBox(height: 16),
@@ -921,12 +930,14 @@ class _CommandGrid extends StatelessWidget {
   final Set<String> pinned;
   final ValueChanged<String> onTap;
   final ValueChanged<String> onLongPress;
+  final bool isWide;
 
   const _CommandGrid({
     required this.commands,
     required this.pinned,
     required this.onTap,
     required this.onLongPress,
+    this.isWide = false,
   });
 
   @override
@@ -935,11 +946,11 @@ class _CommandGrid extends StatelessWidget {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: commands.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
-        childAspectRatio: 1.15,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: isWide ? 3 : 2,
+        mainAxisSpacing: isWide ? 14 : 12,
+        crossAxisSpacing: isWide ? 14 : 12,
+        childAspectRatio: isWide ? 1.8 : 1.15,
       ),
       itemBuilder: (_, i) {
         final type = (commands[i]['type'] ?? '').toString();
@@ -948,6 +959,7 @@ class _CommandGrid extends StatelessWidget {
           isPinned: pinned.contains(type),
           onTap: () => onTap(type),
           onLongPress: () => onLongPress(type),
+          isWide: isWide,
         );
       },
     );
@@ -959,18 +971,129 @@ class _CommandCard extends StatelessWidget {
   final bool isPinned;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
+  final bool isWide;
 
   const _CommandCard({
     required this.type,
     required this.isPinned,
     required this.onTap,
     required this.onLongPress,
+    this.isWide = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final (icon, color) = _VehicleCommandsScreenState._iconFor(type);
     final label = _VehicleCommandsScreenState._humanize(type);
+
+    if (isWide) {
+      return Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: onTap,
+          onLongPress: onLongPress,
+          child: Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              gradient: context.cardGradientColor,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: isPinned
+                    ? AppColors.primary.withValues(alpha: 0.55)
+                    : context.dividerColor,
+                width: isPinned ? 1.4 : 1,
+              ),
+            ),
+            child: Stack(
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.18),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Icon(icon, color: color, size: 32),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            label,
+                            style: TextStyle(
+                              color: context.textPrimaryColor,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            type,
+                            style: TextStyle(
+                              color: context.textMutedColor,
+                              fontSize: 11,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 10),
+                          ElevatedButton.icon(
+                            onPressed: onTap,
+                            icon: const Icon(Icons.send_rounded, size: 16),
+                            label: Text(context.tr('save')),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: color,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              textStyle: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                if (isPinned)
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.push_pin_rounded,
+                        size: 11,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return Material(
       color: Colors.transparent,
       child: InkWell(

@@ -180,9 +180,11 @@ class MoreScreen extends StatelessWidget {
       ),
     ];
 
-    // Flatten sections into staggered widgets
-    final children = <Widget>[];
-    children.add(
+    final isWide = MediaQuery.sizeOf(context).width >= 900;
+
+    // Mobile layout (UNCHANGED) — flatten sections linearly
+    final mobileChildren = <Widget>[];
+    mobileChildren.add(
       _HeaderCard(
         name: displayName,
         email: user?.email ?? '',
@@ -190,8 +192,8 @@ class MoreScreen extends StatelessWidget {
         role: role,
       ).animate().fadeIn(duration: 350.ms).slideY(begin: -0.05, end: 0),
     );
-    children.add(const SizedBox(height: 14));
-    children.add(
+    mobileChildren.add(const SizedBox(height: 14));
+    mobileChildren.add(
       BlocBuilder<FleetCubit, FleetState>(
         buildWhen: (a, b) => a.items.length != b.items.length ||
             a.items.map((e) => e.movementStatus).join() !=
@@ -199,16 +201,16 @@ class MoreScreen extends StatelessWidget {
         builder: (context, state) => _FleetQuickStats(items: state.items),
       ).animate(delay: 80.ms).fadeIn(duration: 320.ms).slideY(begin: 0.06, end: 0),
     );
-    children.add(const SizedBox(height: 16));
+    mobileChildren.add(const SizedBox(height: 16));
 
     int step = 0;
     for (final sec in sections) {
-      children.add(
+      mobileChildren.add(
         _SectionHeader(title: sec.title).animate(delay: (80 + step * 40).ms).fadeIn(duration: 300.ms),
       );
       step++;
-      children.add(const SizedBox(height: 8));
-      children.add(
+      mobileChildren.add(const SizedBox(height: 8));
+      mobileChildren.add(
         _MenuGroup(
           children: [
             for (final it in sec.items)
@@ -227,11 +229,11 @@ class MoreScreen extends StatelessWidget {
             .slideX(begin: -0.06, end: 0),
       );
       step++;
-      children.add(const SizedBox(height: 18));
+      mobileChildren.add(const SizedBox(height: 18));
     }
 
-    children.add(const SizedBox(height: 8));
-    children.add(
+    mobileChildren.add(const SizedBox(height: 8));
+    mobileChildren.add(
       Center(
         child: Text(
           '${AppConfig.appName} • v${AppConfig.appVersion}',
@@ -239,9 +241,7 @@ class MoreScreen extends StatelessWidget {
         ),
       ),
     );
-    children.add(const SizedBox(height: 100));
-
-    final isWide = MediaQuery.sizeOf(context).width >= 900;
+    mobileChildren.add(const SizedBox(height: 100));
 
     return WebPageScaffold(
       title: context.tr('more'),
@@ -265,13 +265,16 @@ class MoreScreen extends StatelessWidget {
               ),
         body: SafeArea(
           child: isWide
-              ? Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: children,
+              ? _WebMoreLayout(
+                  name: displayName,
+                  email: user?.email ?? '',
+                  initials: initials,
+                  role: role,
+                  sections: sections,
                 )
               : ListView(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                  children: children,
+                  children: mobileChildren,
                 ),
         ),
       ),
@@ -663,6 +666,233 @@ class _MenuTile extends StatelessWidget {
                 size: 22,
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================================
+// Web-only layout — 2-column grid of section cards
+// ============================================================================
+
+class _WebMoreLayout extends StatelessWidget {
+  final String name;
+  final String email;
+  final String initials;
+  final String role;
+  final List<_MenuSectionSpec> sections;
+
+  const _WebMoreLayout({
+    required this.name,
+    required this.email,
+    required this.initials,
+    required this.role,
+    required this.sections,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(4, 16, 4, 32),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _HeaderCard(
+            name: name,
+            email: email,
+            initials: initials,
+            role: role,
+          ).animate().fadeIn(duration: 350.ms).slideY(begin: -0.05, end: 0),
+          const SizedBox(height: 14),
+          BlocBuilder<FleetCubit, FleetState>(
+            buildWhen: (a, b) =>
+                a.items.length != b.items.length ||
+                a.items.map((e) => e.movementStatus).join() !=
+                    b.items.map((e) => e.movementStatus).join(),
+            builder: (context, state) => _FleetQuickStats(items: state.items),
+          )
+              .animate(delay: 80.ms)
+              .fadeIn(duration: 320.ms)
+              .slideY(begin: 0.06, end: 0),
+          const SizedBox(height: 20),
+          // 2-column grid of section cards using LayoutBuilder + Wrap
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final totalWidth = constraints.maxWidth;
+              // 2 columns with a 16px gap between them
+              final cardWidth = (totalWidth - 16) / 2;
+              return Wrap(
+                spacing: 16,
+                runSpacing: 16,
+                children: [
+                  for (int i = 0; i < sections.length; i++)
+                    SizedBox(
+                      width: cardWidth,
+                      child: _WebSectionCard(
+                        section: sections[i],
+                      )
+                          .animate(delay: (80 + i * 60).ms)
+                          .fadeIn(duration: 360.ms)
+                          .slideY(begin: 0.06, end: 0),
+                    ),
+                ],
+              );
+            },
+          ),
+          const SizedBox(height: 20),
+          Center(
+            child: Text(
+              '${AppConfig.appName} • v${AppConfig.appVersion}',
+              style: TextStyle(color: context.textMutedColor, fontSize: 12),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WebSectionCard extends StatelessWidget {
+  final _MenuSectionSpec section;
+  const _WebSectionCard({required this.section});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        gradient: context.cardGradientColor,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: context.dividerColor),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black
+                .withValues(alpha: context.isDarkMode ? 0.22 : 0.04),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 4, bottom: 10),
+            child: Text(
+              section.title.toUpperCase(),
+              style: TextStyle(
+                color: context.textMutedColor,
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1.4,
+              ),
+            ),
+          ),
+          for (int i = 0; i < section.items.length; i++) ...[
+            _WebMenuTile(
+              item: section.items[i],
+            ),
+            if (i < section.items.length - 1)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Divider(
+                  height: 1,
+                  color: context.dividerColor,
+                ),
+              ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _WebMenuTile extends StatefulWidget {
+  final _MenuItemSpec item;
+  const _WebMenuTile({required this.item});
+
+  @override
+  State<_WebMenuTile> createState() => _WebMenuTileState();
+}
+
+class _WebMenuTileState extends State<_WebMenuTile> {
+  bool _hover = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final it = widget.item;
+    final titleColor =
+        it.destructive ? AppColors.error : context.textPrimaryColor;
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: it.onTap ?? () => context.push(it.route!),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            decoration: BoxDecoration(
+              color: _hover
+                  ? it.color.withValues(alpha: 0.08)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: it.color.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(it.icon, color: it.color, size: 18),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        it.label,
+                        style: TextStyle(
+                          color: titleColor,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        it.subtitle,
+                        style: TextStyle(
+                          color: context.textMutedColor,
+                          fontSize: 12,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: it.destructive
+                      ? AppColors.error.withValues(alpha: 0.6)
+                      : context.textMutedColor,
+                  size: 20,
+                ),
+              ],
+            ),
           ),
         ),
       ),

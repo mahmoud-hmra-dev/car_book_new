@@ -101,6 +101,194 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 });
               final recentTop = recent.take(5).toList();
 
+              // Quick action tiles are reused in both layouts
+              final quickActionTiles = <Widget>[
+                _QuickActionTile(
+                  index: 0,
+                  label: context.tr('map'),
+                  icon: Icons.map_rounded,
+                  color: AppColors.secondary,
+                  onTap: () => context.go('/map'),
+                ),
+                _QuickActionTile(
+                  index: 1,
+                  label: context.tr('reports'),
+                  icon: Icons.bar_chart_rounded,
+                  color: AppColors.warning,
+                  onTap: () => context.push('/reports'),
+                ),
+                _QuickActionTile(
+                  index: 2,
+                  label: context.tr('alerts'),
+                  icon: Icons.notifications_active_rounded,
+                  color: AppColors.error,
+                  onTap: () => context.push('/alerts'),
+                ),
+                _QuickActionTile(
+                  index: 3,
+                  label: context.tr('maintenance'),
+                  icon: Icons.build_rounded,
+                  color: AppColors.accent,
+                  onTap: () => context.push('/maintenance'),
+                ),
+              ];
+
+              if (isWide) {
+                // ── Web: after stat cards, a 2-column content grid ──
+                return CustomScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: _GreetingHeader(
+                        userName: user?.fullName ?? '',
+                        onSearch: () => context.push('/search'),
+                        onNotifications: () => context.push('/alerts'),
+                        onRefresh: () => context
+                            .read<FleetCubit>()
+                            .load(refreshing: true),
+                        tall: true,
+                      ),
+                    ),
+                    const SliverToBoxAdapter(child: _CrashDetectionBanner()),
+                    SliverToBoxAdapter(
+                      child: _StatCardsRow(
+                        summary: summary,
+                        activeFilter: state.statusFilter,
+                        onFilter: (f) =>
+                            context.read<FleetCubit>().setStatusFilter(f),
+                      ),
+                    ),
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+                      sliver: SliverToBoxAdapter(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Left column (60%)
+                            Expanded(
+                              flex: 3,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  _FleetHealthCard(
+                                    percent: onlinePct,
+                                    online: online,
+                                    total: summary.total,
+                                    lastUpdated: state.lastUpdated,
+                                  )
+                                      .animate()
+                                      .fadeIn(delay: 150.ms, duration: 500.ms)
+                                      .slideY(
+                                        begin: 0.1,
+                                        end: 0,
+                                        delay: 150.ms,
+                                        duration: 420.ms,
+                                        curve: Curves.easeOutCubic,
+                                      ),
+                                  const SizedBox(height: 16),
+                                  _TodayStatsSection(
+                                    summary: summary,
+                                    items: state.items,
+                                  )
+                                      .animate()
+                                      .fadeIn(delay: 200.ms, duration: 500.ms)
+                                      .slideY(
+                                        begin: 0.1,
+                                        end: 0,
+                                        delay: 200.ms,
+                                        duration: 420.ms,
+                                        curve: Curves.easeOutCubic,
+                                      ),
+                                  const SizedBox(height: 16),
+                                  _MaintenanceBanner(
+                                    onTap: () => context.push('/maintenance'),
+                                  ).animate().fadeIn(
+                                      delay: 350.ms, duration: 450.ms),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 20),
+                            // Right column (40%)
+                            Expanded(
+                              flex: 2,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Text(
+                                    context.tr('quick_actions'),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleLarge,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  // 2x2 Quick Actions grid
+                                  GridView.count(
+                                    crossAxisCount: 2,
+                                    shrinkWrap: true,
+                                    physics:
+                                        const NeverScrollableScrollPhysics(),
+                                    mainAxisSpacing: 12,
+                                    crossAxisSpacing: 12,
+                                    childAspectRatio: 2.4,
+                                    children: quickActionTiles,
+                                  ),
+                                  const SizedBox(height: 24),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        context.tr('recent_activity'),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleLarge,
+                                      ),
+                                      const Spacer(),
+                                      TextButton(
+                                        onPressed: () =>
+                                            context.go('/vehicles'),
+                                        child: Text(context.tr('view_all')),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  if (recentTop.isEmpty)
+                                    Padding(
+                                      padding:
+                                          const EdgeInsets.symmetric(vertical: 24),
+                                      child: EmptyState(
+                                        title: context.tr('no_recent_activity'),
+                                        icon: Icons.history_toggle_off_rounded,
+                                      ),
+                                    )
+                                  else
+                                    for (int i = 0; i < recentTop.length; i++)
+                                      Padding(
+                                        padding:
+                                            const EdgeInsets.only(bottom: 10),
+                                        child: _RecentActivityTile(
+                                          item: recentTop[i],
+                                          onTap: () => context.push(
+                                              '/vehicles/${recentTop[i].carId}'),
+                                        )
+                                            .animate(delay: (i * 70).ms)
+                                            .fadeIn(duration: 400.ms)
+                                            .slideX(
+                                              begin: -0.06,
+                                              end: 0,
+                                              curve: Curves.easeOutCubic,
+                                            ),
+                                      ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              }
+
+              // ── Mobile (UNCHANGED) ──
               return CustomScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 slivers: [
@@ -186,42 +374,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     sliver: SliverGrid(
                       gridDelegate:
-                          SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: isWide ? 4 : 2,
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
                         mainAxisSpacing: 12,
                         crossAxisSpacing: 12,
                         childAspectRatio: 2.8,
                       ),
-                      delegate: SliverChildListDelegate([
-                        _QuickActionTile(
-                          index: 0,
-                          label: context.tr('map'),
-                          icon: Icons.map_rounded,
-                          color: AppColors.secondary,
-                          onTap: () => context.go('/map'),
-                        ),
-                        _QuickActionTile(
-                          index: 1,
-                          label: context.tr('reports'),
-                          icon: Icons.bar_chart_rounded,
-                          color: AppColors.warning,
-                          onTap: () => context.push('/reports'),
-                        ),
-                        _QuickActionTile(
-                          index: 2,
-                          label: context.tr('alerts'),
-                          icon: Icons.notifications_active_rounded,
-                          color: AppColors.error,
-                          onTap: () => context.push('/alerts'),
-                        ),
-                        _QuickActionTile(
-                          index: 3,
-                          label: context.tr('maintenance'),
-                          icon: Icons.build_rounded,
-                          color: AppColors.accent,
-                          onTap: () => context.push('/maintenance'),
-                        ),
-                      ]),
+                      delegate: SliverChildListDelegate(quickActionTiles),
                     ),
                   ),
 
@@ -536,12 +695,14 @@ class _GreetingHeader extends StatelessWidget {
   final VoidCallback onNotifications;
   final VoidCallback onRefresh;
   final VoidCallback? onSearch;
+  final bool tall;
 
   const _GreetingHeader({
     required this.userName,
     required this.onNotifications,
     required this.onRefresh,
     this.onSearch,
+    this.tall = false,
   });
 
   String _greetingKey() {
@@ -609,8 +770,13 @@ class _GreetingHeader extends StatelessWidget {
         userName.isNotEmpty ? userName : context.tr('fleet_manager');
 
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 12, 16, 20),
-      padding: const EdgeInsets.fromLTRB(20, 20, 16, 22),
+      margin: tall
+          ? const EdgeInsets.fromLTRB(20, 16, 20, 20)
+          : const EdgeInsets.fromLTRB(16, 12, 16, 20),
+      padding: tall
+          ? const EdgeInsets.fromLTRB(28, 28, 24, 28)
+          : const EdgeInsets.fromLTRB(20, 20, 16, 22),
+      constraints: tall ? const BoxConstraints(minHeight: 120) : null,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: context.isDarkMode
@@ -639,11 +805,11 @@ class _GreetingHeader extends StatelessWidget {
             children: [
               // Avatar
               Container(
-                width: 48,
-                height: 48,
+                width: tall ? 60 : 48,
+                height: tall ? 60 : 48,
                 decoration: BoxDecoration(
                   gradient: AppColors.primaryGradient,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(tall ? 20 : 16),
                   boxShadow: [
                     BoxShadow(
                       color: AppColors.primary.withValues(alpha: 0.4),
@@ -655,9 +821,9 @@ class _GreetingHeader extends StatelessWidget {
                 child: Center(
                   child: Text(
                     initial,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Colors.black,
-                      fontSize: 20,
+                      fontSize: tall ? 24 : 20,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
@@ -666,7 +832,7 @@ class _GreetingHeader extends StatelessWidget {
                   .animate()
                   .fadeIn(duration: 400.ms)
                   .scale(begin: const Offset(0.7, 0.7), curve: Curves.easeOutBack),
-              const SizedBox(width: 14),
+              SizedBox(width: tall ? 18 : 14),
               // Greeting + name
               Expanded(
                 child: Column(
@@ -676,7 +842,7 @@ class _GreetingHeader extends StatelessWidget {
                       '${context.tr(_greetingKey())},',
                       style: TextStyle(
                         color: context.textSecondaryColor,
-                        fontSize: 12,
+                        fontSize: tall ? 14 : 12,
                         fontWeight: FontWeight.w500,
                         letterSpacing: 0.3,
                       ),
@@ -684,14 +850,14 @@ class _GreetingHeader extends StatelessWidget {
                         .animate()
                         .fadeIn(delay: 80.ms, duration: 420.ms)
                         .slideX(begin: -0.08, end: 0),
-                    const SizedBox(height: 2),
+                    SizedBox(height: tall ? 4 : 2),
                     Text(
                       displayName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: context.textPrimaryColor,
-                        fontSize: 20,
+                        fontSize: tall ? 26 : 20,
                         fontWeight: FontWeight.w800,
                         height: 1.1,
                         letterSpacing: -0.3,

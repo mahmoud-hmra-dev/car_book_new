@@ -10,6 +10,7 @@ import '../../../data/repositories/fleet_repository.dart';
 import '../../../data/repositories/tracking_repository.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../blocs/fleet/fleet_cubit.dart';
+import '../../widgets/web/web_page_scaffold.dart';
 
 class SummaryReportScreen extends StatefulWidget {
   const SummaryReportScreen({super.key});
@@ -337,130 +338,416 @@ class _SummaryReportScreenState extends State<SummaryReportScreen> {
     final grade = _scoreGrade(score);
     final scoreCol = _scoreColor(score);
 
-    return Scaffold(
-      backgroundColor: context.bgColor,
-      appBar: AppBar(
+    final isWide = MediaQuery.sizeOf(context).width >= 900;
+
+    return WebPageScaffoldScrollable(
+      title: context.tr('summary_report'),
+      subtitle: 'Period performance overview',
+      actions: isWide
+          ? [
+              _WebPeriodSelector(
+                period: _period,
+                onChanged: _setPeriod,
+              ),
+              const SizedBox(width: 8),
+              IconButton(
+                tooltip: context.tr('schedule'),
+                icon: Icon(
+                  Icons.schedule_rounded,
+                  color: context.textSecondaryColor,
+                ),
+                onPressed: _openSchedule,
+              ),
+              IconButton(
+                tooltip: context.tr('share_report'),
+                icon: Icon(
+                  Icons.ios_share_rounded,
+                  color: context.textSecondaryColor,
+                ),
+                onPressed: () => _shareReport(items, summary),
+              ),
+            ]
+          : const [],
+      child: Scaffold(
         backgroundColor: context.bgColor,
-        elevation: 0,
-        title: Text(context.tr('summary_report')),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => context.pop(),
+        appBar: isWide
+            ? null
+            : AppBar(
+                backgroundColor: context.bgColor,
+                elevation: 0,
+                title: Text(context.tr('summary_report')),
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back_rounded),
+                  onPressed: () => context.pop(),
+                ),
+                actions: [
+                  IconButton(
+                    tooltip: context.tr('schedule'),
+                    icon: const Icon(Icons.schedule_rounded),
+                    onPressed: _openSchedule,
+                  ),
+                ],
+              ),
+        body: _loading
+            ? const Center(
+                child: CircularProgressIndicator(color: AppColors.primary),
+              )
+            : (isWide
+                ? _buildWebBody(
+                    context,
+                    items: items,
+                    summary: summary,
+                    avgSpeed: avgSpeed,
+                    estDistance: estDistance,
+                    utilRate: utilRate,
+                    score: score,
+                    grade: grade,
+                    scoreCol: scoreCol,
+                  )
+                : _buildMobileBody(
+                    context,
+                    items: items,
+                    summary: summary,
+                    avgSpeed: avgSpeed,
+                    estDistance: estDistance,
+                    utilRate: utilRate,
+                    score: score,
+                    grade: grade,
+                    scoreCol: scoreCol,
+                  )),
+      ),
+    );
+  }
+
+  Widget _buildMobileBody(
+    BuildContext context, {
+    required List<FleetItem> items,
+    required HealthSummary summary,
+    required double avgSpeed,
+    required double estDistance,
+    required double utilRate,
+    required int score,
+    required String grade,
+    required Color scoreCol,
+  }) {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+      children: [
+        _PeriodSelector(
+          period: _period,
+          onChanged: _setPeriod,
+        )
+            .animate()
+            .fadeIn(duration: 300.ms)
+            .slideY(begin: -0.04, end: 0),
+        const SizedBox(height: 16),
+        _ReportHeaderCard(periodLabel: _periodLabel(context))
+            .animate()
+            .fadeIn(delay: 40.ms, duration: 300.ms),
+        const SizedBox(height: 14),
+        _FleetScoreCard(
+          score: score,
+          grade: grade,
+          color: scoreCol,
+          overdueCount: _overdueMaintenance,
+          infractionsCount: _infractionsCount,
+          utilizationRate: utilRate,
+        )
+            .animate()
+            .fadeIn(delay: 60.ms, duration: 300.ms)
+            .slideY(begin: 0.04, end: 0),
+        const SizedBox(height: 12),
+        _FleetStatusSection(summary: summary)
+            .animate()
+            .fadeIn(delay: 80.ms, duration: 300.ms)
+            .slideY(begin: 0.04, end: 0),
+        const SizedBox(height: 12),
+        _PerformanceSection(
+          avgSpeed: avgSpeed,
+          estDistance: estDistance,
+          utilizationRate: utilRate,
+          activeCount: summary.moving + summary.idle,
+        )
+            .animate()
+            .fadeIn(delay: 120.ms, duration: 300.ms)
+            .slideY(begin: 0.04, end: 0),
+        const SizedBox(height: 12),
+        _SafetySection(
+          count: _infractionsCount,
+          breakdown: _infractionsByType,
+        )
+            .animate()
+            .fadeIn(delay: 160.ms, duration: 300.ms)
+            .slideY(begin: 0.04, end: 0),
+        const SizedBox(height: 12),
+        _MaintenanceSection(
+          overdue: _overdueMaintenance,
+          upcoming: _upcomingMaintenance,
+        )
+            .animate()
+            .fadeIn(delay: 200.ms, duration: 300.ms)
+            .slideY(begin: 0.04, end: 0),
+        const SizedBox(height: 12),
+        _AlertsSection(
+          count: _alertsCount,
+          available: _alertsAvailable,
+        )
+            .animate()
+            .fadeIn(delay: 240.ms, duration: 300.ms)
+            .slideY(begin: 0.04, end: 0),
+        const SizedBox(height: 24),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: _openSchedule,
+                icon: const Icon(Icons.schedule_rounded),
+                label: Text(context.tr('schedule')),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.accent,
+                  side: BorderSide(
+                      color: AppColors.accent.withValues(alpha: 0.6)),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              flex: 2,
+              child: ElevatedButton.icon(
+                onPressed: () => _shareReport(items, summary),
+                icon: const Icon(Icons.ios_share_rounded),
+                label: Text(context.tr('share_report')),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+              ),
+            ),
+          ],
         ),
-        actions: [
-          IconButton(
-            tooltip: context.tr('schedule'),
-            icon: const Icon(Icons.schedule_rounded),
-            onPressed: _openSchedule,
+      ],
+    );
+  }
+
+  Widget _buildWebBody(
+    BuildContext context, {
+    required List<FleetItem> items,
+    required HealthSummary summary,
+    required double avgSpeed,
+    required double estDistance,
+    required double utilRate,
+    required int score,
+    required String grade,
+    required Color scoreCol,
+  }) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(28, 24, 28, 40),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _ReportHeaderCard(periodLabel: _periodLabel(context))
+              .animate()
+              .fadeIn(duration: 300.ms),
+          const SizedBox(height: 20),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Left column — 40% — KPIs
+              Expanded(
+                flex: 4,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _FleetScoreCard(
+                      score: score,
+                      grade: grade,
+                      color: scoreCol,
+                      overdueCount: _overdueMaintenance,
+                      infractionsCount: _infractionsCount,
+                      utilizationRate: utilRate,
+                    )
+                        .animate()
+                        .fadeIn(delay: 60.ms, duration: 300.ms)
+                        .slideY(begin: 0.04, end: 0),
+                    const SizedBox(height: 14),
+                    _SafetySection(
+                      count: _infractionsCount,
+                      breakdown: _infractionsByType,
+                    )
+                        .animate()
+                        .fadeIn(delay: 120.ms, duration: 300.ms)
+                        .slideY(begin: 0.04, end: 0),
+                    const SizedBox(height: 14),
+                    _MaintenanceSection(
+                      overdue: _overdueMaintenance,
+                      upcoming: _upcomingMaintenance,
+                    )
+                        .animate()
+                        .fadeIn(delay: 160.ms, duration: 300.ms)
+                        .slideY(begin: 0.04, end: 0),
+                    const SizedBox(height: 14),
+                    _AlertsSection(
+                      count: _alertsCount,
+                      available: _alertsAvailable,
+                    )
+                        .animate()
+                        .fadeIn(delay: 200.ms, duration: 300.ms)
+                        .slideY(begin: 0.04, end: 0),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 20),
+              // Right column — 60% — charts/details
+              Expanded(
+                flex: 6,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _FleetStatusSection(summary: summary)
+                        .animate()
+                        .fadeIn(delay: 80.ms, duration: 300.ms)
+                        .slideY(begin: 0.04, end: 0),
+                    const SizedBox(height: 14),
+                    _PerformanceSection(
+                      avgSpeed: avgSpeed,
+                      estDistance: estDistance,
+                      utilizationRate: utilRate,
+                      activeCount: summary.moving + summary.idle,
+                    )
+                        .animate()
+                        .fadeIn(delay: 140.ms, duration: 300.ms)
+                        .slideY(begin: 0.04, end: 0),
+                    const SizedBox(height: 14),
+                    _WebActionsCard(
+                      onSchedule: _openSchedule,
+                      onShare: () => _shareReport(items, summary),
+                    )
+                        .animate()
+                        .fadeIn(delay: 220.ms, duration: 300.ms),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
-      body: _loading
-          ? const Center(
-              child: CircularProgressIndicator(color: AppColors.primary),
-            )
-          : ListView(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-              children: [
-                _PeriodSelector(
-                  period: _period,
-                  onChanged: _setPeriod,
-                )
-                    .animate()
-                    .fadeIn(duration: 300.ms)
-                    .slideY(begin: -0.04, end: 0),
-                const SizedBox(height: 16),
-                _ReportHeaderCard(periodLabel: _periodLabel(context))
-                    .animate()
-                    .fadeIn(delay: 40.ms, duration: 300.ms),
-                const SizedBox(height: 14),
-                _FleetScoreCard(
-                  score: score,
-                  grade: grade,
-                  color: scoreCol,
-                  overdueCount: _overdueMaintenance,
-                  infractionsCount: _infractionsCount,
-                  utilizationRate: utilRate,
-                )
-                    .animate()
-                    .fadeIn(delay: 60.ms, duration: 300.ms)
-                    .slideY(begin: 0.04, end: 0),
-                const SizedBox(height: 12),
-                _FleetStatusSection(summary: summary)
-                    .animate()
-                    .fadeIn(delay: 80.ms, duration: 300.ms)
-                    .slideY(begin: 0.04, end: 0),
-                const SizedBox(height: 12),
-                _PerformanceSection(
-                  avgSpeed: avgSpeed,
-                  estDistance: estDistance,
-                  utilizationRate: utilRate,
-                  activeCount: summary.moving + summary.idle,
-                )
-                    .animate()
-                    .fadeIn(delay: 120.ms, duration: 300.ms)
-                    .slideY(begin: 0.04, end: 0),
-                const SizedBox(height: 12),
-                _SafetySection(
-                  count: _infractionsCount,
-                  breakdown: _infractionsByType,
-                )
-                    .animate()
-                    .fadeIn(delay: 160.ms, duration: 300.ms)
-                    .slideY(begin: 0.04, end: 0),
-                const SizedBox(height: 12),
-                _MaintenanceSection(
-                  overdue: _overdueMaintenance,
-                  upcoming: _upcomingMaintenance,
-                )
-                    .animate()
-                    .fadeIn(delay: 200.ms, duration: 300.ms)
-                    .slideY(begin: 0.04, end: 0),
-                const SizedBox(height: 12),
-                _AlertsSection(
-                  count: _alertsCount,
-                  available: _alertsAvailable,
-                )
-                    .animate()
-                    .fadeIn(delay: 240.ms, duration: 300.ms)
-                    .slideY(begin: 0.04, end: 0),
-                const SizedBox(height: 24),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: _openSchedule,
-                        icon: const Icon(Icons.schedule_rounded),
-                        label: Text(context.tr('schedule')),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.accent,
-                          side: BorderSide(
-                              color:
-                                  AppColors.accent.withValues(alpha: 0.6)),
-                          padding:
-                              const EdgeInsets.symmetric(vertical: 14),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      flex: 2,
-                      child: ElevatedButton.icon(
-                        onPressed: () => _shareReport(items, summary),
-                        icon: const Icon(Icons.ios_share_rounded),
-                        label: Text(context.tr('share_report')),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.black,
-                          padding:
-                              const EdgeInsets.symmetric(vertical: 14),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Web-only: compact period selector for header actions
+// ---------------------------------------------------------------------------
+
+class _WebPeriodSelector extends StatelessWidget {
+  final _Period period;
+  final ValueChanged<_Period> onChanged;
+  const _WebPeriodSelector({required this.period, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: context.isDarkMode
+            ? Colors.white.withValues(alpha: 0.05)
+            : Colors.black.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: context.dividerColor),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _seg(context, context.tr('today'), _Period.today),
+          _seg(context, context.tr('last_7_days'), _Period.week),
+          _seg(context, context.tr('this_month'), _Period.month),
+        ],
+      ),
+    );
+  }
+
+  Widget _seg(BuildContext context, String label, _Period p) {
+    final selected = period == p;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => onChanged(p),
+        borderRadius: BorderRadius.circular(7),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            gradient: selected ? AppColors.primaryGradient : null,
+            borderRadius: BorderRadius.circular(7),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              color: selected ? Colors.black : context.textSecondaryColor,
+              fontSize: 11.5,
+              fontWeight: FontWeight.w800,
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Web-only: actions card
+// ---------------------------------------------------------------------------
+
+class _WebActionsCard extends StatelessWidget {
+  final VoidCallback onSchedule;
+  final VoidCallback onShare;
+  const _WebActionsCard({
+    required this.onSchedule,
+    required this.onShare,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: context.cardGradientColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: context.dividerColor),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: onSchedule,
+              icon: const Icon(Icons.schedule_rounded),
+              label: Text(context.tr('schedule')),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.accent,
+                side: BorderSide(
+                    color: AppColors.accent.withValues(alpha: 0.6)),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            flex: 2,
+            child: ElevatedButton.icon(
+              onPressed: onShare,
+              icon: const Icon(Icons.ios_share_rounded),
+              label: Text(context.tr('share_report')),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.black,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

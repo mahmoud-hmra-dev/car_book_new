@@ -11,6 +11,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../blocs/locale/locale_cubit.dart';
 import '../../blocs/theme/theme_cubit.dart';
 import '../../widgets/map/map_type_selector.dart';
+import '../../widgets/web/web_page_scaffold.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -64,6 +65,201 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final themeMode = context.watch<ThemeCubit>().state;
     final locale = context.watch<LocaleCubit>().state;
+    final isWide = MediaQuery.sizeOf(context).width >= 900;
+
+    final appearanceSection = _SectionCard(
+      index: 0,
+      icon: Icons.palette_rounded,
+      iconColor: AppColors.primary,
+      title: context.tr('appearance'),
+      webMode: isWide,
+      children: [
+        _ThemeSwitcher(
+          current: themeMode,
+          onSelected: (mode) {
+            final cubit = context.read<ThemeCubit>();
+            if (mode == ThemeMode.dark) {
+              cubit.setDark();
+            } else {
+              cubit.setLight();
+            }
+          },
+        ),
+        const SizedBox(height: 16),
+        _SubLabel(text: context.tr('language')),
+        const SizedBox(height: 10),
+        _LanguageSwitcher(
+          current: locale.languageCode,
+          onSelected: (code) => context.read<LocaleCubit>().setLocale(code),
+        ),
+        const SizedBox(height: 16),
+        _SubLabel(text: context.tr('map_type')),
+        const SizedBox(height: 10),
+        _MapTypeGridPicker(
+          current: _mapType,
+          onSelected: _saveMap,
+        ),
+      ],
+    );
+
+    final preferencesSection = _SectionCard(
+      index: 1,
+      icon: Icons.tune_rounded,
+      iconColor: AppColors.secondary,
+      title: context.tr('preferences'),
+      webMode: isWide,
+      children: [
+        _Tile(
+          leading:
+              const Icon(Icons.refresh_rounded, color: AppColors.primary),
+          title: context.tr('refresh_interval'),
+          subtitle: 'Every $_refreshInterval seconds',
+          onTap: () async {
+            final v = await showDialog<int>(
+              context: context,
+              builder: (ctx) => _PickerDialog(
+                title: context.tr('refresh_interval'),
+                options: const [15, 30, 60, 120, 300],
+                current: _refreshInterval,
+                formatter: (v) => '$v sec',
+              ),
+            );
+            if (v != null) _saveRefresh(v);
+          },
+        ),
+        Divider(height: 1, indent: 16, color: context.dividerColor),
+        _Tile(
+          leading: const Icon(Icons.straighten_rounded,
+              color: AppColors.secondary),
+          title: context.tr('units'),
+          subtitle: _units == 'metric'
+              ? context.tr('metric')
+              : context.tr('imperial'),
+          onTap: () async {
+            final v = await showDialog<String>(
+              context: context,
+              builder: (ctx) => SimpleDialog(
+                backgroundColor: context.surfaceColor,
+                title: Text(context.tr('units')),
+                children: [
+                  SimpleDialogOption(
+                    onPressed: () => Navigator.pop(ctx, 'metric'),
+                    child: Text(
+                      context.tr('metric'),
+                      style: TextStyle(color: context.textPrimaryColor),
+                    ),
+                  ),
+                  SimpleDialogOption(
+                    onPressed: () => Navigator.pop(ctx, 'imperial'),
+                    child: Text(
+                      context.tr('imperial'),
+                      style: TextStyle(color: context.textPrimaryColor),
+                    ),
+                  ),
+                ],
+              ),
+            );
+            if (v != null) _saveUnits(v);
+          },
+        ),
+      ],
+    );
+
+    final alertsSection = _SectionCard(
+      index: 2,
+      icon: Icons.notifications_active_rounded,
+      iconColor: AppColors.warning,
+      title: context.tr('alert_preferences'),
+      webMode: isWide,
+      children: [
+        _Tile(
+          leading:
+              const Icon(Icons.sms_rounded, color: AppColors.warning),
+          title: context.tr('sms_alerts'),
+          subtitle: context.tr('sms_info_banner'),
+          onTap: () => context.push('/settings/sms-alerts'),
+        ),
+        Divider(height: 1, indent: 16, color: context.dividerColor),
+        _Tile(
+          leading: const Icon(Icons.sos_rounded, color: AppColors.error),
+          title: 'Emergency Contacts',
+          subtitle: 'SOS contacts notified on panic trigger',
+          onTap: () => context.push('/settings/emergency-contacts'),
+        ),
+      ],
+    );
+
+    final aboutSection = _SectionCard(
+      index: 3,
+      icon: Icons.info_rounded,
+      iconColor: AppColors.accent,
+      title: context.tr('about'),
+      padded: true,
+      webMode: isWide,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                gradient: AppColors.primaryGradient,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: const Icon(Icons.location_on_rounded,
+                  color: Colors.black),
+            ),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(AppConfig.appName,
+                    style: Theme.of(context).textTheme.titleLarge),
+                const SizedBox(height: 2),
+                Text('v${AppConfig.appVersion}',
+                    style: TextStyle(color: context.textMutedColor)),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+        Text(
+          'Professional fleet management & GPS tracking. Built with real-time data and powerful insights to keep your fleet running smoothly.',
+          style:
+              TextStyle(color: context.textSecondaryColor, height: 1.4),
+        ),
+      ],
+    );
+
+    if (isWide) {
+      // Web: two-column grid of sections
+      return WebPageScaffoldScrollable(
+        title: context.tr('settings'),
+        subtitle: 'App preferences & configuration',
+        child: !_loaded
+            ? const Center(
+                child: CircularProgressIndicator(color: AppColors.primary),
+              )
+            : SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(28, 20, 28, 32),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final colWidth = (constraints.maxWidth - 20) / 2;
+                    return Wrap(
+                      spacing: 20,
+                      runSpacing: 20,
+                      children: [
+                        SizedBox(width: colWidth, child: appearanceSection),
+                        SizedBox(width: colWidth, child: preferencesSection),
+                        SizedBox(width: colWidth, child: alertsSection),
+                        SizedBox(width: colWidth, child: aboutSection),
+                      ],
+                    );
+                  },
+                ),
+              ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: context.bgColor,
@@ -269,6 +465,7 @@ class _SectionCard extends StatelessWidget {
   final String title;
   final List<Widget> children;
   final bool padded;
+  final bool webMode;
 
   const _SectionCard({
     required this.index,
@@ -277,10 +474,19 @@ class _SectionCard extends StatelessWidget {
     required this.title,
     required this.children,
     this.padded = false,
+    this.webMode = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final headerPad = webMode
+        ? const EdgeInsets.fromLTRB(20, 20, 20, 10)
+        : const EdgeInsets.fromLTRB(16, 16, 16, 8);
+    final bodyPad = webMode
+        ? EdgeInsets.fromLTRB(20, 6, 20, padded ? 20 : 16)
+        : EdgeInsets.fromLTRB(16, 4, 16, padded ? 16 : 12);
+    final iconBox = webMode ? 36.0 : 32.0;
+    final titleSize = webMode ? 16.0 : 15.0;
     return Container(
       decoration: BoxDecoration(
         color: context.cardColor,
@@ -291,24 +497,24 @@ class _SectionCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            padding: headerPad,
             child: Row(
               children: [
                 Container(
-                  width: 32,
-                  height: 32,
+                  width: iconBox,
+                  height: iconBox,
                   decoration: BoxDecoration(
                     color: iconColor.withValues(alpha: 0.18),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(icon, color: iconColor, size: 18),
+                  child: Icon(icon, color: iconColor, size: webMode ? 20 : 18),
                 ),
                 const SizedBox(width: 10),
                 Text(
                   title,
                   style: TextStyle(
                     color: context.textPrimaryColor,
-                    fontSize: 15,
+                    fontSize: titleSize,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.2,
                   ),
@@ -316,22 +522,13 @@ class _SectionCard extends StatelessWidget {
               ],
             ),
           ),
-          if (padded)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: children,
-              ),
-            )
-          else
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: children,
-              ),
+          Padding(
+            padding: bodyPad,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: children,
             ),
+          ),
         ],
       ),
     ).animate(delay: (index * 100).ms).fadeIn(duration: 350.ms).slideY(
