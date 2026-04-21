@@ -11,6 +11,7 @@ import '../../blocs/fleet/fleet_state.dart';
 import '../../widgets/common/app_error.dart';
 import '../../widgets/common/app_loading.dart';
 import '../../widgets/fleet/vehicle_card.dart';
+import '../../widgets/web/web_page_scaffold.dart';
 
 enum _SortBy { name, status, speed }
 
@@ -106,7 +107,18 @@ class _VehiclesScreenState extends State<VehiclesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    final isWide = MediaQuery.sizeOf(context).width >= 900;
+    final effectiveGridView = _gridView || isWide;
+    return WebPageScaffoldScrollable(
+      title: context.tr('fleet'),
+      subtitle: 'Live vehicle status and tracking',
+      actions: [
+        IconButton(
+          onPressed: () => context.push('/search'),
+          icon: Icon(Icons.search_rounded, color: context.textSecondaryColor),
+        ),
+      ],
+      child: Scaffold(
       backgroundColor: context.bgColor,
       appBar: AppBar(
         title: Text(context.tr('fleet')),
@@ -286,13 +298,13 @@ class _VehiclesScreenState extends State<VehiclesScreen> {
                     color: AppColors.primary,
                     onRefresh: () =>
                         context.read<FleetCubit>().load(refreshing: true),
-                    child: _gridView
+                    child: effectiveGridView
                         ? GridView.builder(
                             padding:
                                 const EdgeInsets.fromLTRB(16, 4, 16, 96),
                             gridDelegate:
-                                const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
+                                SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: isWide ? 3 : 2,
                               crossAxisSpacing: 12,
                               mainAxisSpacing: 12,
                               childAspectRatio: 1.1,
@@ -328,6 +340,7 @@ class _VehiclesScreenState extends State<VehiclesScreen> {
             ),
           ],
         ),
+      ),
       ),
     );
   }

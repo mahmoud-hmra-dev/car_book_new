@@ -16,6 +16,7 @@ import '../../blocs/fleet/fleet_cubit.dart';
 import '../../blocs/fleet/fleet_state.dart';
 import '../../widgets/common/app_error.dart';
 import '../../widgets/common/app_loading.dart';
+import '../../widgets/web/web_page_scaffold.dart';
 
 /// Premium, modern dashboard for ControTrack.
 ///
@@ -45,7 +46,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final user = context.watch<AuthCubit>().state.user;
-    return Scaffold(
+    return WebPageScaffoldScrollable(
+      title: context.tr('home'),
+      subtitle: 'Fleet overview & live status',
+      actions: [
+        IconButton(
+          onPressed: () => context.push('/search'),
+          icon: Icon(Icons.search_rounded, color: context.textSecondaryColor),
+          tooltip: context.tr('search'),
+        ),
+        IconButton(
+          onPressed: () => context.read<FleetCubit>().load(refreshing: true),
+          icon: Icon(Icons.refresh_rounded, color: context.textSecondaryColor),
+          tooltip: context.tr('refresh'),
+        ),
+      ],
+      child: Scaffold(
       backgroundColor: context.bgColor,
       body: SafeArea(
         child: RefreshIndicator(
@@ -54,7 +70,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: BlocBuilder<FleetCubit, FleetState>(
             builder: (context, state) {
               final screenWidth = MediaQuery.sizeOf(context).width;
-              final isWide = screenWidth >= 800;
+              final isWide = screenWidth >= 900;
               if (state.status == FleetStatus.loading && state.items.isEmpty) {
                 return const ShimmerList();
               }
@@ -280,7 +296,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ),
       ),
-    );
+    ));
   }
 }
 

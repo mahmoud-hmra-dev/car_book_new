@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../../config/app_config.dart';
 import '../constants/api_constants.dart';
 import '../errors/failures.dart';
@@ -99,7 +100,11 @@ class DioClient {
       return AppException('Connection timed out. Please try again.', statusCode: status);
     }
     if (e.type == DioExceptionType.connectionError) {
-      return AppException('No internet connection.', statusCode: status);
+      // On web, CORS blocks also surface as connectionError.
+      final msg = kIsWeb
+          ? 'Unable to reach server. Check CORS settings or network.'
+          : 'No internet connection.';
+      return AppException(msg, statusCode: status);
     }
     if (status == 401 || status == 403) {
       return AppException('Unauthorized. Please sign in again.', statusCode: status);

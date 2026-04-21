@@ -8,6 +8,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../blocs/auth/auth_cubit.dart';
 import '../../blocs/fleet/fleet_cubit.dart';
 import '../../blocs/fleet/fleet_state.dart';
+import '../../widgets/web/web_page_scaffold.dart';
 
 class MoreScreen extends StatelessWidget {
   const MoreScreen({super.key});
@@ -240,24 +241,38 @@ class MoreScreen extends StatelessWidget {
     );
     children.add(const SizedBox(height: 100));
 
-    return Scaffold(
-      backgroundColor: context.bgColor,
-      appBar: AppBar(
+    final isWide = MediaQuery.sizeOf(context).width >= 900;
+
+    return WebPageScaffold(
+      title: context.tr('more'),
+      subtitle: 'Tools, reports & account settings',
+      scrollable: true,
+      child: Scaffold(
         backgroundColor: context.bgColor,
-        elevation: 0,
-        title: Text(context.tr('more')),
-        actions: [
-          IconButton(
-            tooltip: context.tr('search'),
-            icon: const Icon(Icons.search_rounded),
-            onPressed: () => context.push('/search'),
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-          children: children,
+        appBar: isWide
+            ? null
+            : AppBar(
+                backgroundColor: context.bgColor,
+                elevation: 0,
+                title: Text(context.tr('more')),
+                actions: [
+                  IconButton(
+                    tooltip: context.tr('search'),
+                    icon: const Icon(Icons.search_rounded),
+                    onPressed: () => context.push('/search'),
+                  ),
+                ],
+              ),
+        body: SafeArea(
+          child: isWide
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: children,
+                )
+              : ListView(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                  children: children,
+                ),
         ),
       ),
     );

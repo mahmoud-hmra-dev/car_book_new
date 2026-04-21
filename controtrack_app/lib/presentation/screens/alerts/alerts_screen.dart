@@ -9,6 +9,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../blocs/fleet/fleet_cubit.dart';
 import '../../widgets/common/app_error.dart';
 import '../../widgets/common/app_loading.dart';
+import '../../widgets/web/web_page_scaffold.dart';
 
 enum _AlertFilter { all, geofence, speed, maintenance, other }
 
@@ -80,7 +81,16 @@ class _AlertsScreenState extends State<AlertsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return WebPageScaffoldScrollable(
+      title: context.tr('alerts'),
+      subtitle: 'Fleet events & notifications',
+      actions: [
+        IconButton(
+          onPressed: _refresh,
+          icon: Icon(Icons.refresh_rounded, color: context.textSecondaryColor),
+        ),
+      ],
+      child: Scaffold(
       backgroundColor: context.bgColor,
       appBar: AppBar(
         backgroundColor: context.bgColor,
@@ -200,6 +210,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
             ],
           );
         },
+      ),
       ),
     );
   }
