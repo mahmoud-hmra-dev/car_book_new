@@ -12,8 +12,6 @@ import '../presentation/screens/vehicles/vehicle_detail_screen.dart';
 import '../presentation/screens/vehicles/vehicle_commands_screen.dart';
 import '../presentation/screens/vehicles/panic_button_screen.dart';
 import '../presentation/screens/vehicles/immobilization_screen.dart';
-import '../presentation/screens/vehicles/pod_screen.dart';
-import '../presentation/screens/vehicles/eta_share_screen.dart';
 import '../presentation/screens/alerts/alerts_screen.dart';
 import '../presentation/screens/more/more_screen.dart';
 import '../presentation/screens/route_history/route_history_screen.dart';
@@ -27,29 +25,13 @@ import '../presentation/screens/reports/speed_violations_screen.dart';
 import '../presentation/screens/reports/summary_report_screen.dart';
 import '../presentation/screens/drivers/drivers_screen.dart';
 import '../presentation/screens/drivers/driver_behavior_screen.dart';
-import '../presentation/screens/drivers/driver_checkin_screen.dart';
-import '../presentation/screens/drivers/hos_screen.dart';
-import '../presentation/screens/cargo/cargo_screen.dart';
 import '../presentation/screens/vehicles/sensors_screen.dart';
-import '../presentation/screens/vehicles/dvir_screen.dart';
 import '../presentation/screens/vehicles/documents_screen.dart';
-import '../presentation/screens/infractions/infractions_screen.dart';
 import '../presentation/screens/maintenance/maintenance_screen.dart';
 import '../presentation/screens/search/search_screen.dart';
 import '../presentation/screens/settings/settings_screen.dart';
 import '../presentation/screens/settings/sms_alerts_screen.dart';
 import '../presentation/screens/vehicles/fuel_log_screen.dart';
-import '../presentation/screens/analytics/cost_analytics_screen.dart';
-import '../presentation/screens/analytics/benchmarking_screen.dart';
-import '../presentation/screens/reports/route_optimization_screen.dart';
-import '../presentation/screens/fleet/fleet_timeline_screen.dart';
-import '../presentation/screens/fleet/mileage_tracker_screen.dart';
-import '../presentation/screens/fleet/idle_time_screen.dart';
-import '../presentation/screens/fleet/vehicle_sharing_screen.dart';
-import '../presentation/screens/drivers/driver_scorecard_screen.dart';
-import '../presentation/screens/alerts/smart_alerts_screen.dart';
-import '../presentation/screens/fleet/executive_summary_screen.dart';
-import '../presentation/screens/fleet/fuel_theft_screen.dart';
 import '../presentation/screens/settings/emergency_contacts_screen.dart';
 
 /// Shared fade + subtle upward slide transition builder used across routes.
@@ -180,20 +162,6 @@ class AppRouter {
           ),
         ),
         GoRoute(
-          path: '/drivers/checkin',
-          pageBuilder: (_, state) => _page(
-            key: state.pageKey,
-            child: const DriverCheckinScreen(),
-          ),
-        ),
-        GoRoute(
-          path: '/cargo',
-          pageBuilder: (_, state) => _page(
-            key: state.pageKey,
-            child: const CargoScreen(),
-          ),
-        ),
-        GoRoute(
           path: '/maintenance',
           pageBuilder: (_, state) => _page(
             key: state.pageKey,
@@ -237,13 +205,6 @@ class AppRouter {
             key: state.pageKey,
             child: ImmobilizationScreen(
                 carId: state.pathParameters['carId']!),
-          ),
-        ),
-        GoRoute(
-          path: '/vehicles/:carId/pod',
-          pageBuilder: (_, state) => _page(
-            key: state.pageKey,
-            child: PodScreen(carId: state.pathParameters['carId']!),
           ),
         ),
         GoRoute(
@@ -305,23 +266,6 @@ class AppRouter {
           ),
         ),
         GoRoute(
-          path: '/drivers/:driverId/hos',
-          pageBuilder: (_, state) => _page(
-            key: state.pageKey,
-            child: HosScreen(
-              driverId: state.pathParameters['driverId']!,
-              driverName: state.uri.queryParameters['name'] ?? 'Driver',
-            ),
-          ),
-        ),
-        GoRoute(
-          path: '/vehicles/:carId/eta',
-          pageBuilder: (_, state) => _page(
-            key: state.pageKey,
-            child: EtaShareScreen(carId: state.pathParameters['carId']!),
-          ),
-        ),
-        GoRoute(
           path: '/vehicles/:carId/sensors',
           pageBuilder: (_, state) => _page(
             key: state.pageKey,
@@ -329,24 +273,10 @@ class AppRouter {
           ),
         ),
         GoRoute(
-          path: '/vehicles/:carId/dvir',
-          pageBuilder: (_, state) => _page(
-            key: state.pageKey,
-            child: DvirScreen(carId: state.pathParameters['carId']!),
-          ),
-        ),
-        GoRoute(
           path: '/vehicles/:carId/documents',
           pageBuilder: (_, state) => _page(
             key: state.pageKey,
             child: DocumentsScreen(carId: state.pathParameters['carId']!),
-          ),
-        ),
-        GoRoute(
-          path: '/infractions',
-          pageBuilder: (_, state) => _page(
-            key: state.pageKey,
-            child: const InfractionsScreen(),
           ),
         ),
         GoRoute(
@@ -371,87 +301,10 @@ class AppRouter {
           ),
         ),
         GoRoute(
-          path: '/analytics/costs',
-          pageBuilder: (_, state) => _page(
-            key: state.pageKey,
-            child: const CostAnalyticsScreen(),
-          ),
-        ),
-        GoRoute(
-          path: '/analytics/benchmarking',
-          pageBuilder: (_, state) => _page(
-            key: state.pageKey,
-            child: const BenchmarkingScreen(),
-          ),
-        ),
-        GoRoute(
-          path: '/reports/route-optimization',
-          pageBuilder: (_, state) => _page(
-            key: state.pageKey,
-            child: const RouteOptimizationScreen(),
-          ),
-        ),
-        GoRoute(
-          path: '/fleet/timeline',
-          pageBuilder: (_, state) => _page(
-            key: state.pageKey,
-            child: const FleetTimelineScreen(),
-          ),
-        ),
-        GoRoute(
-          path: '/fleet/mileage',
-          pageBuilder: (_, state) => _page(
-            key: state.pageKey,
-            child: const MileageTrackerScreen(),
-          ),
-        ),
-        GoRoute(
-          path: '/fleet/idle',
-          pageBuilder: (_, state) => _page(
-            key: state.pageKey,
-            child: const IdleTimeScreen(),
-          ),
-        ),
-        GoRoute(
-          path: '/fleet/sharing',
-          pageBuilder: (_, state) => _page(
-            key: state.pageKey,
-            child: const VehicleSharingScreen(),
-          ),
-        ),
-        GoRoute(
-          path: '/drivers/scorecards',
-          pageBuilder: (_, state) => _page(
-            key: state.pageKey,
-            child: const DriverScorecardScreen(),
-          ),
-        ),
-        GoRoute(
-          path: '/alerts/smart',
-          pageBuilder: (_, state) => _page(
-            key: state.pageKey,
-            child: const SmartAlertsScreen(),
-          ),
-        ),
-        GoRoute(
-          path: '/fleet/executive',
-          pageBuilder: (_, state) => _page(
-            key: state.pageKey,
-            child: const ExecutiveSummaryScreen(),
-          ),
-        ),
-        GoRoute(
           path: '/settings/emergency-contacts',
           pageBuilder: (_, state) => _page(
             key: state.pageKey,
             child: const EmergencyContactsScreen(),
-          ),
-        ),
-        GoRoute(
-          path: '/fleet/fuel-theft',
-          pageBuilder: (_, state) => _page(
-            key: state.pageKey,
-            child: const FuelTheftScreen(),
           ),
         ),
       ],

@@ -503,6 +503,7 @@ class _RouteHistoryScreenState extends State<RouteHistoryScreen> {
               children: [
                 DropdownButtonFormField<String>(
                   value: _selected?.carId,
+                  style: TextStyle(color: context.textPrimaryColor, fontSize: 15),
                   decoration: InputDecoration(
                     labelText: context.tr('vehicle'),
                     prefixIcon: const Icon(Icons.directions_car_rounded),

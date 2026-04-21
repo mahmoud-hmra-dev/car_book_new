@@ -165,10 +165,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     sliver: SliverGrid(
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
+                        crossAxisCount: 2,
                         mainAxisSpacing: 12,
                         crossAxisSpacing: 12,
-                        childAspectRatio: 1.4,
+                        childAspectRatio: 2.8,
                       ),
                       delegate: SliverChildListDelegate([
                         _QuickActionTile(
@@ -194,103 +194,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                         _QuickActionTile(
                           index: 3,
-                          label: context.tr('drivers'),
-                          icon: Icons.badge_rounded,
+                          label: context.tr('maintenance'),
+                          icon: Icons.build_rounded,
                           color: AppColors.accent,
-                          onTap: () => context.push('/drivers'),
-                        ),
-                        _QuickActionTile(
-                          index: 4,
-                          label: context.tr('mileage'),
-                          icon: Icons.social_distance_rounded,
-                          color: AppColors.primary,
-                          onTap: () => context.push('/fleet/mileage'),
-                        ),
-                        _QuickActionTile(
-                          index: 5,
-                          label: context.tr('idle_time'),
-                          icon: Icons.timer_off_rounded,
-                          color: AppColors.statusStale,
-                          onTap: () => context.push('/fleet/idle'),
+                          onTap: () => context.push('/maintenance'),
                         ),
                       ]),
                     ),
-                  ),
-
-                  // ===== Fleet Insights horizontal scroll =====
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(20, 24, 0, 12),
-                    sliver: SliverToBoxAdapter(
-                      child: Text(
-                        context.tr('fleet_insights'),
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                    ),
-                  ),
-                  SliverToBoxAdapter(
-                    child: SizedBox(
-                      height: 100,
-                      child: ListView(
-                        scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.only(left: 20, right: 8),
-                        children: [
-                          _InsightCard(
-                            icon: Icons.history_toggle_off_rounded,
-                            label: context.tr('insight_activity_timeline'),
-                            color: AppColors.accent,
-                            onTap: () => context.push('/fleet/timeline'),
-                          ),
-                          _InsightCard(
-                            icon: Icons.share_location_rounded,
-                            label: context.tr('insight_vehicle_sharing'),
-                            color: AppColors.secondary,
-                            onTap: () => context.push('/fleet/sharing'),
-                          ),
-                          _InsightCard(
-                            icon: Icons.inventory_2_rounded,
-                            label: context.tr('insight_cargo_assets'),
-                            color: AppColors.primary,
-                            onTap: () => context.push('/cargo'),
-                          ),
-                          _InsightCard(
-                            icon: Icons.leaderboard_rounded,
-                            label: context.tr('insight_vehicle_benchmark'),
-                            color: AppColors.warning,
-                            onTap: () => context.push('/analytics/benchmarking'),
-                          ),
-                          _InsightCard(
-                            icon: Icons.query_stats_rounded,
-                            label: context.tr('insight_cost_analytics'),
-                            color: AppColors.statusStale,
-                            onTap: () => context.push('/analytics/costs'),
-                          ),
-                          _InsightCard(
-                            icon: Icons.emoji_events_rounded,
-                            label: context.tr('insight_driver_scores'),
-                            color: AppColors.warning,
-                            onTap: () => context.push('/drivers/scorecards'),
-                          ),
-                          _InsightCard(
-                            icon: Icons.auto_awesome_rounded,
-                            label: context.tr('insight_smart_alerts'),
-                            color: AppColors.accent,
-                            onTap: () => context.push('/alerts/smart'),
-                          ),
-                          _InsightCard(
-                            icon: Icons.local_gas_station_rounded,
-                            label: context.tr('insight_fuel_theft'),
-                            color: AppColors.error,
-                            onTap: () => context.push('/fleet/fuel-theft'),
-                          ),
-                          _InsightCard(
-                            icon: Icons.analytics_rounded,
-                            label: context.tr('insight_executive_summary'),
-                            color: AppColors.primary,
-                            onTap: () => context.push('/fleet/executive'),
-                          ),
-                        ],
-                      ),
-                    ).animate().fadeIn(delay: 300.ms, duration: 500.ms),
                   ),
 
                   // ===== Maintenance Reminder banner =====
@@ -1442,72 +1352,6 @@ class _MaintenanceBanner extends StatelessWidget {
             const SizedBox(width: 8),
             Icon(Icons.chevron_right_rounded,
                 color: context.textMutedColor, size: 20),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ============================================================================
-// Fleet Insights horizontal card
-// ============================================================================
-
-class _InsightCard extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final Color color;
-  final VoidCallback onTap;
-
-  const _InsightCard({
-    required this.icon,
-    required this.label,
-    required this.color,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 100,
-        margin: const EdgeInsets.only(right: 10),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              color.withValues(alpha: 0.18),
-              color.withValues(alpha: 0.08),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withValues(alpha: 0.35)),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(icon, color: color, size: 20),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: context.textPrimaryColor,
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                height: 1.3,
-              ),
-            ),
           ],
         ),
       ),

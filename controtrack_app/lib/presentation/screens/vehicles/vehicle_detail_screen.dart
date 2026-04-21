@@ -543,14 +543,6 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                         ),
                         const SizedBox(width: 10),
                         _ActionChip(
-                          icon: Icons.fact_check_rounded,
-                          label: context.tr('inspection'),
-                          color: AppColors.success,
-                          onTap: () => context
-                              .push('/vehicles/${widget.carId}/dvir'),
-                        ),
-                        const SizedBox(width: 10),
-                        _ActionChip(
                           icon: Icons.folder_rounded,
                           label: context.tr('documents'),
                           color: AppColors.accent,
@@ -575,14 +567,6 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                         ),
                         const SizedBox(width: 10),
                         _ActionChip(
-                          icon: Icons.local_shipping_rounded,
-                          label: context.tr('pod'),
-                          color: AppColors.primary,
-                          onTap: () => context
-                              .push('/vehicles/${widget.carId}/pod'),
-                        ),
-                        const SizedBox(width: 10),
-                        _ActionChip(
                           icon: Icons.timeline_rounded,
                           label: context.tr('route_history'),
                           color: AppColors.accent,
@@ -596,14 +580,6 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                           loading: _sharingLocation,
                           onTap:
                               _sharingLocation ? null : _shareLocation,
-                        ),
-                        const SizedBox(width: 10),
-                        _ActionChip(
-                          icon: Icons.schedule_send_rounded,
-                          label: context.tr('share_live'),
-                          color: AppColors.primary,
-                          onTap: () => context
-                              .push('/vehicles/${widget.carId}/eta'),
                         ),
                         const SizedBox(width: 10),
                         _ActionChip(

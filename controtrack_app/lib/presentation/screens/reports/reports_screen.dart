@@ -237,52 +237,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     end: 0,
                   ),
               _ReportCard(
-                icon: Icons.emoji_events_rounded,
-                color: AppColors.warning,
-                title: 'Driver Scorecards',
-                subtitle: 'Monthly rankings',
-                onTap: () => context.push('/drivers/scorecards'),
-              ).animate().fadeIn(delay: 150.ms, duration: 350.ms).slideY(
-                    begin: 0.1,
-                    end: 0,
-                  ),
-              _ReportCard(
                 icon: Icons.assignment_rounded,
                 color: AppColors.secondary,
                 title: 'Fleet Summary',
                 subtitle: 'Daily / weekly report',
                 onTap: () => context.push('/reports/summary'),
               ).animate().fadeIn(delay: 200.ms, duration: 350.ms).slideY(
-                    begin: 0.1,
-                    end: 0,
-                  ),
-              _ReportCard(
-                icon: Icons.analytics_rounded,
-                color: AppColors.primary,
-                title: 'Executive Summary',
-                subtitle: 'KPIs and performance',
-                onTap: () => context.push('/fleet/executive'),
-              ).animate().fadeIn(delay: 250.ms, duration: 350.ms).slideY(
-                    begin: 0.1,
-                    end: 0,
-                  ),
-              _ReportCard(
-                icon: Icons.local_gas_station_rounded,
-                color: AppColors.error,
-                title: 'Fuel Theft',
-                subtitle: 'Suspicious drops',
-                onTap: () => context.push('/fleet/fuel-theft'),
-              ).animate().fadeIn(delay: 300.ms, duration: 350.ms).slideY(
-                    begin: 0.1,
-                    end: 0,
-                  ),
-              _ReportCard(
-                icon: Icons.alt_route_rounded,
-                color: AppColors.secondary,
-                title: 'Route Optimization',
-                subtitle: 'Efficiency insights',
-                onTap: () => context.push('/reports/route-optimization'),
-              ).animate().fadeIn(delay: 350.ms, duration: 350.ms).slideY(
                     begin: 0.1,
                     end: 0,
                   ),
@@ -348,6 +308,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
           const SizedBox(height: 14),
           DropdownButtonFormField<String>(
             value: _selected?.carId,
+            style: TextStyle(color: context.textPrimaryColor, fontSize: 15),
             decoration: InputDecoration(
               labelText: context.tr('vehicle'),
               prefixIcon: const Icon(Icons.directions_car_rounded),

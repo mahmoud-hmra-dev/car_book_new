@@ -221,14 +221,6 @@ class _DriversScreenState extends State<DriversScreen>
                     onEdit: () => _edit(list[i]),
                     onDelete: () => _delete(list[i]),
                     onAssign: () => _openAssignSheet(list[i]),
-                    onHos: () {
-                      final d = list[i];
-                      final name = Uri.encodeQueryComponent(
-                        d.name.isEmpty ? 'Driver' : d.name,
-                      );
-                      context.push('/drivers/${d.id}/hos?name=$name');
-                    },
-                    onScorecard: () => context.push('/drivers/scorecards'),
                   ),
                 ),
               );
@@ -833,16 +825,12 @@ class _DriverTile extends StatefulWidget {
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final VoidCallback onAssign;
-  final VoidCallback onHos;
-  final VoidCallback? onScorecard;
   const _DriverTile({
     required this.driver,
     required this.onTap,
     required this.onEdit,
     required this.onDelete,
     required this.onAssign,
-    required this.onHos,
-    this.onScorecard,
   });
 
   @override
@@ -955,18 +943,6 @@ class _DriverTileState extends State<_DriverTile> {
                       ],
                     ],
                   ),
-                ),
-                IconButton(
-                  tooltip: 'Scorecard',
-                  icon: const Icon(Icons.emoji_events_rounded,
-                      color: AppColors.warning),
-                  onPressed: widget.onScorecard,
-                ),
-                IconButton(
-                  tooltip: context.tr('hos'),
-                  icon: Icon(Icons.schedule_rounded,
-                      color: AppColors.primary),
-                  onPressed: widget.onHos,
                 ),
                 IconButton(
                   icon: Icon(Icons.edit_outlined,

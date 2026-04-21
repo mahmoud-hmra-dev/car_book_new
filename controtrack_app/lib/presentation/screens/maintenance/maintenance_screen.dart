@@ -1013,6 +1013,7 @@ class _MaintenanceFormState extends State<_MaintenanceForm> {
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
               value: _carId,
+              style: TextStyle(color: context.textPrimaryColor, fontSize: 15),
               decoration: InputDecoration(
                 labelText: context.tr('vehicle'),
                 prefixIcon: const Icon(Icons.directions_car_rounded),
@@ -1031,6 +1032,7 @@ class _MaintenanceFormState extends State<_MaintenanceForm> {
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
               value: _serviceType,
+              style: TextStyle(color: context.textPrimaryColor, fontSize: 15),
               decoration: InputDecoration(
                 labelText: context.tr('service_type'),
                 prefixIcon: const Icon(Icons.build_rounded),

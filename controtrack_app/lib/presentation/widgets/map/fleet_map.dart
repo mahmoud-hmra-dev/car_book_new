@@ -57,43 +57,94 @@ class FleetMapState extends State<FleetMap> {
     return icon;
   }
 
+  /// Builds a pin-style marker:
+  /// - Rounded rectangle badge filled with [color]
+  /// - MaterialIcons car icon rendered via TextPainter (no manual paths)
+  /// - Teardrop tip at the bottom pointing to the exact vehicle position
   Future<BitmapDescriptor> _buildMarkerIcon(Color color) async {
-    const size = 96.0;
+    const double badgeW = 56.0;
+    const double badgeH = 52.0;
+    const double tipH   = 14.0;
+    const double radius = 14.0;
+    const double totalH = badgeH + tipH;
+    const double iconSz = 28.0;
+
     final recorder = ui.PictureRecorder();
-    final canvas = Canvas(recorder);
+    final canvas   = Canvas(recorder);
 
-    // Outer glow
-    final glow = Paint()
-      ..color = color.withValues(alpha: 0.35)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12);
-    canvas.drawCircle(const Offset(size / 2, size / 2), size / 2.2, glow);
+    // 1. Drop shadow
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(4, 6, badgeW - 8, badgeH),
+        const Radius.circular(radius),
+      ),
+      Paint()
+        ..color = Colors.black.withValues(alpha: 0.30)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
+    );
 
-    // Outer ring
-    final ring = Paint()
-      ..color = Colors.white.withValues(alpha: 0.9)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 4;
-    canvas.drawCircle(const Offset(size / 2, size / 2), size / 2.8, ring);
+    // 2. Badge background with subtle vertical gradient
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(0, 0, badgeW, badgeH),
+        const Radius.circular(radius),
+      ),
+      Paint()
+        ..shader = ui.Gradient.linear(
+          Offset.zero,
+          Offset(0, badgeH),
+          [
+            Color.fromARGB(
+              255,
+              (color.r * 255 + 40).clamp(0, 255).toInt(),
+              (color.g * 255 + 40).clamp(0, 255).toInt(),
+              (color.b * 255 + 40).clamp(0, 255).toInt(),
+            ),
+            color,
+          ],
+        ),
+    );
 
-    // Fill circle
-    final fill = Paint()..color = color;
-    canvas.drawCircle(const Offset(size / 2, size / 2), size / 2.8 - 2, fill);
+    // 3. Teardrop tip
+    canvas.drawPath(
+      Path()
+        ..moveTo(badgeW / 2 - 10, badgeH - 1)
+        ..lineTo(badgeW / 2 + 10, badgeH - 1)
+        ..lineTo(badgeW / 2,      totalH)
+        ..close(),
+      Paint()..color = color,
+    );
 
-    // Inner dot
-    final inner = Paint()..color = Colors.white;
-    canvas.drawCircle(const Offset(size / 2, size / 2), 10, inner);
+    // 4. Thin white border around badge
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(1, 1, badgeW - 2, badgeH - 2),
+        const Radius.circular(radius - 1),
+      ),
+      Paint()
+        ..color = Colors.white.withValues(alpha: 0.25)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5,
+    );
 
-    // Car icon (simple triangle arrow)
-    final arrow = Path();
-    arrow.moveTo(size / 2, size / 2 - 8);
-    arrow.lineTo(size / 2 - 6, size / 2 + 6);
-    arrow.lineTo(size / 2 + 6, size / 2 + 6);
-    arrow.close();
-    final arrowPaint = Paint()..color = color;
-    canvas.drawPath(arrow, arrowPaint);
+    // 5. Car icon via Flutter's own TextPainter + MaterialIcons font
+    final tp = TextPainter(textDirection: TextDirection.ltr)
+      ..text = TextSpan(
+        text: String.fromCharCode(Icons.directions_car_rounded.codePoint),
+        style: const TextStyle(
+          fontSize: iconSz,
+          fontFamily: 'MaterialIcons',
+          color: Colors.white,
+        ),
+      )
+      ..layout();
+    tp.paint(
+      canvas,
+      Offset((badgeW - tp.width) / 2, (badgeH - tp.height) / 2),
+    );
 
     final picture = recorder.endRecording();
-    final img = await picture.toImage(size.toInt(), size.toInt());
+    final img   = await picture.toImage(badgeW.toInt(), totalH.toInt());
     final bytes = await img.toByteData(format: ui.ImageByteFormat.png);
     return BitmapDescriptor.bytes(bytes!.buffer.asUint8List());
   }
@@ -110,9 +161,7 @@ class FleetMapState extends State<FleetMap> {
           markerId: MarkerId(it.carId),
           position: LatLng(pos.latitude, pos.longitude),
           icon: icon,
-          rotation: pos.course,
-          flat: true,
-          anchor: const Offset(0.5, 0.5),
+          anchor: const Offset(0.5, 1.0),
           onTap: widget.onMarkerTap == null ? null : () => widget.onMarkerTap!(it),
         ),
       );
