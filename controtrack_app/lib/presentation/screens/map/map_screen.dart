@@ -121,7 +121,13 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final topPadding = MediaQuery.of(context).padding.top;
+    final topPadding    = MediaQuery.of(context).padding.top;
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+    // Floating nav bar: 8 (top pad) + 64 (height) + 12 (bottom pad) = 84 px
+    // above the system bottom inset.
+    const navBarVisualH = 84.0;
+    final fabBottom     = bottomPadding + navBarVisualH + 12;
+
     return Scaffold(
       body: BlocBuilder<FleetCubit, FleetState>(
         builder: (context, state) {
@@ -240,7 +246,7 @@ class _MapScreenState extends State<MapScreen> {
               // ===== Bottom-right FAB cluster =====
               Positioned(
                 right: 12,
-                bottom: 24,
+                bottom: fabBottom,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -279,7 +285,7 @@ class _MapScreenState extends State<MapScreen> {
               // ===== Bottom-left panic + map type selector =====
               Positioned(
                 left: 12,
-                bottom: 24,
+                bottom: fabBottom,
                 child: MapTypeSelector(
                   current: _mapType,
                   onChanged: (t) async {
@@ -288,9 +294,10 @@ class _MapScreenState extends State<MapScreen> {
                   },
                 ),
               ),
+              // Panic button sits above MapTypeSelector (44px button + 10 gap)
               Positioned(
                 left: 12,
-                bottom: 92,
+                bottom: fabBottom + 54,
                 child: Semantics(
                   button: true,
                   label: context.tr('panic_button'),
@@ -534,7 +541,7 @@ class _MapFab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bg = isPrimary ? AppColors.primary : context.surfaceColor;
-    final fg = isPrimary ? Colors.black : AppColors.primary;
+    final fg = isPrimary ? Colors.white : context.primaryColor;
     return Tooltip(
       message: tooltip,
       child: Material(

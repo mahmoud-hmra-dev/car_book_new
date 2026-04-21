@@ -11,12 +11,18 @@ void main() async {
   // dialog. The service will be ready well before the user signs in.
   PushNotificationService().init().ignore();
 
+  // Edge-to-edge: app renders behind both status bar and system nav bar.
+  // On gesture-navigation devices the 3 buttons disappear entirely;
+  // on button-navigation devices they float over a transparent background.
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.light,
       statusBarBrightness: Brightness.dark,
-      systemNavigationBarColor: Color(0xFF0A0E1A),
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarDividerColor: Colors.transparent,
       systemNavigationBarIconBrightness: Brightness.light,
     ),
   );
