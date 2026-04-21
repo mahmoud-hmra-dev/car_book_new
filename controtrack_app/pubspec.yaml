@@ -24,6 +24,7 @@ dependencies:
   flutter_secure_storage: ^9.2.4
   # Maps
   google_maps_flutter: ^2.9.0
+  google_maps_flutter_web: ^0.5.10
   # UI
   shimmer: ^3.0.0
   cached_network_image: ^3.4.1

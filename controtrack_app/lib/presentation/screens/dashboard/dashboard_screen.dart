@@ -53,6 +53,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           onRefresh: () => context.read<FleetCubit>().load(refreshing: true),
           child: BlocBuilder<FleetCubit, FleetState>(
             builder: (context, state) {
+              final screenWidth = MediaQuery.sizeOf(context).width;
+              final isWide = screenWidth >= 800;
               if (state.status == FleetStatus.loading && state.items.isEmpty) {
                 return const ShimmerList();
               }
@@ -168,8 +170,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     sliver: SliverGrid(
                       gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
+                          SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: isWide ? 4 : 2,
                         mainAxisSpacing: 12,
                         crossAxisSpacing: 12,
                         childAspectRatio: 2.8,
@@ -890,6 +892,21 @@ class _StatCardsRow extends StatelessWidget {
       ),
     ];
 
+    final isWide = MediaQuery.sizeOf(context).width >= 800;
+    if (isWide) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: IntrinsicHeight(
+          child: Row(
+            children: cards
+                .map((c) => Expanded(child: c))
+                .expand((w) => [w, const SizedBox(width: 10)])
+                .toList()
+              ..removeLast(),
+          ),
+        ),
+      );
+    }
     return SizedBox(
       height: 120,
       child: ListView.separated(
@@ -932,7 +949,7 @@ class _StatChipCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 220),
-          width: 132,
+          width: MediaQuery.sizeOf(context).width >= 800 ? null : 132,
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             gradient: selected

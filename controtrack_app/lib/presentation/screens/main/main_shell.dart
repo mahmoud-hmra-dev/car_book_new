@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -7,6 +8,9 @@ import '../../../core/theme/app_colors.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../blocs/fleet/fleet_cubit.dart';
 import '../../blocs/fleet/fleet_state.dart';
+
+// ─── breakpoint: wide layout (rail) vs. narrow layout (bottom nav) ───────────
+const _kRailBreakpoint = 800.0;
 
 class MainShell extends StatelessWidget {
   final Widget child;
@@ -31,23 +35,37 @@ class MainShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final idx = _activeIndex(context);
+    final width = MediaQuery.sizeOf(context).width;
+    final isWide = width >= _kRailBreakpoint;
+
     return BlocBuilder<FleetCubit, FleetState>(
       buildWhen: (a, b) => a.unreadAlertsCount != b.unreadAlertsCount,
-      builder: (context, state) => Scaffold(
-        backgroundColor: context.bgColor,
-        extendBody: true,
-        body: child,
-        bottomNavigationBar: _FloatingNav(
-          tabs: _tabs,
-          activeIndex: idx,
-          badgeCount: state.unreadAlertsCount,
-          onTap: (i) {
-            if (i == idx) return;
-            HapticFeedback.selectionClick();
-            context.go(_tabs[i].path);
-          },
-        ),
-      ),
+      builder: (context, state) {
+        if (isWide) {
+          return _WideShell(
+            tabs: _tabs,
+            activeIndex: idx,
+            badgeCount: state.unreadAlertsCount,
+            onTap: (i) => context.go(_tabs[i].path),
+            child: child,
+          );
+        }
+        return Scaffold(
+          backgroundColor: context.bgColor,
+          extendBody: true,
+          body: child,
+          bottomNavigationBar: _FloatingNav(
+            tabs: _tabs,
+            activeIndex: idx,
+            badgeCount: state.unreadAlertsCount,
+            onTap: (i) {
+              if (i == idx) return;
+              if (!kIsWeb) HapticFeedback.selectionClick();
+              context.go(_tabs[i].path);
+            },
+          ),
+        );
+      },
     );
   }
 }
@@ -60,9 +78,224 @@ class _Tab {
   const _Tab(this.path, this.icon, this.activeIcon, this.labelKey);
 }
 
-// ─────────────────────────────────────────────────────────────
-//  Floating pill nav bar — RTL-aware
-// ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+//  Wide layout — styled side navigation rail (desktop / large tablet / web)
+// ─────────────────────────────────────────────────────────────────────────────
+class _WideShell extends StatelessWidget {
+  final List<_Tab> tabs;
+  final int activeIndex;
+  final int badgeCount;
+  final ValueChanged<int> onTap;
+  final Widget child;
+
+  const _WideShell({
+    required this.tabs,
+    required this.activeIndex,
+    required this.badgeCount,
+    required this.onTap,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = context.isDarkMode;
+    final railBg = isDark ? AppColors.surface : Colors.white;
+    final borderColor = isDark ? AppColors.divider : LightColors.divider;
+
+    return Scaffold(
+      backgroundColor: context.bgColor,
+      body: Row(
+        children: [
+          // ── Side rail ──────────────────────────────────────────────────────
+          Container(
+            width: 220,
+            decoration: BoxDecoration(
+              color: railBg,
+              border: Border(
+                right: BorderSide(color: borderColor),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.30 : 0.06),
+                  blurRadius: 12,
+                  offset: const Offset(2, 0),
+                ),
+              ],
+            ),
+            child: SafeArea(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Brand header
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [context.primaryColor, context.primaryLightColor],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(Icons.location_on_rounded, color: Colors.white, size: 20),
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          'ControTrack',
+                          style: TextStyle(
+                            color: context.textPrimaryColor,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 16,
+                            letterSpacing: -0.3,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Navigation items
+                  Expanded(
+                    child: ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      itemCount: tabs.length,
+                      itemBuilder: (context, i) => _RailItem(
+                        tab: tabs[i],
+                        isActive: i == activeIndex,
+                        badgeCount: tabs[i].path == '/alerts' && badgeCount > 0 ? badgeCount : 0,
+                        onTap: () => onTap(i),
+                      ),
+                    ),
+                  ),
+
+                  // Version footer
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+                    child: Text(
+                      'v1.0.0',
+                      style: TextStyle(
+                        color: context.textMutedColor,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // ── Page content ──────────────────────────────────────────────────
+          Expanded(child: child),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Single rail item ──────────────────────────────────────────────────────────
+class _RailItem extends StatelessWidget {
+  final _Tab tab;
+  final bool isActive;
+  final int badgeCount;
+  final VoidCallback onTap;
+
+  const _RailItem({
+    required this.tab,
+    required this.isActive,
+    required this.badgeCount,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeInOut,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+            decoration: BoxDecoration(
+              gradient: isActive
+                  ? LinearGradient(
+                      colors: [
+                        context.primaryColor.withValues(alpha: 0.18),
+                        context.primaryLightColor.withValues(alpha: 0.10),
+                      ],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    )
+                  : null,
+              borderRadius: BorderRadius.circular(12),
+              border: isActive
+                  ? Border.all(color: context.primaryColor.withValues(alpha: 0.35))
+                  : null,
+            ),
+            child: Row(
+              children: [
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Icon(
+                      isActive ? tab.activeIcon : tab.icon,
+                      size: 20,
+                      color: isActive ? context.primaryColor : context.textMutedColor,
+                    ),
+                    if (badgeCount > 0)
+                      Positioned(
+                        top: -5,
+                        right: -8,
+                        child: Container(
+                          constraints: const BoxConstraints(minWidth: 16),
+                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: context.errorColor,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            badgeCount > 99 ? '99+' : '$badgeCount',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w800,
+                              height: 1.2,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  context.tr(tab.labelKey),
+                  style: TextStyle(
+                    color: isActive ? context.primaryColor : context.textSecondaryColor,
+                    fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Floating pill nav bar — RTL-aware (mobile / narrow screens)
+// ─────────────────────────────────────────────────────────────────────────────
 class _FloatingNav extends StatelessWidget {
   final List<_Tab> tabs;
   final int activeIndex;
@@ -112,9 +345,6 @@ class _FloatingNav extends StatelessWidget {
             builder: (context, constraints) {
               final itemW = constraints.maxWidth / tabs.length;
 
-              // In RTL the Row renders children right-to-left, so tab 0
-              // visually appears on the right. Mirror the pill position so it
-              // always sits under the active tab.
               final pillOffset = isRtl
                   ? itemW * (tabs.length - 1 - activeIndex) + 10
                   : itemW * activeIndex + 10;
@@ -122,7 +352,6 @@ class _FloatingNav extends StatelessWidget {
               return Stack(
                 alignment: Alignment.center,
                 children: [
-                  // ── Sliding pill indicator ─────────────────
                   AnimatedPositioned(
                     duration: const Duration(milliseconds: 280),
                     curve: Curves.easeInOutCubic,
@@ -153,7 +382,6 @@ class _FloatingNav extends StatelessWidget {
                     ),
                   ),
 
-                  // ── Tab items ─────────────────────────────
                   Row(
                     children: List.generate(tabs.length, (i) {
                       final isActive  = i == activeIndex;
@@ -179,9 +407,9 @@ class _FloatingNav extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
-//  Single nav item
-// ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+//  Single bottom nav item
+// ─────────────────────────────────────────────────────────────────────────────
 class _NavItem extends StatelessWidget {
   final _Tab tab;
   final bool isActive;
@@ -210,7 +438,6 @@ class _NavItem extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Icon + badge
             Stack(
               clipBehavior: Clip.none,
               children: [

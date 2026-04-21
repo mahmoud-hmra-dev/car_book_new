@@ -96,8 +96,12 @@ class _LoginScreenState extends State<LoginScreen>
               builder: (context, state) {
                 final loading = state.status == AuthStatus.loading;
                 return SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Column(
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 480),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       const SizedBox(height: 72),
@@ -172,7 +176,10 @@ class _LoginScreenState extends State<LoginScreen>
                       const SizedBox(height: 24),
                     ],
                   ),
-                );
+                ),
+              ),
+            ),
+          );
               },
             ),
           ),
