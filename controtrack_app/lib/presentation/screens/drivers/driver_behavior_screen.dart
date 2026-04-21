@@ -340,7 +340,7 @@ class _RangeSelector extends StatelessWidget {
                   ),
                   child: Center(
                     child: Text(
-                      _label(r),
+                      _label(context, r),
                       style: TextStyle(
                         color: current == r
                             ? AppColors.primary
@@ -358,14 +358,14 @@ class _RangeSelector extends StatelessWidget {
     );
   }
 
-  String _label(_Range r) {
+  String _label(BuildContext context, _Range r) {
     switch (r) {
       case _Range.today:
-        return 'Today';
+        return context.tr('today');
       case _Range.week:
-        return 'Week';
+        return context.tr('this_week');
       case _Range.month:
-        return 'Month';
+        return context.tr('this_month');
     }
   }
 }

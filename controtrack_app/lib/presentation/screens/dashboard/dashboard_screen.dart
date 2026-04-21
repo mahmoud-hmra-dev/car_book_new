@@ -5,7 +5,11 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import '../../../core/theme/app_colors.dart';
+import '../../../data/models/event_model.dart';
 import '../../../data/models/fleet_item_model.dart';
+import '../../../data/models/maintenance_model.dart';
+import '../../../data/repositories/fleet_repository.dart';
+import '../../../data/repositories/tracking_repository.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../blocs/auth/auth_cubit.dart';
 import '../../blocs/fleet/fleet_cubit.dart';
@@ -291,43 +295,68 @@ class _CrashDetectionBanner extends StatefulWidget {
 
 class _CrashDetectionBannerState extends State<_CrashDetectionBanner> {
   static const _kDismissedKey = 'crash_banner_dismissed_at';
-  bool _visible = false;
-  // Simulated crash event data
-  static final DateTime _simulatedCrashTime =
-      DateTime.now().subtract(const Duration(minutes: 23));
-  static const String _simulatedVehicle = 'Truck-03';
+  static const _kCrashTypes = {
+    'deviceOverspeed', 'geofenceEnter', 'geofenceExit',
+    'alarm', 'sos', 'panic', 'crash', 'hardBraking',
+    'hardAcceleration', 'accident',
+  };
+
+  EventModel? _event;
+  bool _dismissed = false;
+  bool _loaded = false;
 
   @override
   void initState() {
     super.initState();
-    _checkVisibility();
+    _loadEvent();
   }
 
-  Future<void> _checkVisibility() async {
+  Future<void> _loadEvent() async {
+    // Capture repo before any await to avoid BuildContext-across-async-gap lint.
+    final repo = context.read<FleetRepository>();
     final prefs = await SharedPreferences.getInstance();
     final dismissedAt = prefs.getInt(_kDismissedKey);
     if (dismissedAt != null) {
       final elapsed = DateTime.now()
           .difference(DateTime.fromMillisecondsSinceEpoch(dismissedAt));
-      // Re-show after 1 hour
       if (elapsed.inHours < 1) {
-        if (mounted) setState(() => _visible = false);
+        if (mounted) setState(() { _dismissed = true; _loaded = true; });
         return;
       }
     }
-    if (mounted) setState(() => _visible = true);
+    try {
+      final events = await repo.getEvents(
+        from: DateTime.now().subtract(const Duration(hours: 2)),
+        to: DateTime.now(),
+        limit: 20,
+      );
+      final critical = events.where((e) {
+        final t = e.type.toLowerCase();
+        return _kCrashTypes.any((k) => t.contains(k));
+      }).toList();
+      if (mounted) {
+        setState(() {
+          _event = critical.isNotEmpty ? critical.first : null;
+          _loaded = true;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _loaded = true);
+    }
   }
 
   Future<void> _dismiss() async {
-    setState(() => _visible = false);
+    setState(() => _dismissed = true);
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(
-        _kDismissedKey, DateTime.now().millisecondsSinceEpoch);
+    await prefs.setInt(_kDismissedKey, DateTime.now().millisecondsSinceEpoch);
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!_visible) return const SizedBox.shrink();
+    if (!_loaded || _dismissed || _event == null) return const SizedBox.shrink();
+
+    final vehicleName = _event!.carName ?? _event!.carId ?? '—';
+    final eventTime = _event!.eventTime ?? DateTime.now();
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -430,7 +459,7 @@ class _CrashDetectionBannerState extends State<_CrashDetectionBanner> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '$_simulatedVehicle · ${timeago.format(_simulatedCrashTime, locale: context.isRtl ? 'ar' : 'en_short')}',
+                      '$vehicleName · ${timeago.format(eventTime, locale: context.isRtl ? 'ar' : 'en_short')}',
                       style: TextStyle(
                         color: context.textSecondaryColor,
                         fontSize: 12,
@@ -1291,14 +1320,52 @@ class _QuickActionTileState extends State<_QuickActionTile> {
 // Maintenance reminder banner
 // ============================================================================
 
-class _MaintenanceBanner extends StatelessWidget {
+class _MaintenanceBanner extends StatefulWidget {
   final VoidCallback onTap;
   const _MaintenanceBanner({required this.onTap});
 
   @override
+  State<_MaintenanceBanner> createState() => _MaintenanceBannerState();
+}
+
+class _MaintenanceBannerState extends State<_MaintenanceBanner> {
+  List<MaintenanceModel> _dueItems = [];
+  bool _loaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final repo = context.read<TrackingRepository>();
+      final all = await repo.getMaintenance();
+      final now = DateTime.now();
+      final soon = now.add(const Duration(days: 7));
+      final due = all.where((m) {
+        final end = m.endDate;
+        return end != null && end.isBefore(soon);
+      }).toList();
+      if (mounted) setState(() { _dueItems = due; _loaded = true; });
+    } catch (_) {
+      if (mounted) setState(() => _loaded = true);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (!_loaded || _dueItems.isEmpty) return const SizedBox.shrink();
+
+    final names = _dueItems
+        .take(2)
+        .map((m) => m.carName ?? m.carId ?? '—')
+        .join(' · ');
+    final count = _dueItems.length;
+
     return GestureDetector(
-      onTap: onTap,
+      onTap: widget.onTap,
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
@@ -1338,7 +1405,7 @@ class _MaintenanceBanner extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    context.tr('maintenance_banner_subtitle'),
+                    count > 2 ? '$names +${count - 2}' : names,
                     style: TextStyle(
                       color: context.textMutedColor,
                       fontSize: 11,

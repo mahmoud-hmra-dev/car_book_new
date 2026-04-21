@@ -1,19 +1,16 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/fleet_item_model.dart';
+import '../../../data/repositories/fleet_repository.dart';
+import '../../../data/repositories/tracking_repository.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../blocs/fleet/fleet_cubit.dart';
 
-/// Auto-generated fleet summary report, backed entirely by local data
-/// (FleetCubit snapshot + SharedPreferences) — no backend calls.
 class SummaryReportScreen extends StatefulWidget {
   const SummaryReportScreen({super.key});
 
@@ -37,7 +34,7 @@ class _SummaryReportScreenState extends State<SummaryReportScreen> {
   @override
   void initState() {
     super.initState();
-    _loadLocalData();
+    _loadData();
   }
 
   DateTime get _periodStart {
@@ -52,107 +49,76 @@ class _SummaryReportScreenState extends State<SummaryReportScreen> {
     }
   }
 
-  Future<void> _loadLocalData() async {
+  Future<void> _loadData() async {
     setState(() => _loading = true);
-    final prefs = await SharedPreferences.getInstance();
+    // Capture repos before any await.
+    final fleetRepo = context.read<FleetRepository>();
+    final trackingRepo = context.read<TrackingRepository>();
 
-    // Infractions
-    int infractionsCount = 0;
-    final Map<String, int> typeCounts = {};
-    final rawInfr = prefs.getString('infractions_list');
-    final since = _periodStart;
-    if (rawInfr != null && rawInfr.isNotEmpty) {
-      try {
-        final decoded = json.decode(rawInfr);
-        if (decoded is List) {
-          for (final e in decoded) {
-            if (e is Map) {
-              final dateStr = e['date']?.toString();
-              final d =
-                  dateStr != null ? DateTime.tryParse(dateStr) : null;
-              if (d != null && d.isAfter(since)) {
-                infractionsCount++;
-                final type = (e['type'] ?? 'other').toString();
-                typeCounts[type] = (typeCounts[type] ?? 0) + 1;
-              }
-            }
-          }
+    try {
+      final eventsFuture = fleetRepo.getEvents(
+        from: _periodStart,
+        to: DateTime.now(),
+        limit: 200,
+      );
+      final maintFuture = trackingRepo.getMaintenance();
+      final events = await eventsFuture;
+      final maintenance = await maintFuture;
+
+      // Count events as alerts; classify driving infractions by type.
+      int infractionsCount = 0;
+      final Map<String, int> typeCounts = {};
+      for (final e in events) {
+        final t = e.type.toLowerCase();
+        if (t.contains('speed')) {
+          infractionsCount++;
+          typeCounts['speeding'] = (typeCounts['speeding'] ?? 0) + 1;
+        } else if (t.contains('brake') || t.contains('harshbraking') || t.contains('hard_braking')) {
+          infractionsCount++;
+          typeCounts['harsh_braking'] = (typeCounts['harsh_braking'] ?? 0) + 1;
+        } else if (t.contains('acceleration') || t.contains('harshacceleration')) {
+          infractionsCount++;
+          typeCounts['harsh_accel'] = (typeCounts['harsh_accel'] ?? 0) + 1;
+        } else if (t.contains('alarm') || t.contains('sos') || t.contains('panic') || t.contains('crash')) {
+          infractionsCount++;
+          typeCounts['alert'] = (typeCounts['alert'] ?? 0) + 1;
         }
-      } catch (_) {
-        // ignore malformed
       }
-    }
 
-    // Maintenance
-    int overdue = 0;
-    int upcoming = 0;
-    final rawMaint = prefs.getString('maintenance_records');
-    final now = DateTime.now();
-    final weekFromNow = now.add(const Duration(days: 7));
-    if (rawMaint != null && rawMaint.isNotEmpty) {
-      try {
-        final decoded = json.decode(rawMaint);
-        if (decoded is List) {
-          for (final e in decoded) {
-            if (e is Map) {
-              final endStr = e['endDate']?.toString();
-              final end = endStr != null ? DateTime.tryParse(endStr) : null;
-              if (end == null) continue;
-              if (end.isBefore(now)) {
-                overdue++;
-              } else if (end.isBefore(weekFromNow)) {
-                upcoming++;
-              }
-            }
-          }
+      // Maintenance overdue / upcoming.
+      final now = DateTime.now();
+      final weekFromNow = now.add(const Duration(days: 7));
+      int overdue = 0;
+      int upcoming = 0;
+      for (final m in maintenance) {
+        final end = m.endDate;
+        if (end == null) continue;
+        if (end.isBefore(now)) {
+          overdue++;
+        } else if (end.isBefore(weekFromNow)) {
+          upcoming++;
         }
-      } catch (_) {
-        // ignore malformed
       }
-    }
 
-    // Alerts (optional — key may not exist)
-    final rawAlerts = prefs.getString('alerts_list');
-    int alertsCount = 0;
-    bool alertsAvailable = false;
-    if (rawAlerts != null && rawAlerts.isNotEmpty) {
-      alertsAvailable = true;
-      try {
-        final decoded = json.decode(rawAlerts);
-        if (decoded is List) {
-          for (final e in decoded) {
-            if (e is Map) {
-              final dateStr =
-                  (e['date'] ?? e['timestamp'] ?? e['createdAt'])?.toString();
-              final d =
-                  dateStr != null ? DateTime.tryParse(dateStr) : null;
-              if (d == null || d.isAfter(since)) {
-                alertsCount++;
-              }
-            }
-          }
-        }
-      } catch (_) {
-        // ignore malformed
-      }
+      if (!mounted) return;
+      setState(() {
+        _infractionsCount = infractionsCount;
+        _infractionsByType = typeCounts;
+        _overdueMaintenance = overdue;
+        _upcomingMaintenance = upcoming;
+        _alertsCount = events.length;
+        _alertsAvailable = true;
+        _loading = false;
+      });
+    } catch (_) {
+      if (mounted) setState(() => _loading = false);
     }
-
-    if (!mounted) return;
-    setState(() {
-      _infractionsCount = infractionsCount;
-      _infractionsByType = typeCounts;
-      _overdueMaintenance = overdue;
-      _upcomingMaintenance = upcoming;
-      _alertsCount = alertsCount;
-      _alertsAvailable = alertsAvailable;
-      _loading = false;
-    });
   }
 
   void _setPeriod(_Period p) {
     if (_period == p) return;
     setState(() => _period = p);
-    _loadLocalData();
+    _loadData();
   }
 
   double _avgFleetSpeed(List<FleetItem> items) {

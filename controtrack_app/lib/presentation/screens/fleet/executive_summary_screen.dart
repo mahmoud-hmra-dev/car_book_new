@@ -49,6 +49,13 @@ class _ExecutiveSummaryScreenState extends State<ExecutiveSummaryScreen> {
   List<double> _alerts = List<double>.filled(7, 0);
   List<double> _idleHours = List<double>.filled(7, 0);
 
+  // Top performers — populated from per-vehicle reports
+  String _topVehicleName = '';
+  int _topVehicleScore = 0;
+  String _bestDistanceVehicleName = '';
+  double _bestVehicleDistance = 0;
+  double _bestVehicleUptime = 0;
+
   final List<_Concern> _concerns = <_Concern>[
     _Concern(
       icon: Icons.build_circle_outlined,
@@ -251,6 +258,31 @@ class _ExecutiveSummaryScreenState extends State<ExecutiveSummaryScreen> {
       final double dailyAlerts = incidentsCount / 7.0;
       final double dailyIdle = totalIdleHours / 7.0;
 
+      // Find top-performing vehicle (fewest stops → highest score) and most
+      // active vehicle (highest distance) from per-vehicle reports.
+      String topName = '';
+      int topScore = 0;
+      String bestDistName = '';
+      double bestDist = 0;
+      double bestUptime = 0;
+      final int periodSeconds = _daysInSelected() * 86400;
+      for (int i = 0; i < reports.length; i++) {
+        final ReportModel r = reports[i];
+        final String name = i < items.length ? items[i].carName : 'Vehicle ${i + 1}';
+        final int score = (100 - r.stops * 1.5).clamp(30.0, 100.0).toInt();
+        if (topName.isEmpty || score > topScore) {
+          topScore = score;
+          topName = name;
+        }
+        if (r.distance > bestDist) {
+          bestDist = r.distance;
+          bestDistName = name;
+          bestUptime = periodSeconds > 0
+              ? (r.duration / periodSeconds * 100).clamp(0.0, 100.0)
+              : 0;
+        }
+      }
+
       if (!mounted) return;
       setState(() {
         _health = health;
@@ -259,6 +291,11 @@ class _ExecutiveSummaryScreenState extends State<ExecutiveSummaryScreen> {
         _kmPerDay = List<double>.filled(7, dailyKm);
         _alerts = List<double>.filled(7, dailyAlerts);
         _idleHours = List<double>.filled(7, dailyIdle);
+        _topVehicleName = topName.isNotEmpty ? topName : '—';
+        _topVehicleScore = topScore;
+        _bestDistanceVehicleName = bestDistName.isNotEmpty ? bestDistName : '—';
+        _bestVehicleDistance = bestDist;
+        _bestVehicleUptime = bestUptime;
         _isLoading = false;
       });
     } catch (e) {
@@ -1053,7 +1090,9 @@ class _ExecutiveSummaryScreenState extends State<ExecutiveSummaryScreen> {
               ),
               alignment: Alignment.center,
               child: Text(
-                'JM',
+                _topVehicleName.length >= 2
+                    ? _topVehicleName.substring(0, 2).toUpperCase()
+                    : _topVehicleName.toUpperCase(),
                 style: TextStyle(
                   color: context.textPrimaryColor,
                   fontSize: 20,
@@ -1065,7 +1104,7 @@ class _ExecutiveSummaryScreenState extends State<ExecutiveSummaryScreen> {
           const SizedBox(height: 12),
           Center(
             child: Text(
-              'James Miller',
+              _topVehicleName,
               style: TextStyle(
                 color: context.textPrimaryColor,
                 fontSize: 14,
@@ -1078,9 +1117,9 @@ class _ExecutiveSummaryScreenState extends State<ExecutiveSummaryScreen> {
             child: RichText(
               text: TextSpan(
                 children: <InlineSpan>[
-                  const TextSpan(
-                    text: '96',
-                    style: TextStyle(
+                  TextSpan(
+                    text: _topVehicleScore.toString(),
+                    style: const TextStyle(
                       color: AppColors.primary,
                       fontSize: 18,
                       fontWeight: FontWeight.w800,
@@ -1159,7 +1198,7 @@ class _ExecutiveSummaryScreenState extends State<ExecutiveSummaryScreen> {
           const SizedBox(height: 12),
           Center(
             child: Text(
-              'Van-12',
+              _bestDistanceVehicleName,
               style: TextStyle(
                 color: context.textPrimaryColor,
                 fontSize: 14,
@@ -1173,16 +1212,16 @@ class _ExecutiveSummaryScreenState extends State<ExecutiveSummaryScreen> {
             children: <Widget>[
               Column(
                 children: <Widget>[
-                  const Text(
-                    '14.2',
-                    style: TextStyle(
+                  Text(
+                    _formatNumber(_bestVehicleDistance),
+                    style: const TextStyle(
                       color: AppColors.success,
                       fontSize: 14,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
                   Text(
-                    'km/L',
+                    'km',
                     style: TextStyle(
                       color: context.textMutedColor,
                       fontSize: 10,
@@ -1197,9 +1236,9 @@ class _ExecutiveSummaryScreenState extends State<ExecutiveSummaryScreen> {
               ),
               Column(
                 children: <Widget>[
-                  const Text(
-                    '98%',
-                    style: TextStyle(
+                  Text(
+                    '${_bestVehicleUptime.toStringAsFixed(0)}%',
+                    style: const TextStyle(
                       color: AppColors.primary,
                       fontSize: 14,
                       fontWeight: FontWeight.w800,
