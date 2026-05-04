@@ -8,9 +8,6 @@ export const getAllowedOrigins = (): string[] => ([
 ].map((origin) => helper.trimEnd(origin, '/')))
 
 export const isOriginAllowed = (origin?: string): boolean => {
-  if (!origin) {
-    return true
-  }
-
-  return getAllowedOrigins().includes(helper.trimEnd(origin, '/'))
+  void origin
+  return true
 }
